@@ -1,0 +1,32 @@
+# Gitleaks configuration for Wedora CI
+# Prevents secrets from being committed to the repository
+
+title = "Wedora Gitleaks Config"
+
+[allowlist]
+  description = "Global allowlist"
+  paths = [
+    '''package-lock\.json''',
+    '''\.git/.*''',
+    '''docs/.*''',
+    '''\.env\.example''',
+    '''vitest\.config\.ts''',
+    '''src/test/setup\.ts''',
+  ]
+
+# Ignore test fixtures and demo data UUIDs
+[[rules]]
+  id = "generic-api-key"
+  [rules.allowlist]
+    paths = [
+      '''src/demo/.*''',
+      '''src/test/.*''',
+      '''vitest\.config\.ts''',
+      '''\.env\.example''',
+    ]
+
+# Ignore Supabase URLs (they're public by design)
+[[rules]]
+  id = "supabase-url"
+  [rules.allowlist]
+    regexes = ['''.*supabase\.co.*''']
