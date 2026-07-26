@@ -799,6 +799,7 @@ export default function SeatingPlanWorkspacePage() {
           undoStack={undoStack} redoStack={redoStack}
           canvasWarnings={canvasWarnings}
           selectedCount={selectedTableIds.size + selectedObjectIds.size} allTableCount={tables.length}
+          isDemo={isDemo}
           onBack={() => navigate('/app/seating')}
           onNavigate={(path) => navigate(path)}
           onZoomIn={() => setZoom((z) => Math.min(5, +(z + 0.1).toFixed(2)))}
@@ -850,6 +851,7 @@ export default function SeatingPlanWorkspacePage() {
             snapEnabled={snapEnabled}
             showGuides={showGuides}
             isReadOnly={false}
+            isDemo={isDemo}
             selectedTableIds={selectedTableIds}
             selectedObjectIds={selectedObjectIds}
             selectedSeatId={selectedSeatId}

@@ -7,45 +7,157 @@ import { supabase } from '@/lib/supabase';
 import { mapToSeatingPlan, mapToTablesWithData, mapToRoomObjects, mapToUnseatedGuests, mapToAllGuestInfos } from '@/demo/demoSeatingMapping';
 import type { TableWithData, GuestInfo, UnseatedGuest, RoomObject, GuestSeating, SeatingSeat, CanvasWarning } from '@/types/seating';
 
-// ── Simple room canvas (no heavy Canvas component needed for overview) ──
+// ── Mini room canvas — polished floor-plan preview ──
 function MiniSeatingCanvas({ tables, roomObjects }: { tables: TableWithData[]; roomObjects: RoomObject[] }) {
+  const totalSeats = tables.reduce((s, t) => s + t.capacity, 0);
+  const totalAssigned = tables.reduce((s, t) => s + t.seated_count, 0);
+
   return (
-    <div className="relative w-full" style={{ paddingBottom: '70%' }}>
-      <div className="absolute inset-0 bg-background-50 rounded-xl border border-secondary-200 overflow-hidden">
+    <div className="relative w-full" style={{ paddingBottom: '68%' }}>
+      <div className="absolute inset-0 bg-background-100 rounded-xl border border-secondary-200 overflow-hidden">
+        {/* Subtle floor pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, var(--foreground-900) 1px, transparent 1px)',
+            backgroundSize: '16px 16px',
+          }}
+        />
+
         {/* Room boundary */}
-        <div className="absolute inset-4 border-2 border-secondary-200 rounded-lg bg-white">
-          {/* Room objects */}
+        <div className="absolute inset-3 border border-secondary-200 rounded-lg bg-white shadow-sm">
+          {/* Corner markers */}
+          <div className="absolute -top-px -left-px w-2 h-2 border-t-2 border-l-2 border-secondary-300 rounded-tl-sm" />
+          <div className="absolute -top-px -right-px w-2 h-2 border-t-2 border-r-2 border-secondary-300 rounded-tr-sm" />
+          <div className="absolute -bottom-px -left-px w-2 h-2 border-b-2 border-l-2 border-secondary-300 rounded-bl-sm" />
+          <div className="absolute -bottom-px -right-px w-2 h-2 border-b-2 border-r-2 border-secondary-300 rounded-br-sm" />
+
+          {/* Room label */}
+          <span className="absolute top-2 left-3 text-[9px] font-label uppercase tracking-wider text-foreground-300">
+            The Orangery · Reception
+          </span>
+
+          {/* Orientation indicator */}
+          <div className="absolute top-2 right-3 flex items-center gap-1 text-[9px] text-foreground-300 font-label">
+            <i className="ri-compass-3-line" />
+            <span>N</span>
+          </div>
+
+          {/* Room objects (dance floor, stage, etc.) */}
           {roomObjects.map((obj) => (
-            <div key={obj.id} className="absolute flex flex-col items-center justify-center border-2 border-amber-200 bg-amber-50/60 rounded-lg"
+            <div
+              key={obj.id}
+              className="absolute flex flex-col items-center justify-center rounded-lg border border-accent-200 bg-accent-50/60 overflow-hidden"
               style={{
                 left: `${(obj.x_position / 900) * 100}%`,
                 top: `${(obj.y_position / 950) * 100}%`,
                 width: `${(obj.width / 900) * 100}%`,
                 height: `${(obj.height / 950) * 100}%`,
-              }}>
-              <i className="ri-music-line text-amber-400 text-[10px]" />
-              <span className="text-[7px] text-amber-500 font-label">{obj.name}</span>
+              }}
+            >
+              {/* Subtle checker pattern for dance floor */}
+              <div
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage:
+                    'repeating-conic-gradient(var(--accent-500) 0% 25%, transparent 0% 50%)',
+                  backgroundSize: '12px 12px',
+                }}
+              />
+              <i className="ri-music-2-line text-accent-500 text-[10px] relative z-10" />
+              <span className="text-[7px] text-accent-600 font-label font-medium relative z-10 mt-0.5">{obj.name}</span>
             </div>
           ))}
 
           {/* Tables */}
-          {tables.map((table) => (
-            <div key={table.id} className="absolute flex items-center justify-center border-2 border-emerald-300 bg-emerald-50 rounded-full"
-              style={{
-                left: `${(table.position_x / 900) * 100}%`,
-                top: `${(table.position_y / 950) * 100}%`,
-                width: `${(table.width / 900) * 100}%`,
-                height: `${(table.height / 950) * 100}%`,
-              }}>
-              <div className="text-center">
-                <span className="text-[8px] font-label text-emerald-700 leading-tight block">{table.name.split(' — ')[0] || table.name}</span>
-                <span className="text-[7px] text-emerald-500">{table.seated_count}/{table.capacity}</span>
-              </div>
-            </div>
-          ))}
+          {tables.map((table) => {
+            const isTopTable = table.name.toLowerCase().includes('top');
+            const isFull = table.seated_count >= table.capacity;
+            const hasGuests = table.seated_count > 0;
 
-          {/* Room label */}
-          <span className="absolute top-2 left-3 text-[9px] text-foreground-300 font-label uppercase">The Orangery · Reception</span>
+            return (
+              <div
+                key={table.id}
+                className={`absolute flex flex-col items-center justify-center border-2 rounded-full transition-all ${
+                  isTopTable
+                    ? 'border-primary-300 bg-primary-50'
+                    : isFull
+                      ? 'border-red-300 bg-red-50'
+                      : hasGuests
+                        ? 'border-emerald-300 bg-emerald-50'
+                        : 'border-secondary-200 bg-background-50'
+                }`}
+                style={{
+                  left: `${(table.position_x / 900) * 100}%`,
+                  top: `${(table.position_y / 950) * 100}%`,
+                  width: `${(table.width / 900) * 100}%`,
+                  height: `${(table.height / 950) * 100}%`,
+                }}
+              >
+                {/* Seat dots around the perimeter for round tables */}
+                {table.shape !== 'rectangular' &&
+                  Array.from({ length: table.capacity }).map((_, i) => {
+                    const angle = (i / table.capacity) * 2 * Math.PI - Math.PI / 2;
+                    const x = 50 + 42 * Math.cos(angle);
+                    const y = 50 + 42 * Math.sin(angle);
+                    const filled = i < table.seated_count;
+                    return (
+                      <div
+                        key={i}
+                        className={`absolute w-[5%] h-[5%] rounded-full ${
+                          filled
+                            ? isTopTable
+                              ? 'bg-primary-400'
+                              : 'bg-emerald-400'
+                            : 'bg-secondary-200'
+                        }`}
+                        style={{
+                          left: `${x}%`,
+                          top: `${y}%`,
+                          transform: 'translate(-50%, -50%)',
+                        }}
+                      />
+                    );
+                  })}
+
+                {/* Table label */}
+                <div className="text-center relative z-10 px-1">
+                  <span className={`text-[8px] font-label font-semibold leading-tight block ${
+                    isTopTable ? 'text-primary-700' : isFull ? 'text-red-700' : hasGuests ? 'text-emerald-700' : 'text-foreground-600'
+                  }`}>
+                    {table.name.split(' — ')[0] || table.name}
+                  </span>
+                  <span className={`text-[7px] font-label font-medium ${
+                    isFull ? 'text-red-500' : hasGuests ? 'text-emerald-500' : 'text-foreground-400'
+                  }`}>
+                    {table.seated_count}/{table.capacity}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom stats bar inside the canvas frame */}
+        <div className="absolute bottom-0 left-0 right-0 px-3 py-2 flex items-center justify-between border-t border-secondary-100 bg-white/80 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center gap-1 text-[10px] text-foreground-500 font-label">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-400" />
+              Top table
+            </span>
+            <span className="flex items-center gap-1 text-[10px] text-foreground-500 font-label">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              Assigned
+            </span>
+            <span className="flex items-center gap-1 text-[10px] text-foreground-500 font-label">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-400" />
+              Dance floor
+            </span>
+          </div>
+          <span className="text-[10px] font-label text-foreground-400">
+            {totalAssigned}/{totalSeats} seats filled
+          </span>
         </div>
       </div>
     </div>
@@ -218,13 +330,24 @@ export default function SeatingOverviewPage() {
             </div>
           </div>
 
-          {/* Mini canvas preview */}
-          <div className="card-default">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-label text-sm font-semibold text-foreground-900">Room preview</h2>
-              <span className="text-[10px] text-foreground-400">The Orangery</span>
+          {/* Room preview card */}
+          <div className="card-default p-0 overflow-hidden">
+            <div className="px-5 pt-4 pb-3 flex items-center justify-between border-b border-secondary-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 flex items-center justify-center rounded-md bg-accent-50 text-accent-600">
+                  <i className="ri-map-2-line text-xs" />
+                </div>
+                <div>
+                  <h2 className="font-label text-sm font-semibold text-foreground-900">Room preview</h2>
+                </div>
+              </div>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-label font-medium border border-emerald-100">
+                Live layout
+              </span>
             </div>
-            <MiniSeatingCanvas tables={demoTables} roomObjects={demoRoomObjects} />
+            <div className="p-3">
+              <MiniSeatingCanvas tables={demoTables} roomObjects={demoRoomObjects} />
+            </div>
           </div>
         </div>
 

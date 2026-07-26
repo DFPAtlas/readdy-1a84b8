@@ -130,6 +130,22 @@ export interface DemoInvitationRecipient {
   plus_one_allowed: boolean;
 }
 
+export interface DemoInvitationTemplate {
+  id: string;
+  wedding_id: string;
+  name: string;
+  description: string;
+  template_type: string;
+  style_preset: string;
+  header_text: string;
+  body_text: string;
+  closing_text: string;
+  footer_text: string;
+  rsvp_button_label: string;
+  is_default: boolean;
+  status: 'active' | 'archived';
+}
+
 export interface DemoBudgetCategory {
   id: string;
   wedding_id: string;
@@ -324,6 +340,7 @@ export interface DemoState {
   households: DemoHousehold[];
   invitations: DemoInvitation[];
   invitationRecipients: DemoInvitationRecipient[];
+  invitationTemplates: DemoInvitationTemplate[];
   budgetCategories: DemoBudgetCategory[];
   expenses: DemoExpense[];
   payments: DemoPayment[];

@@ -152,6 +152,7 @@ function NormalInvitationsPage() {
           <div><h1 className="font-heading text-2xl text-foreground-900">Invitations</h1><p className="text-sm text-foreground-500 mt-1">Prepare, send and track personalised invitations.</p></div>
           <div className="flex items-center gap-2">
             <button onClick={() => navigate('/app/invitations/templates')} className="btn-ghost text-sm cursor-pointer whitespace-nowrap"><i className="ri-layout-line mr-1.5" />Manage templates</button>
+            <button onClick={() => navigate('/app/invitations/design/new')} className="btn-outline text-sm py-2.5 px-4 cursor-pointer whitespace-nowrap"><i className="ri-paint-brush-line mr-1.5" />Create design</button>
             <button onClick={() => navigate('/app/invitations/new')} className="btn-primary text-sm py-2.5 px-4 cursor-pointer whitespace-nowrap"><i className="ri-add-line mr-1.5" />Create invitation</button>
           </div>
         </div>
@@ -311,6 +312,9 @@ function DemoInvitationsPage() {
             <span className="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-label">Demo Account</span>
             <button onClick={() => navigate('/app/invitations/responses')} className="btn-outline text-sm cursor-pointer whitespace-nowrap">
               <i className="ri-check-double-line mr-1.5" />View responses
+            </button>
+            <button onClick={() => navigate('/app/invitations/design/new')} className="btn-outline text-sm py-2.5 px-4 cursor-pointer whitespace-nowrap">
+              <i className="ri-paint-brush-line mr-1.5" />Create design
             </button>
             <button onClick={() => navigate('/app/invitations/new')} className="btn-primary text-sm py-2.5 px-4 cursor-pointer whitespace-nowrap">
               <i className="ri-add-line mr-1.5" />Create invitation

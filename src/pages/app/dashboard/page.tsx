@@ -270,6 +270,7 @@ function DemoDashboard() {
                   { label: 'Add guest', icon: 'ri-user-add-line', to: '/app/guests/new' },
                   { label: 'Open website', icon: 'ri-global-line', to: `/w/${w.slug}`, isLink: true },
                   { label: 'Guest portal', icon: 'ri-user-line', to: '/guest/demo-session', isLink: true },
+                  { label: 'Create design', icon: 'ri-paint-brush-line', to: '/app/invitations/design/new' },
                   { label: 'Budget', icon: 'ri-money-pound-circle-line', to: '/app/budget' },
                   { label: 'Seating', icon: 'ri-layout-grid-line', to: '/app/seating' },
                   { label: 'Invitations', icon: 'ri-mail-send-line', to: '/app/invitations' },
@@ -910,6 +911,7 @@ function NormalDashboard() {
                 <button onClick={() => navigate('/app/wedding')} className="btn-outline text-xs py-2 cursor-pointer"><i className="ri-pencil-line mr-1.5" />Edit wedding details</button>
                 <button onClick={() => navigate('/app/guests')} className="btn-outline text-xs py-2 cursor-pointer"><i className="ri-group-line mr-1.5" />Manage guests</button>
                 <button onClick={() => navigate('/app/invitations')} className="btn-outline text-xs py-2 cursor-pointer"><i className="ri-mail-send-line mr-1.5" />Send invitations</button>
+                <button onClick={() => navigate('/app/invitations/design/new')} className="btn-outline text-xs py-2 cursor-pointer"><i className="ri-paint-brush-line mr-1.5" />Create design</button>
                 <button onClick={() => navigate('/app/travel')} className="btn-outline text-xs py-2 cursor-pointer"><i className="ri-compass-3-line mr-1.5" />Travel Concierge</button>
                 <button onClick={() => navigate('/app/tasks')} className="btn-outline text-xs py-2 cursor-pointer"><i className="ri-calendar-check-line mr-1.5" />Manage tasks</button>
                 <button onClick={() => navigate('/app/suppliers')} className="btn-outline text-xs py-2 cursor-pointer"><i className="ri-contacts-book-line mr-1.5" />Manage suppliers</button>

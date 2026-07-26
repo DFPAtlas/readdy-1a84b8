@@ -3,7 +3,7 @@ import { DEMO_CONFIG } from './demoConfig';
 import { demoWedding, demoVenues, demoEvents } from './demoWedding';
 import { demoGuests } from './demoGuests';
 import { demoHouseholds } from './demoHouseholds';
-import { demoInvitations, demoInvitationRecipients } from './demoInvitations';
+import { demoInvitations, demoInvitationRecipients, demoInvitationTemplates } from './demoInvitations';
 import { demoBudgetCategories, demoExpenses, demoPayments } from './demoBudget';
 import { demoSeatingPlan } from './demoSeating';
 import { demoTravelPlaces } from './demoTravel';
@@ -35,6 +35,7 @@ export function createInitialDemoState(): DemoState {
     households: demoHouseholds,
     invitations: demoInvitations,
     invitationRecipients: demoInvitationRecipients,
+    invitationTemplates: demoInvitationTemplates,
     budgetCategories: demoBudgetCategories,
     expenses: demoExpenses,
     payments: demoPayments,

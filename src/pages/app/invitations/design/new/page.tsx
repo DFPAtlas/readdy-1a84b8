@@ -1,22 +1,17 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { useAuth } from '@/context/AuthProvider';
 import { isDemoMode } from '@/demo/demoConfig';
-import InvitationEditor from './components/InvitationEditor';
+import InvitationEditor from '@/pages/app/invitations/[invitationId]/edit/components/InvitationEditor';
 
-export default function EditInvitationPage() {
-  const { invitationId } = useParams<{ invitationId: string }>();
+export default function NewDesignPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading, isAuthenticated } = useAuth();
-
-  // ── Handle creation callback — navigate to the real URL ──
 
   const handleCreated = (newId: string) => {
     const base = (window as { __BASE_PATH__?: string }).__BASE_PATH__ || '';
     navigate(`${base}/app/invitations/${newId}/edit`, { replace: true });
   };
-
-  // ── Auth loading ──
 
   if (authLoading) {
     return (
@@ -31,8 +26,7 @@ export default function EditInvitationPage() {
     );
   }
 
-  // ── Not authenticated (non-demo only) ──
-
+  // Demo mode: skip auth check, use demo userId
   if (!isDemoMode && !isAuthenticated) {
     return (
       <AppShell>
@@ -42,7 +36,7 @@ export default function EditInvitationPage() {
               <i className="ri-lock-line text-2xl" />
             </div>
             <h2 className="font-heading text-lg text-foreground-900 mb-2">Sign in required</h2>
-            <p className="text-sm text-foreground-500 mb-4">Please sign in to access the invitation editor.</p>
+            <p className="text-sm text-foreground-500 mb-4">Please sign in to create invitation designs.</p>
           </div>
         </div>
       </AppShell>
@@ -53,14 +47,11 @@ export default function EditInvitationPage() {
 
   return (
     <AppShell>
-      {/* Negative margins cancel AppShell's main padding so the editor fills the viewport */}
-      <div className="-m-4 md:-m-6 lg:-m-8" style={{ height: 'calc(100vh - 64px)' }}>
-        <InvitationEditor
-          invitationId={invitationId ?? null}
-          userId={effectiveUserId}
-          onCreated={handleCreated}
-        />
-      </div>
+      <InvitationEditor
+        invitationId={null}
+        userId={effectiveUserId}
+        onCreated={handleCreated}
+      />
     </AppShell>
   );
 }

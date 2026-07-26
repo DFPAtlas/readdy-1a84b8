@@ -15,6 +15,7 @@ const sidebarLinks = [
   { label: 'Dashboard', href: '/app/dashboard', icon: 'ri-dashboard-line' },
   { label: 'Wedding details', href: '/app/wedding', icon: 'ri-heart-line' },
   { label: 'Styleboard', href: '/app/styleboard', icon: 'ri-palette-line' },
+  ...(isDemoMode ? [] : [{ label: 'Updates', href: '/app/updates', icon: 'ri-notification-3-line' }]),
 ];
 
 const guestSubLinks = [
@@ -29,16 +30,17 @@ const guestSubLinks = [
 
 const invitationSubLinks = [
   { label: 'All invitations', href: '/app/invitations', icon: 'ri-mail-send-line' },
+  { label: 'Create design', href: '/app/invitations/design/new', icon: 'ri-paint-brush-line' },
   { label: 'Templates', href: '/app/invitations/templates', icon: 'ri-layout-line' },
 ];
 
 const budgetSubLinks = [
   { label: 'Overview', href: '/app/budget', icon: 'ri-money-pound-circle-line' },
   { label: 'Categories', href: '/app/budget/categories', icon: 'ri-list-check' },
-  { label: 'Suppliers', href: '/app/budget/suppliers', icon: 'ri-file-list-3-line' },
   { label: 'Payments', href: '/app/budget/payments', icon: 'ri-bank-card-line' },
   { label: 'Reports', href: '/app/budget/reports', icon: 'ri-bar-chart-line' },
   { label: 'Set Budget', href: '/app/budget/settings', icon: 'ri-settings-3-line' },
+  { label: 'Vendor payments', href: '/app/budget/suppliers', icon: 'ri-file-list-3-line' },
 ];
 
 // Demo mode: simplified bottom links
@@ -125,8 +127,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { profile, signOut, isAuthenticated } = useAuth();
   const { activeWedding } = useActiveWedding();
   const menuRef = useRef<HTMLDivElement>(null);
-
-  const bottomLinks = isDemoMode ? demoBottomLinks : normalBottomLinks;
 
   // Close sidebar on route change
   useEffect(() => {
@@ -245,50 +245,112 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-3" role="navigation" aria-label="App navigation">
           <div className="space-y-0.5">
+            {/* Overview — no group label */}
             {sidebarLinks.map((link) => (
               <SidebarNavLink key={link.href} {...link} isActive={isActive(link.href)} onClick={() => setSidebarOpen(false)} />
             ))}
 
-            {/* Guests section */}
+            {/* Guests & Invites section */}
             <div className="pt-2">
-              <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Guests</div>
+              <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Guests &amp; Invites</div>
               {guestSubLinks.map((link) => {
                 const active = isActive(link.href) || (link.href === '/app/guests' && isGuestActive(link.href));
                 return <SidebarNavLink key={link.href} {...link} isActive={active} onClick={() => setSidebarOpen(false)} />;
               })}
-            </div>
-
-            {/* Invitations section */}
-            <div className="pt-2">
-              <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Invitations</div>
               {invitationSubLinks.map((link) => (
                 <SidebarNavLink key={link.href} {...link} isActive={isActive(link.href)} onClick={() => setSidebarOpen(false)} />
               ))}
             </div>
 
-            {/* Budget section */}
+            {/* Budget & Vendors section */}
             <div className="pt-2">
-              <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Budget</div>
-              {budgetSubLinks.map((link) => {
-                const active = isActive(link.href) || (link.href === '/app/budget' && isBudgetActive(link.href));
-                return <SidebarNavLink key={link.href} {...link} isActive={active} onClick={() => setSidebarOpen(false)} />;
-              })}
+              <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Budget &amp; Vendors</div>
+              {isDemoMode ? (
+                <SidebarNavLink
+                  href="/app/budget"
+                  icon="ri-money-pound-circle-line"
+                  label="Budget"
+                  isActive={isActive('/app/budget')}
+                  onClick={() => setSidebarOpen(false)}
+                />
+              ) : (
+                budgetSubLinks.map((link) => {
+                  const active = isActive(link.href) || (link.href === '/app/budget' && isBudgetActive(link.href));
+                  return <SidebarNavLink key={link.href} {...link} isActive={active} onClick={() => setSidebarOpen(false)} />;
+                })
+              )}
             </div>
 
-            <div className="pt-1 border-t border-secondary-100 mt-1"></div>
-
-            {bottomLinks.map((link) => (
-              <SidebarNavLink key={link.href} {...link} isActive={isActive(link.href)} onClick={() => setSidebarOpen(false)} />
-            ))}
-
-            {/* Seating section */}
+            {/* Day-of Planning section */}
             <div className="pt-2">
-              <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Seating</div>
-              {seatingSubLinks.map((link) => {
-                const active = isActive(link.href) || (link.href === '/app/seating' && isSeatingActive(link.href));
-                return <SidebarNavLink key={link.href} {...link} isActive={active} onClick={() => setSidebarOpen(false)} />;
-              })}
+              <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Day-of Planning</div>
+              {isDemoMode ? (
+                <>
+                  <SidebarNavLink
+                    href="/app/seating"
+                    icon="ri-layout-grid-line"
+                    label="Seating"
+                    isActive={isActive('/app/seating')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  <SidebarNavLink
+                    href="/app/travel"
+                    icon="ri-map-pin-line"
+                    label="Travel"
+                    isActive={isActive('/app/travel')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  <SidebarNavLink
+                    href="/app/gallery-control"
+                    icon="ri-image-line"
+                    label="Gallery &amp; Wall"
+                    isActive={isActive('/app/gallery-control')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                </>
+              ) : (
+                <>
+                  {seatingSubLinks.map((link) => {
+                    const active = isActive(link.href) || (link.href === '/app/seating' && isSeatingActive(link.href));
+                    return <SidebarNavLink key={link.href} {...link} isActive={active} onClick={() => setSidebarOpen(false)} />;
+                  })}
+                  <SidebarNavLink
+                    href="/app/travel"
+                    icon="ri-map-pin-line"
+                    label="Travel"
+                    isActive={isActive('/app/travel')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  <SidebarNavLink
+                    href="/app/tasks"
+                    icon="ri-calendar-check-line"
+                    label="Tasks"
+                    isActive={isActive('/app/tasks')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  <SidebarNavLink
+                    href="/app/suppliers"
+                    icon="ri-contacts-book-line"
+                    label="Vendors"
+                    isActive={isActive('/app/suppliers')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                </>
+              )}
             </div>
+
+            {/* Account — no header, single item, non-demo only */}
+            {!isDemoMode && (
+              <div className="pt-2">
+                <SidebarNavLink
+                  href="/app/settings"
+                  icon="ri-settings-3-line"
+                  label="Settings"
+                  isActive={isActive('/app/settings')}
+                  onClick={() => setSidebarOpen(false)}
+                />
+              </div>
+            )}
           </div>
         </nav>
         <div className="p-3 border-t border-secondary-100">

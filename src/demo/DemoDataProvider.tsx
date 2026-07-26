@@ -3,6 +3,7 @@ import type { DemoState, DemoCalculatedStats, DemoGuest, DemoActivityEvent } fro
 import { createInitialDemoState } from './demoData';
 import { loadDemoState, saveDemoState, clearDemoState, getLastInitialised } from './demoStorage';
 import { isDemoMode } from './demoConfig';
+import { demoInvitationTemplates } from './demoInvitations';
 
 // ── Context shape ──
 
@@ -133,7 +134,13 @@ function calculateStats(state: DemoState): DemoCalculatedStats {
 export function DemoDataProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DemoState>(() => {
     if (!isDemoMode) return createInitialDemoState(); // not used, just placeholder
-    return loadDemoState() || createInitialDemoState();
+    const loaded = loadDemoState();
+    if (!loaded) return createInitialDemoState();
+    // Merge in templates if missing from older saved state
+    if (!loaded.invitationTemplates || loaded.invitationTemplates.length === 0) {
+      return { ...loaded, invitationTemplates: demoInvitationTemplates };
+    }
+    return loaded;
   });
   const [lastInitialised, setLastInitialised] = useState<string | null>(() => getLastInitialised());
 

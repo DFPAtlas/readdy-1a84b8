@@ -103,6 +103,7 @@ const TagsPage = lazy(() => import("@/pages/app/guests/tags/page"));
 // Invitations
 const InvitationsPage = lazy(() => import("@/pages/app/invitations/page"));
 const NewInvitationPage = lazy(() => import("@/pages/app/invitations/new/page"));
+const NewDesignPage = lazy(() => import("@/pages/app/invitations/design/new/page"));
 const InvitationDetailPage = lazy(() => import("@/pages/app/invitations/[invitationId]/page"));
 const EditInvitationPage = lazy(() => import("@/pages/app/invitations/[invitationId]/edit/page"));
 const TemplatesPage = lazy(() => import("@/pages/app/invitations/templates/page"));
@@ -252,6 +253,7 @@ const routes: RouteObject[] = [
       { path: "invitations", element: <LazyRoute comp={InvitationsPage} /> },
       { path: "invitations/responses", element: <LazyRoute comp={ResponseOverviewPage} /> },
       { path: "invitations/new", element: <LazyRoute comp={NewInvitationPage} /> },
+      { path: "invitations/design/new", element: <LazyRoute comp={NewDesignPage} /> },
       { path: "invitations/templates", element: <LazyRoute comp={TemplatesPage} /> },
       { path: "invitations/templates/new", element: <LazyRoute comp={NewTemplatePage} /> },
       { path: "invitations/templates/:templateId", element: <LazyRoute comp={TemplateDetailPage} /> },

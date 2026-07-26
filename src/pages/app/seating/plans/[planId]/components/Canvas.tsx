@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect, useMemo, forwardRef } from 'react';
 import type { SeatingPlan, TableWithData, RoomObject, BackgroundAsset, SeatingZone, SeatingSeat } from '@/types/seating';
+import DemoHoverTooltip, { type HoverTarget } from './DemoHoverTooltip';
 
 interface CanvasProps {
   plan: SeatingPlan; tables: TableWithData[]; roomObjects: RoomObject[];
@@ -11,6 +12,7 @@ interface CanvasProps {
   selectedSeatId: string | null;
   draggingTableId: string | null; draggingObjectId: string | null;
   dragOverTableId: string | null;
+  isDemo?: boolean;
   layerVisibility?: Record<string, boolean>;
   onSelectTable: (id: string, multi: boolean) => void;
   onSelectObject: (id: string, multi: boolean) => void;
@@ -80,6 +82,7 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
   zoom, panOffset, showGrid, snapEnabled, showGuides, isReadOnly,
   selectedTableIds, selectedObjectIds, selectedSeatId,
   draggingTableId, draggingObjectId, dragOverTableId,
+  isDemo = false,
   layerVisibility,
   onSelectTable, onSelectObject, onSelectSeat,
   onMoveTableLocal, onMoveObjectLocal, onCommitMove,
@@ -111,6 +114,10 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
     initialPanX: number; initialPanY: number; centerX: number; centerY: number;
     lastPanX: number; lastPanY: number; lastCenterX: number; lastCenterY: number;
   }>({ pinching: false, initialDist: 0, initialZoom: 1, initialPanX: 0, initialPanY: 0, centerX: 0, centerY: 0, lastPanX: 0, lastPanY: 0, lastCenterX: 0, lastCenterY: 0 });
+
+  // ── Demo hover tooltip state ──
+  const [hoverTarget, setHoverTarget] = useState<HoverTarget>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   const canvasW = plan.canvas_width || 1200;
   const canvasH = plan.canvas_height || 900;
@@ -620,11 +627,20 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
   const hideGridBelow = zoom < 0.4;
   const cursorStyle = panning ? 'grabbing' : 'grab';
 
+  // ── Demo hover helpers ──
+  const handleDemoMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDemo) return;
+    setMousePos({ x: e.clientX, y: e.clientY });
+  }, [isDemo]);
+
   return (
     <div
       ref={containerRef}
       className="flex-1 bg-background-50 overflow-hidden relative select-none touch-none"
       onMouseDown={handleCanvasMouseDown}
+      onMouseMove={handleDemoMouseMove}
+      onMouseEnter={() => isDemo && setHoverTarget({ kind: 'empty-canvas' })}
+      onMouseLeave={() => isDemo && setHoverTarget(null)}
       onWheel={handleWheel}
       onTouchStart={handleCanvasTouchStart}
       onTouchMove={handleCanvasTouchMove}
@@ -643,6 +659,8 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
         {/* Room boundary */}
         <div
           className="absolute border-2 border-secondary-200 bg-white rounded-xl group/room"
+          onMouseEnter={() => isDemo && setHoverTarget({ kind: 'room-boundary' })}
+          onMouseLeave={() => isDemo && setHoverTarget(null)}
           style={{ left: CANVAS_PADDING, top: CANVAS_PADDING, width: canvasW, height: canvasH }}
         >
           {/* Grid — fixed backgroundSize (parent transform handles zoom) */}
@@ -698,6 +716,8 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
                 onMouseDown={(e) => handleObjectMouseDown(e, obj.id)}
                 onTouchStart={(e) => handleObjectTouchStart(e, obj.id)}
                 onTouchEnd={handleObjectTouchEnd}
+                onMouseEnter={() => isDemo && setHoverTarget({ kind: 'object', id: obj.id, name: obj.name, type: obj.object_type })}
+                onMouseLeave={() => isDemo && setHoverTarget(null)}
                 className={`absolute flex flex-col items-center justify-center border-2 transition-shadow ${isSelected ? 'ring-2 ring-primary-400 z-10' : ''} ${isDragging ? 'opacity-70 scale-105 z-20' : ''} ${obj.locked ? 'cursor-default' : isReadOnly ? 'cursor-default' : 'cursor-grab'}`}
                 style={{
                   left: 0, top: 0,
@@ -754,6 +774,8 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
                 onDragOver={(e) => handleTableDragOver(e, table.id)}
                 onDragLeave={handleTableDragLeave}
                 onDrop={(e) => handleTableDrop(e, table.id)}
+                onMouseEnter={() => isDemo && setHoverTarget({ kind: 'table', id: table.id, name: table.name })}
+                onMouseLeave={() => isDemo && setHoverTarget(null)}
                 className={`absolute flex items-center justify-center transition-all ${isSelected ? 'z-10' : ''} ${isDragging ? 'z-20' : ''} ${isDragOver && dragOverValid ? 'z-10' : ''} ${table.locked ? 'cursor-default' : isReadOnly ? 'cursor-default' : 'cursor-grab'}`}
                 style={{
                   left: 0, top: 0,
@@ -798,6 +820,8 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
                   return (
                     <div key={seat.id}
                       onClick={(e) => handleSeatClick(e, seat.id, table.id)}
+                      onMouseEnter={() => isDemo && setHoverTarget({ kind: 'seat', id: seat.id, assigned: !!assignment, guestName: guestName || undefined })}
+                      onMouseLeave={() => isDemo && setHoverTarget(null)}
                       title={guestName || `Seat ${seat.seat_label}`}
                       className={`absolute flex items-center justify-center rounded-full transition-all cursor-pointer ${isSeatSelected ? 'z-30 scale-125' : 'hover:scale-110'}`}
                       style={{
@@ -975,6 +999,9 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
       <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm rounded-lg px-2 py-1 text-[10px] font-label text-foreground-500 border border-secondary-100">
         {Math.round(zoom * 100)}%
       </div>
+
+      {/* Demo hover tooltip */}
+      {isDemo && <DemoHoverTooltip target={hoverTarget} mouseX={mousePos.x} mouseY={mousePos.y} />}
     </div>
   );
 });
