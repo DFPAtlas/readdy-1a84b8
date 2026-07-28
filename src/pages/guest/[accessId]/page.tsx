@@ -10,6 +10,7 @@ import {
   LocationPreview,
   ThingsToDoPreview,
   RegistryPreview,
+  GiftFundPreview,
   GalleryPreview,
   LatestUpdatePreview,
   SeatingPreview,
@@ -261,6 +262,19 @@ export default function GuestHomePage() {
                 badge={data.registry?.items?.length ? `${data.registry.items.length} gift${data.registry.items.length !== 1 ? 's' : ''}` : undefined}
               />
               <RegistryPreview data={data} basePath={basePath} />
+            </PreviewCard>
+          )}
+
+          {/* Gift Fund */}
+          {showRegistry && (
+            <PreviewCard>
+              <CardHeader
+                icon="ri-heart-line"
+                iconBg="bg-accent-50 text-accent-600"
+                title="Gift Fund"
+                badge={data.giftFunds?.funds?.length ? `${data.giftFunds.funds.length} fund${data.giftFunds.funds.length !== 1 ? 's' : ''}` : undefined}
+              />
+              <GiftFundPreview data={data} basePath={basePath} />
             </PreviewCard>
           )}
 

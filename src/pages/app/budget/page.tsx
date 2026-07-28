@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { isDemoMode } from '@/demo/demoConfig';
+import { listGiftFundsForWedding } from '@/lib/giftFundingRepository';
+import type { GiftFundListItem } from '@/types/giftFunding';
+import GiftFundSummarySection from '@/components/feature/GiftFundSummarySection';
 import type { BudgetInfo, BudgetCategory, BudgetExpense, BudgetPayment } from '@/types/budget';
 import type { DemoExpense, DemoPayment, DemoBudgetCategory } from '@/demo/demoTypes';
 
@@ -22,6 +25,8 @@ function NormalBudgetDashboardPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [catFilter, setCatFilter] = useState('all');
+  const [giftFunds, setGiftFunds] = useState<GiftFundListItem[]>([]);
+  const [giftFundsLoading, setGiftFundsLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +72,18 @@ function NormalBudgetDashboardPage() {
       }
     };
     fetchAll();
+    return () => { cancelled = true; };
+  }, [weddingId]);
+
+  // Fetch gift fund summaries
+  useEffect(() => {
+    if (!weddingId) return;
+    let cancelled = false;
+    setGiftFundsLoading(true);
+    listGiftFundsForWedding(weddingId)
+      .then((funds) => { if (!cancelled) setGiftFunds(funds); })
+      .catch(() => { /* silent — gift fund summary is non-critical */ })
+      .finally(() => { if (!cancelled) setGiftFundsLoading(false); });
     return () => { cancelled = true; };
   }, [weddingId]);
 
@@ -211,6 +228,14 @@ function NormalBudgetDashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Gift Fund Contributions */}
+        {giftFunds.length > 0 && (
+          <GiftFundSummarySection
+            funds={giftFunds}
+            onManage={() => navigate('/app/budget/gift-funding')}
+          />
+        )}
 
         {/* Category overview */}
         <div className="card-default mb-6">
@@ -368,6 +393,33 @@ function DemoBudgetDashboardPage() {
   const expenses = state?.expenses || [];
   const payments = state?.payments || [];
   const suppliers = state?.suppliers || [];
+  const demoGiftFunds = state?.giftFunds || [];
+  const demoGiftFundContribs = state?.giftFundContributions || [];
+
+  const demoGiftFundList: GiftFundListItem[] = useMemo(() => {
+    return demoGiftFunds.map((f) => {
+      const fundContribs = demoGiftFundContribs.filter((c) => c.fund_id === f.id && c.payment_status === 'paid');
+      const raised = fundContribs.reduce((s, c) => s + c.amount_minor, 0);
+      return {
+        id: f.id,
+        wedding_id: f.wedding_id,
+        title: f.title,
+        description: f.description,
+        category: f.category as GiftFundListItem['category'],
+        target_amount_minor: f.target_amount_minor,
+        currency: (f.currency || 'GBP').toUpperCase() as GiftFundListItem['currency'],
+        cover_image_path: f.cover_image_path,
+        is_active: f.is_active,
+        is_public: f.is_public,
+        show_total_raised: f.show_total_raised,
+        show_contributor_names: f.show_contributor_names,
+        closes_at: f.closes_at,
+        created_at: f.created_at,
+        raised_amount_minor: raised,
+        contributor_count: fundContribs.length,
+      };
+    });
+  }, [demoGiftFunds, demoGiftFundContribs]);
 
   const planned = useMemo(() => categories.reduce((s, c) => s + c.planned_amount, 0), [categories]);
   const committed = useMemo(() => expenses.filter((e) => e.status === 'active').reduce((s, e) => s + (e.agreed_amount || e.quoted_amount), 0), [expenses]);

@@ -10,6 +10,7 @@ import { demoTravelPlaces } from './demoTravel';
 import { demoUpdates } from './demoUpdates';
 import { demoRegistryItems } from './demoRegistry';
 import { demoGalleryItems, demoGalleryAlbums, demoGallerySettings } from './demoGallery';
+import { demoGiftFunds, demoGiftFundContributions } from './demoGiftFunding';
 import { demoTasks } from './demoTasks';
 import { demoSuppliers } from './demoSuppliers';
 
@@ -46,6 +47,8 @@ export function createInitialDemoState(): DemoState {
     galleryItems: demoGalleryItems,
     galleryAlbums: demoGalleryAlbums,
     gallerySettings: demoGallerySettings,
+    giftFunds: demoGiftFunds,
+    giftFundContributions: demoGiftFundContributions,
     tasks: demoTasks,
     suppliers: demoSuppliers,
     activityFeed: createDemoActivityFeed(),

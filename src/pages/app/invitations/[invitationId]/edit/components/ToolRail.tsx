@@ -11,6 +11,8 @@ interface ToolRailProps {
   canSendBackward?: boolean;
   background?: CanvasBackground;
   onBackgroundChange?: (bg: CanvasBackground) => void;
+  showLayersPanel?: boolean;
+  onToggleLayersPanel?: () => void;
 }
 
 export default function ToolRail({
@@ -23,6 +25,8 @@ export default function ToolRail({
   canSendBackward,
   background,
   onBackgroundChange,
+  showLayersPanel = false,
+  onToggleLayersPanel,
 }: ToolRailProps) {
   const hasSelection = selectedLayerId !== null;
 
@@ -30,13 +34,29 @@ export default function ToolRail({
     <div className="w-16 bg-white border-r border-[#eee7df] flex flex-col items-center py-4 flex-shrink-0">
       {/* Background picker */}
       {background && onBackgroundChange && (
-        <div className="pb-3 mb-3 border-b border-[#eee7df]">
+        <div className="pb-3 mb-3 border-b border-[#eee7df] w-full flex justify-center">
           <BackgroundPicker background={background} onChange={onBackgroundChange} />
         </div>
       )}
 
       {/* Top actions */}
       <div className="flex flex-col items-center gap-2">
+        {/* Layers panel toggle */}
+        <button
+          onClick={onToggleLayersPanel}
+          className={[
+            'w-10 h-10 flex items-center justify-center rounded-lg transition-colors cursor-pointer',
+            showLayersPanel
+              ? 'bg-[#fdf0f2] text-[#d9808d]'
+              : 'text-foreground-500 hover:bg-background-100 hover:text-foreground-700',
+          ].join(' ')}
+          title={showLayersPanel ? 'Hide layers panel' : 'Show layers panel'}
+          aria-label={showLayersPanel ? 'Hide layers panel' : 'Show layers panel'}
+          aria-pressed={showLayersPanel}
+        >
+          <i className="ri-stack-line text-lg" />
+        </button>
+
         {/* Duplicate */}
         <button
           onClick={onDuplicate}

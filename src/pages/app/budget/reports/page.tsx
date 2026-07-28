@@ -53,11 +53,9 @@ function DemoBudgetReportsPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-2 text-sm text-foreground-500 mb-1">
-              <button onClick={() => navigate('/app/budget')} className="hover:text-foreground-800 cursor-pointer whitespace-nowrap">Budget</button>
-              <i className="ri-arrow-right-s-line text-xs" />
-              <span className="text-foreground-700">Reports</span>
-            </div>
+            <button onClick={() => navigate('/app/budget')} className="text-xs text-foreground-500 hover:text-foreground-700 cursor-pointer whitespace-nowrap mb-2 flex items-center gap-1">
+              <i className="ri-arrow-left-line" />Back to budget
+            </button>
             <h1 className="font-heading text-2xl text-foreground-900">Budget reports</h1>
           </div>
           <button onClick={handleExportCSV} className="btn-outline text-xs py-2 cursor-pointer whitespace-nowrap"><i className="ri-download-line mr-1.5" /> Export CSV</button>
@@ -251,11 +249,9 @@ function NormalBudgetReportsPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-2 text-sm text-foreground-500 mb-1">
-              <button onClick={() => navigate('/app/budget')} className="hover:text-foreground-800 cursor-pointer whitespace-nowrap">Budget</button>
-              <i className="ri-arrow-right-s-line text-xs" />
-              <span className="text-foreground-700">Reports</span>
-            </div>
+            <button onClick={() => navigate('/app/budget')} className="text-xs text-foreground-500 hover:text-foreground-700 cursor-pointer whitespace-nowrap mb-2 flex items-center gap-1">
+              <i className="ri-arrow-left-line" />Back to budget
+            </button>
             <h1 className="font-heading text-2xl text-foreground-900">Budget reports</h1>
           </div>
           <button onClick={generateCSV} className="btn-outline text-xs py-2 cursor-pointer whitespace-nowrap"><i className="ri-download-line mr-1.5" /> Download CSV</button>

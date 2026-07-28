@@ -41,6 +41,7 @@ const budgetSubLinks = [
   { label: 'Reports', href: '/app/budget/reports', icon: 'ri-bar-chart-line' },
   { label: 'Set Budget', href: '/app/budget/settings', icon: 'ri-settings-3-line' },
   { label: 'Vendor payments', href: '/app/budget/suppliers', icon: 'ri-file-list-3-line' },
+  { label: 'Gift fund', href: '/app/budget/gift-funding', icon: 'ri-hand-heart-line' },
 ];
 
 // Demo mode: simplified bottom links

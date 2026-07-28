@@ -215,7 +215,7 @@ function TextContentEditable({
         top: 0,
         width: `${layer.width * scale}px`,
         height: `${layer.height * scale}px`,
-        zIndex: layer.zIndex + 6000,
+        zIndex: layer.zIndex + 200,
         fontSize: `${props.fontSize * scale}px`,
         fontFamily: props.fontFamily,
         fontWeight: props.weight,
@@ -592,7 +592,7 @@ export default function InvitationRenderer({
         // When editing, render the editable version instead of the read-only one
         if (isEditing) {
           return (
-            <div key={layer.id} style={{ zIndex: layer.zIndex + 6000 }}>
+            <div key={layer.id} style={{ zIndex: layer.zIndex + 200 }}>
               <TextContentEditable
                 layer={layer}
                 scale={scale}
@@ -619,7 +619,7 @@ export default function InvitationRenderer({
               height: `${layer.height * scale}px`,
               cursor: interactive ? 'grab' : 'default',
               touchAction: interactive ? 'none' : undefined,
-              zIndex: isSelected ? layer.zIndex + 5000 : layer.zIndex,
+              zIndex: layer.zIndex,
             }}
             role={interactive ? 'button' : undefined}
             aria-label={

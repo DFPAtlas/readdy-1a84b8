@@ -493,6 +493,47 @@ export interface GiftRegistryData {
   payment_provider_available: boolean;
 }
 
+// ── Gift Funding (Stripe Connect) ──
+
+export interface GiftFundLight {
+  id: string;
+  wedding_id: string;
+  title: string;
+  description: string | null;
+  category: string;
+  target_amount_minor: number | null;
+  currency: string;
+  cover_image_path: string | null;
+  is_active: boolean;
+  is_public: boolean;
+  show_total_raised: boolean;
+  show_contributor_names: boolean;
+  closes_at: string | null;
+  created_at: string;
+  // Computed
+  raised_amount_minor: number;
+  contributor_count: number;
+  recent_contributions: GiftFundContributionPublic[];
+}
+
+export interface GiftFundContributionPublic {
+  id: string;
+  contributor_name: string | null;
+  message: string | null;
+  amount_minor: number;
+  visibility: 'public' | 'name_only' | 'anonymous';
+  paid_at: string | null;
+  // Public display computed fields
+  display_name: string | null;
+  display_amount_minor: number | null;
+  display_message: string | null;
+}
+
+export interface GiftFundData {
+  funds: GiftFundLight[];
+  couple_account_ready: boolean;
+}
+
 // ── Gallery ──
 
 export interface GalleryAsset {

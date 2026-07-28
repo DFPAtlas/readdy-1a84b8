@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
+import GiftFundSummarySection from '@/components/feature/GiftFundSummarySection';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useGuestService } from '@/hooks/useGuestService';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
+import { listGiftFundsForWedding } from '@/lib/giftFundingRepository';
+import type { GiftFundListItem } from '@/types/giftFunding';
 import { PUBLIC_SITE_URL } from '@/lib/env';
 
 // ═══════════════════════════════════════════
@@ -91,6 +94,34 @@ function DemoDashboard() {
   const completedTasks = state.tasks.filter((t) => t.status === 'completed').length;
   const totalTasks = state.tasks.length;
   const planningProgress = Math.round((completedTasks / Math.max(1, totalTasks)) * 40 + 30);
+
+  // Compute gift fund list from demo data
+  const demoGiftFundList: GiftFundListItem[] = useMemo(() => {
+    const demoGiftFunds = state.giftFunds || [];
+    const demoGiftFundContribs = state.giftFundContributions || [];
+    return demoGiftFunds.map((f) => {
+      const fundContribs = demoGiftFundContribs.filter((c) => c.fund_id === f.id && c.payment_status === 'paid');
+      const raised = fundContribs.reduce((s, c) => s + c.amount_minor, 0);
+      return {
+        id: f.id,
+        wedding_id: f.wedding_id,
+        title: f.title,
+        description: f.description,
+        category: f.category as GiftFundListItem['category'],
+        target_amount_minor: f.target_amount_minor,
+        currency: (f.currency || 'GBP').toUpperCase() as GiftFundListItem['currency'],
+        cover_image_path: f.cover_image_path,
+        is_active: f.is_active,
+        is_public: f.is_public,
+        show_total_raised: f.show_total_raised,
+        show_contributor_names: f.show_contributor_names,
+        closes_at: f.closes_at,
+        created_at: f.created_at,
+        raised_amount_minor: raised,
+        contributor_count: fundContribs.length,
+      };
+    });
+  }, [state.giftFunds, state.giftFundContributions]);
 
   return (
     <AppShell>
@@ -525,6 +556,12 @@ function DemoDashboard() {
               </div>
             </div>
 
+            {/* Gift Fund Contributions */}
+            <GiftFundSummarySection
+              funds={demoGiftFundList}
+              onManage={() => navigate('/app/budget/gift-funding')}
+            />
+
             {/* Mini stats row — Travel + Gallery */}
             <div className="grid grid-cols-2 gap-4">
               <div onClick={() => navigate('/app/travel')} className="rounded-xl bg-white border border-secondary-100 p-4 text-center cursor-pointer hover:border-primary-200 transition-colors">
@@ -600,6 +637,21 @@ function NormalDashboard() {
     seatedGuests: 0,
     unseatedGuests: 0,
   });
+
+  // Gift Fund summary
+  const [giftFundSummary, setGiftFundSummary] = useState({
+    hasAccount: false,
+    accountReady: false,
+    chargesEnabled: false,
+    fundCount: 0,
+    activeFundCount: 0,
+    totalRaisedMinor: 0,
+    loading: true,
+  });
+
+  // Gift Fund full list for the summary card
+  const [giftFunds, setGiftFunds] = useState<GiftFundListItem[]>([]);
+  const [giftFundsLoading, setGiftFundsLoading] = useState(false);
 
   // ── Supabase data fetch ──
   useEffect(() => {
@@ -702,6 +754,61 @@ function NormalDashboard() {
         // Tasks
         const taskData = (taskRes.data || []) as { id: string; title: string; priority: string; due_date: string | null; status: string }[];
         setUpcomingTasks(taskData);
+
+        // Gift Fund summary
+        let giftHasAccount = false;
+        let giftReady = false;
+        let giftCharges = false;
+        let giftFundCount = 0;
+        let giftActiveCount = 0;
+        let giftTotalMinor = 0;
+        try {
+          const { data: gfAccount } = await supabase
+            .from('gift_fund_accounts')
+            .select('charges_enabled, payouts_enabled, requirements_due, stripe_account_id')
+            .eq('wedding_id', weddingId)
+            .maybeSingle();
+
+          if (gfAccount?.stripe_account_id) {
+            giftHasAccount = true;
+            giftCharges = !!(gfAccount.charges_enabled);
+            giftReady = !!(gfAccount.charges_enabled) && !!(gfAccount.payouts_enabled) && !(gfAccount.requirements_due);
+          }
+
+          const { data: gfFunds } = await supabase
+            .from('gift_funds')
+            .select('id, is_active')
+            .eq('wedding_id', weddingId);
+
+          if (gfFunds && gfFunds.length > 0) {
+            giftFundCount = gfFunds.length;
+            giftActiveCount = gfFunds.filter((f: { is_active: boolean }) => f.is_active).length;
+
+            const fundIds = gfFunds.map((f: { id: string }) => f.id);
+            const { data: gfContribs } = await supabase
+              .from('gift_fund_contributions')
+              .select('amount_minor, refunded_amount_minor')
+              .in('fund_id', fundIds)
+              .eq('payment_status', 'paid');
+
+            giftTotalMinor = (gfContribs || []).reduce(
+              (sum: number, c: { amount_minor: number; refunded_amount_minor: number }) =>
+                sum + (c.amount_minor || 0) - (c.refunded_amount_minor || 0),
+              0,
+            );
+          }
+        } catch {
+          // Non-critical; leave defaults
+        }
+        setGiftFundSummary({
+          hasAccount: giftHasAccount,
+          accountReady: giftReady,
+          chargesEnabled: giftCharges,
+          fundCount: giftFundCount,
+          activeFundCount: giftActiveCount,
+          totalRaisedMinor: giftTotalMinor,
+          loading: false,
+        });
       } catch (err: unknown) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load dashboard');
       } finally {
@@ -711,6 +818,18 @@ function NormalDashboard() {
     if (weddingId) fetchAll();
     return () => { cancelled = true; };
   }, [weddingId]);
+
+  // Fetch gift fund list for the summary card
+  useEffect(() => {
+    if (!weddingId || giftFundSummary.loading) return;
+    let cancelled = false;
+    setGiftFundsLoading(true);
+    listGiftFundsForWedding(weddingId)
+      .then((funds) => { if (!cancelled) setGiftFunds(funds); })
+      .catch(() => { /* non-critical */ })
+      .finally(() => { if (!cancelled) setGiftFundsLoading(false); });
+    return () => { cancelled = true; };
+  }, [weddingId, giftFundSummary.loading]);
 
   const handleCopyLink = async () => {
     if (!wedding?.slug) return;
@@ -1014,6 +1133,55 @@ function NormalDashboard() {
                   <p className="text-xs text-foreground-500 mb-4">Set your wedding budget and track spending across all categories.</p>
                   <button onClick={() => navigate('/app/budget/setup')} className="btn-primary w-full text-xs py-2 cursor-pointer whitespace-nowrap">Set up budget</button>
                 </>
+              )}
+            </div>
+
+            <div className="bg-white border border-secondary-100 rounded-xl p-5">
+              <h2 className="font-label text-sm font-semibold text-foreground-900 mb-4">Gift Fund</h2>
+              {giftFundSummary.loading ? (
+                <div className="flex items-center gap-2 py-4">
+                  <i className="ri-loader-4-line animate-spin text-sm text-foreground-400" />
+                  <span className="text-xs text-foreground-500">Loading...</span>
+                </div>
+              ) : !giftFundSummary.hasAccount ? (
+                <>
+                  <p className="text-xs text-foreground-500 mb-4">Let your guests contribute directly to your future together. Set up a gift fund and receive contributions securely via Stripe.</p>
+                  <button onClick={() => navigate('/app/budget/gift-funding')} className="btn-primary w-full text-xs py-2 cursor-pointer whitespace-nowrap">
+                    Set up gift funding
+                  </button>
+                </>
+              ) : !giftFundSummary.accountReady ? (
+                <>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                    <span className="text-xs text-amber-700 font-label">Account in progress</span>
+                  </div>
+                  <p className="text-xs text-foreground-500 mb-4">Complete your payment account setup to start receiving contributions.</p>
+                  <button onClick={() => navigate('/app/budget/gift-funding')} className="btn-outline w-full text-xs py-2 cursor-pointer whitespace-nowrap">
+                    Continue setup
+                  </button>
+                </>
+              ) : giftFundSummary.fundCount === 0 ? (
+                <>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                    <span className="text-xs text-emerald-700 font-label">Account ready</span>
+                  </div>
+                  <p className="text-xs text-foreground-500 mb-4">Your payment account is connected. Create your first fund to start receiving gifts.</p>
+                  <button onClick={() => navigate('/app/budget/gift-funding')} className="btn-primary w-full text-xs py-2 cursor-pointer whitespace-nowrap">
+                    Create your first fund
+                  </button>
+                </>
+              ) : giftFundsLoading ? (
+                <div className="flex items-center gap-2 py-4">
+                  <i className="ri-loader-4-line animate-spin text-sm text-foreground-400" />
+                  <span className="text-xs text-foreground-500">Loading contributions...</span>
+                </div>
+              ) : (
+                <GiftFundSummarySection
+                  funds={giftFunds}
+                  onManage={() => navigate('/app/budget/gift-funding')}
+                />
               )}
             </div>
 

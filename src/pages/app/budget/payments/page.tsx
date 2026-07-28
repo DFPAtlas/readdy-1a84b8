@@ -143,11 +143,9 @@ function NormalBudgetPaymentsPage() {
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-2 text-sm text-foreground-500 mb-1">
-              <button onClick={() => navigate('/app/budget')} className="hover:text-foreground-800 cursor-pointer whitespace-nowrap">Budget</button>
-              <i className="ri-arrow-right-s-line text-xs" />
-              <span className="text-foreground-700">Payments</span>
-            </div>
+            <button onClick={() => navigate('/app/budget')} className="text-xs text-foreground-500 hover:text-foreground-700 cursor-pointer whitespace-nowrap mb-2 flex items-center gap-1">
+              <i className="ri-arrow-left-line" />Back to budget
+            </button>
             <h1 className="font-heading text-2xl text-foreground-900">Payment schedule</h1>
           </div>
           <button onClick={() => { setFormError(''); setShowForm(true); }} className="btn-primary text-xs py-2 cursor-pointer whitespace-nowrap"><i className="ri-add-line mr-1.5" />Schedule payment</button>
@@ -412,7 +410,7 @@ function DemoBudgetPaymentsPage() {
     <AppShell>
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div><div className="flex items-center gap-2 text-sm text-foreground-500 mb-1"><button onClick={() => navigate('/app/budget')} className="hover:text-foreground-800 cursor-pointer whitespace-nowrap">Budget</button><i className="ri-arrow-right-s-line text-xs" /><span className="text-foreground-700">Payments</span></div><h1 className="font-heading text-2xl text-foreground-900">Payment schedule</h1></div>
+          <div><button onClick={() => navigate('/app/budget')} className="text-xs text-foreground-500 hover:text-foreground-700 cursor-pointer whitespace-nowrap mb-2 flex items-center gap-1"><i className="ri-arrow-left-line" />Back to budget</button><h1 className="font-heading text-2xl text-foreground-900">Payment schedule</h1></div>
           <button onClick={() => { setPayForm({ expense_id: '', description: '', amount: '', due_date: '', payment_method: 'Bank transfer', payment_reference: '', payment_type: 'payment' }); setFormError(''); setShowForm(true); }} className="btn-primary text-xs py-2 cursor-pointer whitespace-nowrap"><i className="ri-add-line mr-1.5" />Schedule payment</button>
         </div>
 

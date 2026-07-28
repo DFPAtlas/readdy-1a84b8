@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import type { GuestAccessResponse, GuestPortalSettings, WeddingEvent, GuestRecipientInfo, RsvpResponse, GuestSeatingResponse, LocalPlace, AccommodationPlan, GuestTravelPlan, SavedTravelLocation, WeddingShuttle, GuestShuttleRequest, LocationEventLink, TravelUpdate } from '@/types/access';
+import type { GuestAccessResponse, GuestPortalSettings, WeddingEvent, GuestRecipientInfo, RsvpResponse, GuestSeatingResponse, LocalPlace, AccommodationPlan, GuestTravelPlan, SavedTravelLocation, WeddingShuttle, GuestShuttleRequest, LocationEventLink, TravelUpdate, GiftFundData } from '@/types/access';
 
 const LOADER_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-portal-loader';
 const SESSION_KEY = 'wedora_guest_session';
@@ -88,6 +88,7 @@ export interface GuestPortalData {
   wedding_id: string;
   seating: GuestSeatingResponse | null;
   registry: import('@/types/access').GiftRegistryData | null;
+  giftFunds: GiftFundData | null;
   gallery: import('@/types/access').GalleryData | null;
   updates: import('@/types/access').GuestUpdatesData | null;
   questions: import('@/types/access').QuestionsData | null;
@@ -172,6 +173,7 @@ export function GuestPortalProvider({ accessId, children }: { accessId: string |
         wedding_id: result.wedding_id,
         seating: result.data.seating || null,
         registry: result.data.registry || null,
+        giftFunds: result.data.gift_funds || null,
         gallery: result.data.gallery || null,
         updates: result.data.updates || null,
         questions: result.data.questions || null,

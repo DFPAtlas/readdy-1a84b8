@@ -40,6 +40,8 @@ const PublicTableLookupPage = lazy(() => import("@/pages/w/[slug]/table-lookup/p
 const InviteLandingPage = lazy(() => import("@/pages/invite/[token]/page"));
 const DemoStartPage = lazy(() => import("@/pages/demo-start/page"));
 const LivePhotoWallPage = lazy(() => import("@/pages/live-wall/[slug]/page"));
+const ContributionSuccessPage = lazy(() => import("@/pages/guest/fund/contribution/success/page"));
+const ContributionCancelPage = lazy(() => import("@/pages/guest/fund/contribution/cancel/page"));
 
 // ── Guest portal pages ──
 const GuestHomePage = lazy(() => import("@/pages/guest/[accessId]/page"));
@@ -65,6 +67,8 @@ const GuestRSVPReviewPage = lazy(() => import("@/pages/guest/[accessId]/rsvp/rev
 const GuestRSVPConfirmationPage = lazy(() => import("@/pages/guest/[accessId]/rsvp/confirmation/page"));
 const GuestRSVPGuestPage = lazy(() => import("@/pages/guest/[accessId]/rsvp/[guestId]/page"));
 const GuestRegistryPage = lazy(() => import("@/pages/guest/[accessId]/registry/page"));
+const GuestGiftFundingPage = lazy(() => import("@/pages/guest/[accessId]/gift-funding/page"));
+const GuestGiftFundDetailPage = lazy(() => import("@/pages/guest/[accessId]/gift-funding/[fundId]/page"));
 const GuestGiftsPage = lazy(() => import("@/pages/guest/[accessId]/registry/gifts/page"));
 const GuestGiftDetailPage = lazy(() => import("@/pages/guest/[accessId]/registry/gifts/[itemId]/page"));
 const GuestFundsPage = lazy(() => import("@/pages/guest/[accessId]/registry/funds/page"));
@@ -130,6 +134,7 @@ const BudgetSuppliersPage = lazy(() => import("@/pages/app/budget/suppliers/page
 const BudgetReportsPage = lazy(() => import("@/pages/app/budget/reports/page"));
 const BudgetSettingsPage = lazy(() => import("@/pages/app/budget/settings/page"));
 const BudgetScenariosPage = lazy(() => import("@/pages/app/budget/scenarios/page"));
+const GiftFundingSetupPage = lazy(() => import("@/pages/app/budget/gift-funding/page"));
 
 // Seating
 const SeatingPage = lazy(() => import("@/pages/app/seating/page"));
@@ -180,6 +185,8 @@ const routes: RouteObject[] = [
   { path: "/invite/:token", element: <LazyRoute comp={InviteLandingPage} /> },
   { path: "/demo-start", element: <LazyRoute comp={DemoStartPage} /> },
   { path: "/live-wall/:slug", element: <LazyRoute comp={LivePhotoWallPage} /> },
+  { path: "/guest/fund/contribution/success", element: <LazyRoute comp={ContributionSuccessPage} /> },
+  { path: "/guest/fund/contribution/cancel", element: <LazyRoute comp={ContributionCancelPage} /> },
 
   // ── Guest portal routes ──
   {
@@ -209,6 +216,8 @@ const routes: RouteObject[] = [
       { path: "rsvp/confirmation", element: <LazyRoute comp={GuestRSVPConfirmationPage} /> },
       { path: "rsvp/:guestId", element: <LazyRoute comp={GuestRSVPGuestPage} /> },
       { path: "registry", element: <LazyRoute comp={GuestRegistryPage} /> },
+      { path: "gift-funding", element: <LazyRoute comp={GuestGiftFundingPage} /> },
+      { path: "gift-funding/:fundId", element: <LazyRoute comp={GuestGiftFundDetailPage} /> },
       { path: "registry/gifts", element: <LazyRoute comp={GuestGiftsPage} /> },
       { path: "registry/gifts/:itemId", element: <LazyRoute comp={GuestGiftDetailPage} /> },
       { path: "registry/funds", element: <LazyRoute comp={GuestFundsPage} /> },
@@ -279,6 +288,7 @@ const routes: RouteObject[] = [
       { path: "budget/scenarios", element: <LazyRoute comp={BudgetScenariosPage} /> },
       { path: "budget/reports", element: <LazyRoute comp={BudgetReportsPage} /> },
       { path: "budget/settings", element: <LazyRoute comp={BudgetSettingsPage} /> },
+      { path: "budget/gift-funding", element: <LazyRoute comp={GiftFundingSetupPage} /> },
 
       // Seating
       { path: "seating", element: <LazyRoute comp={SeatingPage} /> },

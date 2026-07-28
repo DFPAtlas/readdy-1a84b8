@@ -136,11 +136,13 @@ export function DemoDataProvider({ children }: { children: ReactNode }) {
     if (!isDemoMode) return createInitialDemoState(); // not used, just placeholder
     const loaded = loadDemoState();
     if (!loaded) return createInitialDemoState();
-    // Merge in templates if missing from older saved state
-    if (!loaded.invitationTemplates || loaded.invitationTemplates.length === 0) {
-      return { ...loaded, invitationTemplates: demoInvitationTemplates };
-    }
-    return loaded;
+    // Merge in any fields that may be missing from older saved states
+    const fresh = createInitialDemoState();
+    return {
+      ...fresh,
+      ...loaded,
+      invitationTemplates: loaded.invitationTemplates?.length ? loaded.invitationTemplates : demoInvitationTemplates,
+    };
   });
   const [lastInitialised, setLastInitialised] = useState<string | null>(() => getLastInitialised());
 

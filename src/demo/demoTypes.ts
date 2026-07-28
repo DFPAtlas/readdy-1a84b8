@@ -259,6 +259,37 @@ export interface DemoRegistryItem {
   total_contributed: number;
 }
 
+// ── Gift Funding (Stripe Connect) ──
+
+export interface DemoGiftFund {
+  id: string;
+  wedding_id: string;
+  title: string;
+  description: string;
+  category: string;
+  target_amount_minor: number | null;
+  currency: string;
+  cover_image_path: string | null;
+  is_active: boolean;
+  is_public: boolean;
+  show_total_raised: boolean;
+  show_contributor_names: boolean;
+  closes_at: string | null;
+  created_at: string;
+}
+
+export interface DemoGiftFundContribution {
+  id: string;
+  fund_id: string;
+  guest_id: string;
+  contributor_name: string;
+  message: string | null;
+  amount_minor: number;
+  visibility: 'public' | 'name_only' | 'anonymous';
+  payment_status: string;
+  paid_at: string;
+}
+
 export interface DemoGalleryItem {
   id: string;
   wedding_id: string;
@@ -351,6 +382,8 @@ export interface DemoState {
   galleryItems: DemoGalleryItem[];
   galleryAlbums: DemoGalleryAlbum[];
   gallerySettings: DemoGallerySettings;
+  giftFunds: DemoGiftFund[];
+  giftFundContributions: DemoGiftFundContribution[];
   tasks: DemoTask[];
   suppliers: DemoSupplier[];
   activityFeed: DemoActivityEvent[];

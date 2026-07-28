@@ -1,4 +1,5 @@
 import type { DemoState, DemoGuest, DemoWeddingVenue, DemoWeddingEvent, DemoTravelPlace, DemoGalleryItem, DemoRegistryItem, DemoUpdate } from './demoTypes';
+import type { GiftFundLight, GiftFundContributionPublic } from '@/types/access';
 
 // Build GuestPortalData-compatible shapes from demo state for demo-session injection
 
@@ -229,6 +230,56 @@ export function buildDemoGuestPortalData(demo: { state: DemoState }) {
     payment_provider_available: false,
   };
 
+  // Gift Funding (Stripe Connect)
+  const computedFunds = s.giftFunds
+    .filter((gf) => gf.is_active && gf.is_public)
+    .map((gf) => {
+      const fundContribs = s.giftFundContributions
+        .filter((c) => c.fund_id === gf.id && c.payment_status === 'paid')
+        .sort((a, b) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime());
+
+      const raisedAmount = fundContribs.reduce((sum, c) => sum + c.amount_minor, 0);
+
+      const recentContributions: GiftFundContributionPublic[] = fundContribs.slice(0, 5).map((c) => ({
+        id: c.id,
+        contributor_name: c.contributor_name,
+        message: c.message,
+        amount_minor: c.amount_minor,
+        visibility: c.visibility,
+        paid_at: c.paid_at,
+        display_name: c.visibility === 'public' ? c.contributor_name : null,
+        display_amount_minor: c.visibility === 'public' ? c.amount_minor : null,
+        display_message: c.visibility === 'public' ? c.message : null,
+      }));
+
+      const fund: GiftFundLight = {
+        id: gf.id,
+        wedding_id: gf.wedding_id,
+        title: gf.title,
+        description: gf.description,
+        category: gf.category,
+        target_amount_minor: gf.target_amount_minor,
+        currency: gf.currency,
+        cover_image_path: gf.cover_image_path,
+        is_active: gf.is_active,
+        is_public: gf.is_public,
+        show_total_raised: gf.show_total_raised,
+        show_contributor_names: gf.show_contributor_names,
+        closes_at: gf.closes_at,
+        created_at: gf.created_at,
+        raised_amount_minor: raisedAmount,
+        contributor_count: fundContribs.length,
+        recent_contributions: recentContributions,
+      };
+
+      return fund;
+    });
+
+  const giftFunds = {
+    funds: computedFunds,
+    couple_account_ready: true,
+  };
+
   // Gallery
   const approvedItems = s.galleryItems.filter((gi: DemoGalleryItem) => gi.moderation_status === 'approved');
   const albums = s.galleryAlbums.map((album) => ({
@@ -421,6 +472,7 @@ export function buildDemoGuestPortalData(demo: { state: DemoState }) {
     wedding_id: s.wedding.id,
     seating,
     registry,
+    giftFunds,
     gallery,
     updates,
     questions: { faqs: [], my_questions: [], total_faqs: 0 },

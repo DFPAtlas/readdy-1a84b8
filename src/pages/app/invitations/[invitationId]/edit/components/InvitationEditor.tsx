@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import LayersPanel from './LayersPanel';
 import EditorTopbar from './EditorTopbar';
 import type { ExportState } from './EditorTopbar';
 import AssetLibrary from './AssetLibrary';
@@ -121,6 +122,13 @@ export default function InvitationEditor({
 
   // ── Creation guard — prevents double creation from React StrictMode ──
   const creationGuardRef = useRef(false);
+
+  // ── Layers panel visibility ──
+  const [showLayersPanel, setShowLayersPanel] = useState(false);
+
+  const handleToggleLayersPanel = useCallback(() => {
+    setShowLayersPanel((prev) => !prev);
+  }, []);
 
   // ── Loading guard — prevent actions while loading ──
   const [loading, setLoading] = useState(false);
@@ -830,13 +838,41 @@ export default function InvitationEditor({
 
     const before = cloneDocument(doc);
 
-    [ordered[idx], ordered[idx + 1]] = [ordered[idx + 1], ordered[idx]];
+    // Swap zIndex values so normalizeLayerOrder preserves the new order
+    const tempZ = ordered[idx].zIndex;
+    ordered[idx] = { ...ordered[idx], zIndex: ordered[idx + 1].zIndex };
+    ordered[idx + 1] = { ...ordered[idx + 1], zIndex: tempZ };
+
     const normalized = normalizeLayerOrder(ordered);
 
     const after: InvitationDocument = { ...doc, layers: normalized };
     setDocument(after);
     commitDocument(before, after);
   }, [selectedId, commitDocument]);
+
+  // ── Layer reorder (from LayersPanel drag) ──
+  // orderedIdsFrontToBack: layer IDs sorted front→back (index 0 = highest zIndex)
+  const handleLayerReorder = useCallback(
+    (orderedIdsFrontToBack: string[]) => {
+      const doc = documentRef.current;
+      const before = cloneDocument(doc);
+
+      const totalLayers = orderedIdsFrontToBack.length;
+      const updatedLayers = doc.layers.map((layer) => {
+        const pos = orderedIdsFrontToBack.indexOf(layer.id);
+        if (pos === -1) return layer;
+        // Front (pos 0) → highest zIndex (totalLayers - 1)
+        // Back (pos N-1) → zIndex 0
+        return { ...layer, zIndex: totalLayers - 1 - pos };
+      });
+
+      const normalized = normalizeLayerOrder(updatedLayers);
+      const after: InvitationDocument = { ...doc, layers: normalized };
+      setDocument(after);
+      commitDocument(before, after);
+    },
+    [commitDocument],
+  );
 
   const handleSendBackward = useCallback(() => {
     if (!selectedId) return;
@@ -848,7 +884,11 @@ export default function InvitationEditor({
 
     const before = cloneDocument(doc);
 
-    [ordered[idx], ordered[idx - 1]] = [ordered[idx - 1], ordered[idx]];
+    // Swap zIndex values so normalizeLayerOrder preserves the new order
+    const tempZ = ordered[idx].zIndex;
+    ordered[idx] = { ...ordered[idx], zIndex: ordered[idx - 1].zIndex };
+    ordered[idx - 1] = { ...ordered[idx - 1], zIndex: tempZ };
+
     const normalized = normalizeLayerOrder(ordered);
 
     const after: InvitationDocument = { ...doc, layers: normalized };
@@ -1165,7 +1205,19 @@ export default function InvitationEditor({
           canSendBackward={canSendBackward}
           background={document.canvas.background}
           onBackgroundChange={handleBackgroundChange}
+          showLayersPanel={showLayersPanel}
+          onToggleLayersPanel={handleToggleLayersPanel}
         />
+
+        {/* Layers panel — shown when toggled */}
+        {showLayersPanel && (
+          <LayersPanel
+            layers={document.layers}
+            selectedId={selectedId}
+            onSelect={handleSelect}
+            onReorder={handleLayerReorder}
+          />
+        )}
 
         {/* Centre canvas */}
         <CanvasWorkspace

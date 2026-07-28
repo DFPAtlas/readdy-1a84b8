@@ -650,6 +650,69 @@ export function RegistryPreview({ data, basePath }: RegistryPreviewProps) {
   );
 }
 
+// ── GIFT FUND PREVIEW ──
+
+export function GiftFundPreview({ data, basePath }: { data: GuestPortalData; basePath: string }) {
+  const giftFunds = data.giftFunds;
+  const settings = data.portal_settings || {};
+  const showRegistry = settings.show_registry !== false;
+
+  if (!showRegistry || !giftFunds || giftFunds.funds.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-4">
+        <p className="text-xs text-foreground-400 italic">The couple haven&apos;t set up their gift fund yet.</p>
+      </div>
+    );
+  }
+
+  const totalRaised = giftFunds.funds.reduce((sum, f) => sum + f.raised_amount_minor, 0);
+  const totalContributors = giftFunds.funds.reduce((sum, f) => sum + f.contributor_count, 0);
+  const primaryFund = giftFunds.funds[0];
+
+  const formatCurrencyMinor = (cents: number) => {
+    return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', minimumFractionDigits: 0 }).format(cents / 100);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-accent-50 flex items-center justify-center flex-shrink-0">
+          <i className="ri-heart-line text-lg text-accent-500" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-label font-semibold text-foreground-900 truncate">{primaryFund.title}</p>
+          <p className="text-[11px] text-foreground-500">
+            {formatCurrencyMinor(totalRaised)} raised
+            {totalContributors > 0 && ` from ${totalContributors} ${totalContributors === 1 ? 'gift' : 'gifts'}`}
+          </p>
+        </div>
+      </div>
+
+      {primaryFund.target_amount_minor && (
+        <div className="w-full h-1.5 rounded-full bg-secondary-100 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-accent-500 transition-all"
+            style={{ width: `${Math.min((primaryFund.raised_amount_minor / primaryFund.target_amount_minor) * 100, 100)}%` }}
+          />
+        </div>
+      )}
+
+      {!giftFunds.couple_account_ready && (
+        <p className="text-[10px] text-amber-600 font-label flex items-center gap-1">
+          <i className="ri-time-line" /> Contributions available soon
+        </p>
+      )}
+
+      <Link
+        to={`${basePath}/gift-funding`}
+        className="inline-flex items-center gap-1 text-xs font-label text-primary-600 hover:text-primary-700 cursor-pointer whitespace-nowrap"
+      >
+        View gift fund <i className="ri-arrow-right-line text-[10px]" />
+      </Link>
+    </div>
+  );
+}
+
 // ── GALLERY PREVIEW ──
 
 interface GalleryPreviewProps {

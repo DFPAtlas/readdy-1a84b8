@@ -734,6 +734,83 @@ export default function CanvasWorkspace({
     setZoomValue(Math.round(optimal * 100));
   }, [document.canvas.width, document.canvas.height]);
 
+  // ── Zoom input state ──
+  const [zoomInputActive, setZoomInputActive] = useState(false);
+  const [zoomInputValue, setZoomInputValue] = useState('');
+  const zoomInputRef = useRef<HTMLInputElement>(null);
+
+  const handleZoomBadgeClick = useCallback(() => {
+    setZoomInputValue(String(zoomValue));
+    setZoomInputActive(true);
+    setTimeout(() => {
+      zoomInputRef.current?.select();
+    }, 0);
+  }, [zoomValue]);
+
+  const commitZoomInput = useCallback(() => {
+    const parsed = parseInt(zoomInputValue, 10);
+    if (!isNaN(parsed)) {
+      setZoomValue(clamp(parsed, 25, 200));
+    }
+    setZoomInputActive(false);
+  }, [zoomInputValue]);
+
+  const handleZoomInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') commitZoomInput();
+      if (e.key === 'Escape') setZoomInputActive(false);
+    },
+    [commitZoomInput],
+  );
+
+  // ── Ctrl/Cmd + scroll wheel zoom ──
+  useEffect(() => {
+    const ws = workspaceRef.current;
+    if (!ws) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+
+      const delta = e.deltaY;
+      const step = Math.abs(delta) < 20 ? 5 : 10;
+      const direction = delta > 0 ? -1 : 1;
+
+      setZoomValue((z) => clamp(z + direction * step, 25, 200));
+    };
+
+    ws.addEventListener('wheel', handleWheel, { passive: false });
+    return () => ws.removeEventListener('wheel', handleWheel);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Ctrl/Cmd + = / - keyboard shortcuts ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select' || target.isContentEditable) return;
+      }
+
+      if (e.key === '=' || e.key === '+') {
+        e.preventDefault();
+        setZoomValue((z) => Math.min(200, z + 10));
+      } else if (e.key === '-') {
+        e.preventDefault();
+        setZoomValue((z) => Math.max(25, z - 10));
+      } else if (e.key === '0') {
+        e.preventDefault();
+        zoomFit();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [zoomFit]);
+
   // ── Asset drop handlers ──
 
   const isValidAssetDrag = useCallback((e: React.DragEvent): string | null => {
@@ -934,7 +1011,7 @@ export default function CanvasWorkspace({
           onClick={zoomOut}
           disabled={zoomValue <= 25}
           className="w-7 h-7 flex items-center justify-center rounded-full text-foreground-500 hover:bg-background-100 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Zoom out"
+          title="Zoom out (Ctrl/⌘ –)"
           aria-label="Zoom out"
         >
           <i className="ri-subtract-line text-sm" />
@@ -943,21 +1020,43 @@ export default function CanvasWorkspace({
         <button
           onClick={zoomFit}
           className="w-7 h-7 flex items-center justify-center rounded-full text-foreground-500 hover:bg-background-100 transition-colors cursor-pointer"
-          title="Fit to screen"
+          title="Fit to screen (Ctrl/⌘ 0)"
           aria-label="Fit to screen"
         >
           <i className="ri-fullscreen-line text-sm" />
         </button>
 
-        <span className="text-[11px] font-label font-medium text-foreground-700 w-10 text-center select-none">
-          {zoomValue}%
-        </span>
+        {zoomInputActive ? (
+          <div className="relative flex items-center">
+            <input
+              ref={zoomInputRef}
+              type="text"
+              inputMode="numeric"
+              value={zoomInputValue}
+              onChange={(e) => setZoomInputValue(e.target.value.replace(/[^0-9]/g, ''))}
+              onBlur={commitZoomInput}
+              onKeyDown={handleZoomInputKeyDown}
+              className="w-14 text-center text-[11px] font-label font-medium text-foreground-700 bg-background-50 border border-background-200 rounded-md outline-none focus:ring-1 focus:ring-[#d9808d] py-0.5 px-1"
+              aria-label="Zoom percentage"
+            />
+            <span className="absolute right-1.5 text-[10px] text-foreground-400 pointer-events-none">%</span>
+          </div>
+        ) : (
+          <button
+            onClick={handleZoomBadgeClick}
+            className="w-10 text-[11px] font-label font-medium text-foreground-700 text-center select-none hover:bg-background-100 rounded-md py-0.5 cursor-pointer transition-colors"
+            title="Click to enter a zoom value"
+            aria-label="Current zoom level, click to change"
+          >
+            {zoomValue}%
+          </button>
+        )}
 
         <button
           onClick={zoomIn}
           disabled={zoomValue >= 200}
           className="w-7 h-7 flex items-center justify-center rounded-full text-foreground-500 hover:bg-background-100 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Zoom in"
+          title="Zoom in (Ctrl/⌘ +)"
           aria-label="Zoom in"
         >
           <i className="ri-add-line text-sm" />
