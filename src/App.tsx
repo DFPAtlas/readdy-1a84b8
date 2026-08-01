@@ -8,7 +8,9 @@ import { ErrorBoundary } from "@/components/base/ErrorBoundary";
 import { AuthProvider } from "@/context/AuthProvider";
 import { ActiveWeddingProvider } from "@/context/ActiveWeddingProvider";
 import { CookieConsentBanner } from "@/components/feature/CookieConsentBanner";
+import { installEdgeFunctionRouting } from "@/lib/edgeFunctionRouting";
 
+installEdgeFunctionRouting();
 
 function App() {
   if (isDemoMode) {
