@@ -41,12 +41,15 @@ Verified database totals before cleanup:
 
 The temporary wedding and all cascaded test data were deleted after verification. Final cleanup counts were zero for weddings, guests, invitations, tokens, sessions, submissions, responses and test security events.
 
+The PostgreSQL HTTP extension was enabled only for the controlled internal smoke test and removed immediately afterward.
+
 ## Migrations
 
 - `harden_wedora_guest_access_and_rsvp`
 - `set_wedora_guest_access_table_privileges`
 - `enable_http_for_wedora_smoke_tests`
 - `add_explicit_deny_policies_guest_access_security_events`
+- `remove_http_after_wedora_smoke_tests`
 
 ## Next Phase 1 milestone
 
