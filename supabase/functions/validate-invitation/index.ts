@@ -1,417 +1,295 @@
-
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-const securityHeaders = {
-  "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
-  "Pragma": "no-cache",
-  "Expires": "0",
-  "Referrer-Policy": "no-referrer",
-  "X-Content-Type-Options": "nosniff",
-  "X-Robots-Tag": "noindex, nofollow, noarchive",
-};
-
 const RATE_WINDOW_MINUTES = 15;
-const MAX_FAILED_ATTEMPTS = 5;
+const MAX_FAILED_ATTEMPTS = 8;
 const SESSION_DURATION_DAYS = 7;
 
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+function allowedOrigins(): string[] {
+  const configured = Deno.env.get("ALLOWED_ORIGINS");
+  return (configured || "https://wedora.uk,https://www.wedora.uk,http://localhost:5173")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
 }
 
-function buildFingerprint(req: Request): string {
+function headers(req: Request): Record<string, string> {
+  const origin = req.headers.get("origin");
+  const allowed = allowedOrigins();
+  return {
+    "Access-Control-Allow-Origin": origin && allowed.includes(origin) ? origin : allowed[0],
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Max-Age": "86400",
+    "Cache-Control": "no-store, no-cache, must-revalidate",
+    "Pragma": "no-cache",
+    "Referrer-Policy": "no-referrer",
+    "X-Content-Type-Options": "nosniff",
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
+    "Content-Type": "application/json",
+    "Vary": "Origin",
+  };
+}
+
+async function sha256(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function randomSecret(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return btoa(String.fromCharCode(...bytes))
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
+}
+
+async function fingerprint(req: Request): Promise<string> {
   const ip = req.headers.get("cf-connecting-ip") ||
     req.headers.get("x-real-ip") ||
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
-  const ua = req.headers.get("user-agent") || "unknown";
-  return sha256(`${ip}:${ua.slice(0, 64)}`);
+  const userAgent = (req.headers.get("user-agent") || "unknown").slice(0, 180);
+  return sha256(`${ip}:${userAgent}`);
 }
 
-function genericError(reason: string) {
-  return { valid: false, reason };
+function reply(req: Request, body: Record<string, unknown>, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: headers(req) });
 }
 
-function allHeaders(): Record<string, string> {
-  return { ...corsHeaders, ...securityHeaders };
+function visibleEvent(
+  event: Record<string, unknown>,
+  recipients: Array<Record<string, unknown>>,
+): boolean {
+  if (event.status === "archived" || event.visibility === "hidden") return false;
+  if (event.visibility === "reveal_on_date" && event.reveal_at) {
+    if (new Date() < new Date(String(event.reveal_at))) return false;
+  }
+  if (event.visibility !== "included_guests") return true;
+
+  const fieldByType: Record<string, string> = {
+    ceremony: "ceremony_included",
+    reception: "reception_included",
+    evening: "evening_included",
+    welcome: "welcome_event_included",
+    day_after: "day_after_event_included",
+    farewell: "day_after_event_included",
+  };
+  const field = fieldByType[String(event.event_type || "")];
+  return !field || recipients.some((recipient) => recipient[field] === true);
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: allHeaders() });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: headers(req) });
+  if (req.method !== "POST") return reply(req, { valid: false, reason: "method_not_allowed" }, 405);
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error("validate-invitation: Supabase environment is incomplete");
+    return reply(req, { valid: false, reason: "unavailable" }, 503);
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
-  const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const fp = await fingerprint(req);
 
-  const fingerprint = buildFingerprint(req);
+  const logSecurity = async (
+    eventType: string,
+    metadata: Record<string, unknown> = {},
+    weddingId?: string,
+    invitationId?: string,
+  ) => {
+    const { error } = await supabase.from("guest_access_security_events").insert({
+      fingerprint_hash: fp,
+      event_type: eventType,
+      source: "validate_invitation",
+      wedding_id: weddingId || null,
+      invitation_id: invitationId || null,
+      metadata,
+    });
+    if (error) console.error("validate-invitation security log failed", error.message);
+  };
 
   try {
-    const body = await req.json();
-    const { rawToken } = body || {};
-
-    if (!rawToken || typeof rawToken !== "string" || rawToken.length < 12) {
-      await logAnonActivity(supabase, fingerprint, "invalid_token_format", "Token missing or too short");
-      return new Response(JSON.stringify(genericError("invalid_link")), {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
-      });
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      await logSecurity("invalid_json");
+      return reply(req, { valid: false, reason: "invalid_link" });
     }
 
-    // --- Rate limiting ---
-    const windowStart = new Date(Date.now() - RATE_WINDOW_MINUTES * 60 * 1000).toISOString();
-
-    const { count: recentFailures, error: rateErr } = await supabase
-      .from("invitation_access_activity")
-      .select("id", { count: "exact", head: true })
-      .eq("event_type", "validation_failed")
-      .gte("created_at", windowStart)
-      .filter("security_metadata->>fingerprint", "eq", fingerprint);
-
-    if (!rateErr && recentFailures !== null && recentFailures >= MAX_FAILED_ATTEMPTS) {
-      await logAnonActivity(supabase, fingerprint, "rate_limited", "Too many failed attempts");
-      return new Response(JSON.stringify(genericError("invalid_link")), {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
-      });
+    const rawToken = typeof body.rawToken === "string" ? body.rawToken.trim() : "";
+    if (rawToken.length < 24 || rawToken.length > 512) {
+      await logSecurity("invalid_token_format", { length: rawToken.length });
+      return reply(req, { valid: false, reason: "invalid_link" });
     }
 
-    const tokenHash = sha256(rawToken);
+    const since = new Date(Date.now() - RATE_WINDOW_MINUTES * 60_000).toISOString();
+    const { count } = await supabase
+      .from("guest_access_security_events")
+      .select("id", { head: true, count: "exact" })
+      .eq("fingerprint_hash", fp)
+      .in("event_type", ["invalid_token_format", "token_not_found", "token_revoked"])
+      .gte("created_at", since);
 
-    // Find active token
-    const { data: accessToken, error: tokenErr } = await supabase
+    if ((count || 0) >= MAX_FAILED_ATTEMPTS) {
+      await logSecurity("rate_limited");
+      return reply(req, { valid: false, reason: "invalid_link" }, 429);
+    }
+
+    const tokenHash = await sha256(rawToken);
+    const { data: accessToken, error: tokenError } = await supabase
       .from("invitation_access_tokens")
-      .select("*")
+      .select("id, wedding_id, invitation_id, status, expires_at")
       .eq("token_hash", tokenHash)
-      .eq("status", "active")
       .maybeSingle();
 
-    if (tokenErr || !accessToken) {
-      // Check if token was revoked
-      const { data: revokedToken } = await supabase
-        .from("invitation_access_tokens")
-        .select("status, revoked_at")
-        .eq("token_hash", tokenHash)
-        .maybeSingle();
-
-      const failReason = revokedToken?.status === "revoked" ? "revoked" : "not_found";
-      await logAnonActivity(supabase, fingerprint, "validation_failed", `Token ${failReason}`, revokedToken?.status === "revoked" ? { token_status: "revoked" } : undefined);
-
-      return new Response(JSON.stringify(genericError("invalid_link")), {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
-      });
+    if (tokenError) throw tokenError;
+    if (!accessToken) {
+      await logSecurity("token_not_found");
+      return reply(req, { valid: false, reason: "invalid_link" });
+    }
+    if (accessToken.status === "revoked") {
+      await logSecurity("token_revoked", {}, accessToken.wedding_id, accessToken.invitation_id);
+      return reply(req, { valid: false, reason: "invalid_link" });
+    }
+    if (accessToken.status !== "active") {
+      return reply(req, { valid: false, reason: accessToken.status === "expired" ? "expired" : "invalid_link" });
+    }
+    if (accessToken.expires_at && new Date(accessToken.expires_at) <= new Date()) {
+      await supabase.from("invitation_access_tokens").update({ status: "expired" }).eq("id", accessToken.id);
+      await logSecurity("token_expired", {}, accessToken.wedding_id, accessToken.invitation_id);
+      return reply(req, { valid: false, reason: "expired" });
     }
 
-    // Check token expiry
-    if (accessToken.expires_at && new Date(accessToken.expires_at) < new Date()) {
-      await supabase
-        .from("invitation_access_tokens")
-        .update({ status: "expired" })
-        .eq("id", accessToken.id);
+    const [{ data: invitation, error: invitationError }, { data: wedding, error: weddingError }, { data: portalSettings }] = await Promise.all([
+      supabase
+        .from("invitations")
+        .select("id, wedding_id, formal_recipient_name, informal_greeting, invitation_type, rsvp_deadline, status, template:invitation_templates(id, name, style_preset, header_text, body_text, closing_text, footer_text, rsvp_button_label, image_url, theme_config)")
+        .eq("id", accessToken.invitation_id)
+        .maybeSingle(),
+      supabase
+        .from("weddings")
+        .select("id, partner_one_name, partner_two_name, title, wedding_date, dress_code, welcome_message, contact_information, parking_notes, accessibility_notes, children_policy, plus_one_policy")
+        .eq("id", accessToken.wedding_id)
+        .maybeSingle(),
+      supabase
+        .from("guest_portal_settings")
+        .select("portal_enabled, show_countdown, show_travel, show_updates, show_contact_details, custom_guest_message, portal_closes_at")
+        .eq("wedding_id", accessToken.wedding_id)
+        .maybeSingle(),
+    ]);
 
-      await logWeddingActivity(supabase, accessToken.wedding_id, accessToken.invitation_id, accessToken.id, "token_expired", "Token expired", fingerprint);
-
-      return new Response(JSON.stringify(genericError("expired")), {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
-      });
+    if (invitationError || weddingError || !invitation || !wedding) {
+      await logSecurity("invitation_data_missing", {}, accessToken.wedding_id, accessToken.invitation_id);
+      return reply(req, { valid: false, reason: "invalid_link" });
+    }
+    if (["cancelled", "archived"].includes(invitation.status)) {
+      return reply(req, { valid: false, reason: "cancelled" });
+    }
+    if (portalSettings?.portal_enabled === false) {
+      return reply(req, { valid: false, reason: "portal_disabled" });
+    }
+    if (portalSettings?.portal_closes_at && new Date(portalSettings.portal_closes_at) <= new Date()) {
+      return reply(req, { valid: false, reason: "portal_closed" });
     }
 
-    // Get invitation — idempotency: always returns same data for same token
-    const { data: invitation, error: invErr } = await supabase
-      .from("invitations")
-      .select("*, template:invitation_templates(id, name, style_preset, header_text, body_text, closing_text, footer_text, rsvp_button_label, image_url, theme_config)")
-      .eq("id", accessToken.invitation_id)
-      .maybeSingle();
-
-    if (invErr || !invitation) {
-      await logWeddingActivity(supabase, accessToken.wedding_id, accessToken.invitation_id, accessToken.id, "validation_failed", "Invitation not found", fingerprint);
-      return new Response(JSON.stringify(genericError("invalid_link")), {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
-      });
+    const { data: recipientRows, error: recipientError } = await supabase
+      .from("invitation_recipients")
+      .select("guest_id, recipient_role, ceremony_included, reception_included, evening_included, welcome_event_included, day_after_event_included, plus_one_allowed, guest:guests(id, full_name, preferred_name)")
+      .eq("invitation_id", invitation.id);
+    if (recipientError) throw recipientError;
+    if (!recipientRows || recipientRows.length === 0) {
+      return reply(req, { valid: false, reason: "invalid_link" });
     }
 
-    if (invitation.status === "cancelled" || invitation.status === "archived") {
-      await logWeddingActivity(supabase, accessToken.wedding_id, accessToken.invitation_id, accessToken.id, "access_denied_cancelled", "Invitation cancelled or archived", fingerprint);
-      return new Response(JSON.stringify(genericError("cancelled")), {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
-      });
-    }
+    const recipients = recipientRows.map((row) => {
+      const guest = Array.isArray(row.guest) ? row.guest[0] : row.guest;
+      return {
+        guest_id: row.guest_id,
+        guest_name: guest?.full_name || "Guest",
+        preferred_name: guest?.preferred_name || null,
+        recipient_role: row.recipient_role,
+        ceremony_included: row.ceremony_included,
+        reception_included: row.reception_included,
+        evening_included: row.evening_included,
+        welcome_event_included: row.welcome_event_included,
+        day_after_event_included: row.day_after_event_included,
+        plus_one_allowed: row.plus_one_allowed,
+      } as Record<string, unknown>;
+    });
 
-    // Get wedding
-    const { data: wedding, error: wedErr } = await supabase
-      .from("weddings")
-      .select("id, partner_one_name, partner_two_name, title, wedding_date, dress_code, welcome_message, contact_information, parking_notes, accessibility_notes, children_policy, plus_one_policy")
-      .eq("id", accessToken.wedding_id)
-      .maybeSingle();
-
-    if (wedErr || !wedding) {
-      return new Response(JSON.stringify(genericError("invalid_link")), {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
-      });
-    }
-
-    // Check portal availability
-    const { data: portalSettings } = await supabase
-      .from("guest_portal_settings")
-      .select("*")
+    const { data: eventRows } = await supabase
+      .from("wedding_events")
+      .select("id, event_type, name, description, start_at, end_at, dress_code, arrival_notes, visibility, reveal_at, status, venue:wedding_venues(id, name, address_line_1, city, postcode, country)")
       .eq("wedding_id", accessToken.wedding_id)
-      .maybeSingle();
+      .neq("status", "archived")
+      .order("start_at", { ascending: true, nullsFirst: false });
 
-    if (portalSettings && !portalSettings.portal_enabled) {
-      return new Response(JSON.stringify(genericError("portal_disabled")), {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
-      });
-    }
+    const events = (eventRows || []).filter((event) => visibleEvent(event as Record<string, unknown>, recipients));
 
-    if (portalSettings?.portal_closes_at) {
-      const closeDate = new Date(portalSettings.portal_closes_at);
-      if (new Date() >= closeDate) {
-        return new Response(JSON.stringify(genericError("portal_closed")), {
-          status: 200,
-          headers: { ...allHeaders(), "Content-Type": "application/json" },
-        });
-      }
-    }
+    const rawSessionSecret = randomSecret();
+    const sessionHash = await sha256(rawSessionSecret);
+    const tokenExpiry = accessToken.expires_at ? new Date(accessToken.expires_at).getTime() : Number.POSITIVE_INFINITY;
+    const normalExpiry = Date.now() + SESSION_DURATION_DAYS * 86_400_000;
+    const expiresAt = new Date(Math.min(tokenExpiry, normalExpiry)).toISOString();
+    const now = new Date().toISOString();
 
-    // Check for existing active session (idempotency — reuse if exists)
-    const { data: existingSession } = await supabase
+    const { data: session, error: sessionError } = await supabase
       .from("guest_access_sessions")
-      .select("id, session_hash, created_at, last_seen_at")
-      .eq("access_token_id", accessToken.id)
-      .eq("status", "active")
-      .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .insert({
+        wedding_id: accessToken.wedding_id,
+        invitation_id: accessToken.invitation_id,
+        access_token_id: accessToken.id,
+        session_hash: sessionHash,
+        status: "active",
+        created_at: now,
+        last_seen_at: now,
+        expires_at: expiresAt,
+      })
+      .select("id")
+      .single();
+    if (sessionError || !session) throw sessionError || new Error("Session creation failed");
 
-    let sessionHash: string;
-
-    if (existingSession) {
-      // Reuse existing session — touch last_seen_at
-      sessionHash = existingSession.session_hash;
-      await supabase
-        .from("guest_access_sessions")
-        .update({ last_seen_at: new Date().toISOString() })
-        .eq("id", existingSession.id);
-    } else {
-      // Create new session
-      const rawSessionId = crypto.randomUUID();
-      sessionHash = sha256(rawSessionId);
-      const expiresAt = new Date(Date.now() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
-      const now = new Date().toISOString();
-
-      const { error: sessionErr } = await supabase
-        .from("guest_access_sessions")
-        .insert({
-          wedding_id: accessToken.wedding_id,
-          invitation_id: accessToken.invitation_id,
-          access_token_id: accessToken.id,
-          session_hash: sessionHash,
-          status: "active",
-          expires_at: expiresAt,
-          created_at: now,
-          last_seen_at: now,
-        });
-
-      if (sessionErr) {
-        console.error("Session creation failed:", sessionErr);
-        return new Response(JSON.stringify(genericError("unavailable")), {
-          status: 200,
-          headers: { ...allHeaders(), "Content-Type": "application/json" },
-        });
-      }
-
-      await supabase.from("guest_portal_activity").insert({
+    await Promise.all([
+      supabase.from("invitation_access_tokens").update({ last_used_at: now }).eq("id", accessToken.id),
+      supabase.from("invitation_access_activity").insert({
         wedding_id: accessToken.wedding_id,
         invitation_id: accessToken.invitation_id,
         access_token_id: accessToken.id,
         actor_type: "guest",
+        event_type: "access_granted",
+        summary: "Invitation token validated",
+        security_metadata: { fingerprint_hash: fp },
+      }),
+      supabase.from("guest_portal_activity").insert({
+        wedding_id: accessToken.wedding_id,
+        invitation_id: accessToken.invitation_id,
+        session_id: session.id,
+        actor_type: "guest",
         event_type: "session_created",
         summary: "Guest portal session created",
-        security_metadata: { fingerprint },
-      });
-    }
-
-    // Update token last_used_at
-    await supabase
-      .from("invitation_access_tokens")
-      .update({ last_used_at: new Date().toISOString() })
-      .eq("id", accessToken.id);
-
-    // Log access granted
-    await logWeddingActivity(supabase, accessToken.wedding_id, accessToken.invitation_id, accessToken.id, "access_granted", "Guest accessed invitation", fingerprint);
-
-    // Get recipients
-    const { data: recipients } = await supabase
-      .from("invitation_recipients")
-      .select("guest_id, guest:guests(id, full_name, preferred_name), recipient_role, ceremony_included, reception_included, evening_included, welcome_event_included, day_after_event_included, plus_one_allowed")
-      .eq("invitation_id", invitation.id);
-
-    // Get events
-    const { data: events } = await supabase
-      .from("wedding_events")
-      .select("*, venue:wedding_venues(id, name, address_line_1, city, postcode, country)")
-      .eq("wedding_id", accessToken.wedding_id)
-      .eq("status", "active")
-      .in("visibility", ["public", "invitation_holders"]);
-
-    const filteredEvents = (events || []).map((evt) => ({
-      id: evt.id,
-      event_type: evt.event_type,
-      name: evt.name,
-      description: evt.description,
-      start_at: evt.start_at,
-      end_at: evt.end_at,
-      dress_code: evt.dress_code,
-      arrival_notes: evt.arrival_notes,
-      venue: evt.venue
-        ? {
-            id: evt.venue.id,
-            name: evt.venue.name,
-            address_line_1: evt.venue.address_line_1,
-            city: evt.venue.city,
-            postcode: evt.venue.postcode,
-            country: evt.venue.country,
-          }
-        : null,
-    }));
-
-    const guestRecipients = (recipients || []).map((r) => ({
-      guest_id: r.guest_id,
-      guest_name: r.guest?.full_name || "Guest",
-      preferred_name: r.guest?.preferred_name || null,
-      recipient_role: r.recipient_role,
-      ceremony_included: r.ceremony_included,
-      reception_included: r.reception_included,
-      evening_included: r.evening_included,
-      welcome_event_included: r.welcome_event_included,
-      day_after_event_included: r.day_after_event_included,
-      plus_one_allowed: r.plus_one_allowed,
-    }));
-
-    const data = {
-      wedding: {
-        id: wedding.id,
-        partner_one_name: wedding.partner_one_name,
-        partner_two_name: wedding.partner_two_name,
-        title: wedding.title,
-        wedding_date: wedding.wedding_date,
-        dress_code: wedding.dress_code,
-        welcome_message: wedding.welcome_message,
-        contact_information: wedding.contact_information,
-        parking_notes: wedding.parking_notes,
-        accessibility_notes: wedding.accessibility_notes,
-        children_policy: wedding.children_policy,
-        plus_one_policy: wedding.plus_one_policy,
-      },
-      invitation: {
-        id: invitation.id,
-        formal_recipient_name: invitation.formal_recipient_name,
-        informal_greeting: invitation.informal_greeting,
-        invitation_type: invitation.invitation_type,
-        rsvp_deadline: invitation.rsvp_deadline,
-        status: invitation.status,
-        template: invitation.template,
-      },
-      recipients: guestRecipients,
-      events: filteredEvents,
-      portal_settings: portalSettings
-        ? {
-            portal_enabled: portalSettings.portal_enabled,
-            show_countdown: portalSettings.show_countdown,
-            show_travel: portalSettings.show_travel,
-            show_updates: portalSettings.show_updates,
-            show_contact_details: portalSettings.show_contact_details,
-            custom_guest_message: portalSettings.custom_guest_message,
-            portal_closes_at: portalSettings.portal_closes_at,
-          }
-        : null,
-    };
-
-    return new Response(
-      JSON.stringify({
-        valid: true,
-        data,
-        session_id: sessionHash,
+        metadata: { fingerprint_hash: fp },
       }),
-      {
-        status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+    ]);
+
+    return reply(req, {
+      valid: true,
+      session_id: rawSessionSecret,
+      data: {
+        wedding,
+        invitation,
+        recipients,
+        events,
+        portal_settings: portalSettings || null,
       },
-    );
-  } catch (err) {
-    console.error("validate-invitation error:", err);
-    try {
-      await supabase.from("invitation_access_activity").insert({
-        wedding_id: "00000000-0000-0000-0000-000000000000",
-        invitation_id: "00000000-0000-0000-0000-000000000000",
-        actor_type: "system",
-        event_type: "edge_function_error",
-        summary: "Unexpected error in validate-invitation",
-        security_metadata: { fingerprint, error: String(err).slice(0, 256) },
-      });
-    } catch { /* best effort */ }
-    return new Response(JSON.stringify(genericError("unavailable")), {
-      status: 200,
-      headers: { ...allHeaders(), "Content-Type": "application/json" },
     });
+  } catch (error) {
+    console.error("validate-invitation failed", error instanceof Error ? error.message : String(error));
+    await logSecurity("function_error", { message: error instanceof Error ? error.message.slice(0, 300) : "unknown" });
+    return reply(req, { valid: false, reason: "unavailable" }, 503);
   }
 });
-
-async function logAnonActivity(
-  supabase: ReturnType<typeof createClient>,
-  fingerprint: string,
-  eventType: string,
-  summary: string,
-  extra?: Record<string, unknown>,
-) {
-  try {
-    await supabase.from("invitation_access_activity").insert({
-      wedding_id: "00000000-0000-0000-0000-000000000000",
-      invitation_id: "00000000-0000-0000-0000-000000000000",
-      actor_type: "unknown",
-      event_type: eventType,
-      summary,
-      security_metadata: { fingerprint, ...(extra || {}) },
-    });
-  } catch { /* best effort */ }
-}
-
-async function logWeddingActivity(
-  supabase: ReturnType<typeof createClient>,
-  weddingId: string,
-  invitationId: string,
-  accessTokenId: string,
-  eventType: string,
-  summary: string,
-  fingerprint: string,
-) {
-  try {
-    await supabase.from("invitation_access_activity").insert({
-      wedding_id: weddingId,
-      invitation_id: invitationId,
-      access_token_id: accessTokenId,
-      actor_type: "guest",
-      event_type: eventType,
-      summary,
-      security_metadata: { fingerprint },
-    });
-  } catch { /* best effort */ }
-}
