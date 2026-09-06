@@ -12,7 +12,7 @@ import {
 } from '@/lib/budgetMoney';
 import type { CurrencyCode } from '@/lib/budgetMoney';
 
-// ── Unit tests for the Wedora money model ──
+// ── Unit tests for the Vowora money model ──
 
 describe('toMinor / toMajor conversion', () => {
   it('converts major to minor (GBP)', () => {

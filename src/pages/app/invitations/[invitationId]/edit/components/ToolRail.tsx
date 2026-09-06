@@ -13,6 +13,8 @@ interface ToolRailProps {
   onBackgroundChange?: (bg: CanvasBackground) => void;
   showLayersPanel?: boolean;
   onToggleLayersPanel?: () => void;
+  opacity?: number;
+  onOpacityChange?: (opacity: number) => void;
 }
 
 export default function ToolRail({
@@ -27,6 +29,8 @@ export default function ToolRail({
   onBackgroundChange,
   showLayersPanel = false,
   onToggleLayersPanel,
+  opacity,
+  onOpacityChange,
 }: ToolRailProps) {
   const hasSelection = selectedLayerId !== null;
 
@@ -90,6 +94,38 @@ export default function ToolRail({
           <i className="ri-send-backward text-lg" />
         </button>
       </div>
+
+      {/* Opacity control — shown when a layer is selected */}
+      {hasSelection && opacity !== undefined && onOpacityChange && (
+        <div className="mt-3 pt-3 border-t border-[#eee7df] w-full flex flex-col items-center gap-1.5">
+          <i
+            className="ri-contrast-drop-2-line text-sm text-foreground-400"
+            title="Opacity"
+            aria-hidden="true"
+          />
+          <input
+            type="range"
+            min={10}
+            max={100}
+            value={Math.round(opacity * 100)}
+            onChange={(e) => onOpacityChange(Number(e.target.value) / 100)}
+            className="opacity-slider-vertical w-24 h-1.5 appearance-none bg-[#e8e0d5] rounded-full cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#d9808d] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-sm"
+            style={{
+              writingMode: 'vertical-lr',
+              direction: 'rtl',
+              height: '96px',
+            }}
+            aria-label="Layer opacity"
+            aria-valuemin={10}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(opacity * 100)}
+            title={`${Math.round(opacity * 100)}%`}
+          />
+          <span className="text-[10px] font-label font-medium text-foreground-500 whitespace-nowrap">
+            {Math.round(opacity * 100)}%
+          </span>
+        </div>
+      )}
 
       {/* Spacer pushes Delete to bottom */}
       <div className="flex-1" />

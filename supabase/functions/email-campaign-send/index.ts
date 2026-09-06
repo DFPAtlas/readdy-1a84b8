@@ -236,7 +236,7 @@ serve(async (req: Request) => {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          from: `${campaign.sender_name || 'Wedora'} <${senderEmail}>`,
+          from: `${campaign.sender_name || 'Vowora'} <${senderEmail}>`,
           to: [user.email],
           subject: `[TEST] ${campaign.subject}`,
           html,
@@ -298,7 +298,7 @@ serve(async (req: Request) => {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              from: `${campaign.sender_name || 'Wedora'} <${senderEmail}>`,
+              from: `${campaign.sender_name || 'Vowora'} <${senderEmail}>`,
               to: [rec.recipient_email],
               subject: (campaign.subject as string) || '',
               html: finalHtml,

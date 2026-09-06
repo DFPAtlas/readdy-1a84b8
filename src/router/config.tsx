@@ -91,6 +91,7 @@ const DashboardPage = lazy(() => import("@/pages/app/dashboard/page"));
 const WeddingDetailsPage = lazy(() => import("@/pages/app/wedding/page"));
 const SettingsPage = lazy(() => import("@/pages/app/settings/page"));
 const StyleboardPage = lazy(() => import("@/pages/app/styleboard/page"));
+const BillingPage = lazy(() => import("@/pages/app/billing/page"));
 
 // Guest management
 const GuestsPage = lazy(() => import("@/pages/app/guests/page"));
@@ -124,6 +125,7 @@ const TravelPage = lazy(() => import("@/pages/app/travel/page"));
 const TasksPage = lazy(() => import("@/pages/app/tasks/page"));
 const SuppliersPage = lazy(() => import("@/pages/app/suppliers/page"));
 const GalleryControlPage = lazy(() => import("@/pages/app/gallery-control/page"));
+const GalleryHubPage = lazy(() => import("@/pages/app/gallery/page"));
 
 // Budget
 const BudgetPage = lazy(() => import("@/pages/app/budget/page"));
@@ -155,6 +157,47 @@ const DayModePage = lazy(() => import("@/pages/app/seating/plans/[planId]/day-mo
 const TableCardsPage = lazy(() => import("@/pages/app/seating/plans/[planId]/table-cards/page"));
 const PlaceCardsPage = lazy(() => import("@/pages/app/seating/plans/[planId]/place-cards/page"));
 const SeatingAuditPage = lazy(() => import("@/pages/app/seating/plans/[planId]/audit/page"));
+
+// Schedule
+const SchedulePage = lazy(() => import("@/pages/app/schedule/page"));
+// Questions
+const QuestionsPage = lazy(() => import("@/pages/app/questions/page"));
+// Website Builder
+const WebsiteBuilderPage = lazy(() => import("@/pages/app/website/page"));
+const WebsiteDomainPage = lazy(() => import("@/pages/app/website/domain/page"));
+const WebsiteSeoPage = lazy(() => import("@/pages/app/website/seo/page"));
+// Calendar, Timeline, Exports
+const CalendarPage = lazy(() => import("@/pages/app/calendar/page"));
+const TimelinePage = lazy(() => import("@/pages/app/timeline/page"));
+const ExportsPage = lazy(() => import("@/pages/app/exports/page"));
+// Notifications, Activity, Search
+const NotificationsPage = lazy(() => import("@/pages/app/notifications/page"));
+const ActivityPage = lazy(() => import("@/pages/app/activity/page"));
+const SearchPage = lazy(() => import("@/pages/app/search/page"));
+// Getting Started, Help Centre
+const GettingStartedPage = lazy(() => import("@/pages/app/getting-started/page"));
+const HelpPage = lazy(() => import("@/pages/app/help/page"));
+const HelpArticlePage = lazy(() => import("@/pages/app/help/[articleSlug]/page"));
+
+// Admin
+const SystemReadinessPage = lazy(() => import("@/pages/app/admin/system-readiness/page"));
+const OperationsDashboardPage = lazy(() => import("@/pages/app/admin/operations/page"));
+const IncidentsPage = lazy(() => import("@/pages/app/admin/incidents/page"));
+const SupportPage = lazy(() => import("@/pages/app/admin/support/page"));
+const ReleasesPage = lazy(() => import("@/pages/app/admin/releases/page"));
+const AnalyticsPage = lazy(() => import("@/pages/app/admin/analytics/page"));
+const FeedbackCentrePage = lazy(() => import("@/pages/app/admin/feedback/page"));
+const ImprovementsPage = lazy(() => import("@/pages/app/admin/improvements/page"));
+const BackupsPage = lazy(() => import("@/pages/app/admin/backups/page"));
+const RecoveryPage = lazy(() => import("@/pages/app/admin/recovery/page"));
+const DataProtectionPage = lazy(() => import("@/pages/app/admin/data-protection/page"));
+const PerformanceDashboardPage = lazy(() => import("@/pages/app/admin/performance/page"));
+
+// Account & Collaborators
+const AccountProfilePage = lazy(() => import("@/pages/app/account/profile/page"));
+const AccountSecurityPage = lazy(() => import("@/pages/app/account/security/page"));
+const AccountPrivacyPage = lazy(() => import("@/pages/app/account/privacy/page"));
+const CollaboratorsPage = lazy(() => import("@/pages/app/collaborators/page"));
 
 // ── Route configuration ──
 
@@ -278,6 +321,7 @@ const routes: RouteObject[] = [
       { path: "tasks", element: <LazyRoute comp={TasksPage} /> },
       { path: "suppliers", element: <LazyRoute comp={SuppliersPage} /> },
       { path: "gallery-control", element: <LazyRoute comp={GalleryControlPage} /> },
+      { path: "gallery", element: <LazyRoute comp={GalleryHubPage} /> },
 
       // Budget
       { path: "budget", element: <LazyRoute comp={BudgetPage} /> },
@@ -313,6 +357,41 @@ const routes: RouteObject[] = [
       // Settings
       { path: "settings", element: <LazyRoute comp={SettingsPage} /> },
       { path: "styleboard", element: <LazyRoute comp={StyleboardPage} /> },
+      { path: "schedule", element: <LazyRoute comp={SchedulePage} /> },
+      { path: "questions", element: <LazyRoute comp={QuestionsPage} /> },
+      { path: "website", element: <LazyRoute comp={WebsiteBuilderPage} /> },
+      { path: "website/domain", element: <LazyRoute comp={WebsiteDomainPage} /> },
+      { path: "website/seo", element: <LazyRoute comp={WebsiteSeoPage} /> },
+      { path: "calendar", element: <LazyRoute comp={CalendarPage} /> },
+      { path: "timeline", element: <LazyRoute comp={TimelinePage} /> },
+      { path: "exports", element: <LazyRoute comp={ExportsPage} /> },
+      { path: "notifications", element: <LazyRoute comp={NotificationsPage} /> },
+      { path: "activity", element: <LazyRoute comp={ActivityPage} /> },
+      { path: "search", element: <LazyRoute comp={SearchPage} /> },
+      { path: "billing", element: <LazyRoute comp={BillingPage} /> },
+      { path: "getting-started", element: <LazyRoute comp={GettingStartedPage} /> },
+      { path: "help", element: <LazyRoute comp={HelpPage} /> },
+      { path: "help/:articleSlug", element: <LazyRoute comp={HelpArticlePage} /> },
+
+      // Admin
+      { path: "admin/system-readiness", element: <LazyRoute comp={SystemReadinessPage} /> },
+      { path: "admin/operations", element: <LazyRoute comp={OperationsDashboardPage} /> },
+      { path: "admin/incidents", element: <LazyRoute comp={IncidentsPage} /> },
+      { path: "admin/support", element: <LazyRoute comp={SupportPage} /> },
+      { path: "admin/releases", element: <LazyRoute comp={ReleasesPage} /> },
+      { path: "admin/analytics", element: <LazyRoute comp={AnalyticsPage} /> },
+      { path: "admin/feedback", element: <LazyRoute comp={FeedbackCentrePage} /> },
+      { path: "admin/improvements", element: <LazyRoute comp={ImprovementsPage} /> },
+      { path: "admin/backups", element: <LazyRoute comp={BackupsPage} /> },
+      { path: "admin/recovery", element: <LazyRoute comp={RecoveryPage} /> },
+      { path: "admin/data-protection", element: <LazyRoute comp={DataProtectionPage} /> },
+      { path: "admin/performance", element: <LazyRoute comp={PerformanceDashboardPage} /> },
+
+      // Account & Collaborators
+      { path: "account/profile", element: <LazyRoute comp={AccountProfilePage} /> },
+      { path: "account/security", element: <LazyRoute comp={AccountSecurityPage} /> },
+      { path: "account/privacy", element: <LazyRoute comp={AccountPrivacyPage} /> },
+      { path: "collaborators", element: <LazyRoute comp={CollaboratorsPage} /> },
     ],
   },
 

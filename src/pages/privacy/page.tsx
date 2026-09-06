@@ -15,7 +15,7 @@ export default function PrivacyPage() {
           <div className="card-default mb-8">
             <p className="text-sm text-foreground-600 italic">
               <strong>Review note for legal counsel:</strong> This Privacy Notice is drafted for UK GDPR / Data Protection Act 2018 compliance.
-              It describes how Wedora collects, uses and protects personal data across the platform. Every section should be
+              It describes how Vowora collects, uses and protects personal data across the platform. Every section should be
               reviewed for accuracy against the actual data-processing activities before this notice is published as final.
               Sections marked with <strong>[REVIEW]</strong> contain open questions for legal counsel.
             </p>
@@ -25,18 +25,18 @@ export default function PrivacyPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">1. About this notice</h2>
               <p className="text-sm leading-relaxed">
-                Wedora (&ldquo;Wedora&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;us&rdquo;) is a wedding planning platform
-                operated by the Wedora team. We are a data controller for the personal data we process through the platform.
+                Vowora (&ldquo;Vowora&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;us&rdquo;) is a wedding planning platform
+                operated by the Vowora team. We are a data controller for the personal data we process through the platform.
               </p>
               <p className="text-sm leading-relaxed mt-2">
                 This Privacy Notice explains how we collect, use, share and protect the personal data of:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-1 mt-2">
-                <li><strong>Couples</strong> — people who create a Wedora account to plan their wedding</li>
+                <li><strong>Couples</strong> — people who create a Vowora account to plan their wedding</li>
                 <li><strong>Wedding party members</strong> — partners, planners and collaborators added to a wedding workspace</li>
-                <li><strong>Guests</strong> — people invited to a wedding through Wedora, whose data is provided by the couple</li>
+                <li><strong>Guests</strong> — people invited to a wedding through Vowora, whose data is provided by the couple</li>
                 <li><strong>Suppliers</strong> — venue managers, photographers, caterers and other wedding suppliers added to the platform</li>
-                <li><strong>Website visitors</strong> — people who browse the Wedora marketing website</li>
+                <li><strong>Website visitors</strong> — people who browse the Vowora marketing website</li>
               </ul>
               <p className="text-sm leading-relaxed mt-2">
                 <strong>[REVIEW]</strong> Confirm the legal entity name and registered address that should appear here.
@@ -142,7 +142,7 @@ export default function PrivacyPage() {
                   </thead>
                   <tbody className="divide-y divide-secondary-100">
                     <tr>
-                      <td className="py-2 pr-4 text-foreground-700">Providing and maintaining the Wedora platform</td>
+                      <td className="py-2 pr-4 text-foreground-700">Providing and maintaining the Vowora platform</td>
                       <td className="py-2 text-foreground-500">Contract performance (Art. 6(1)(b))</td>
                     </tr>
                     <tr>
@@ -204,7 +204,7 @@ export default function PrivacyPage() {
               <p className="text-sm leading-relaxed">
                 Guest data (RSVP responses, dietary requirements, accessibility needs, contact information) is visible to the
                 wedding couple and any collaborators they add to their workspace. The couple is responsible for how they use
-                this data outside of Wedora.
+                this data outside of Vowora.
               </p>
 
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">4.3 Legal disclosures</h3>
@@ -274,9 +274,9 @@ export default function PrivacyPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">8. Guest data &amp; the couple&rsquo;s responsibilities</h2>
               <p className="text-sm leading-relaxed">
-                When a couple adds guest data to Wedora, the couple acts as a data controller for that guest data.
+                When a couple adds guest data to Vowora, the couple acts as a data controller for that guest data.
                 We process it on their behalf as a data processor. Couples should ensure they have a lawful basis for
-                providing guest data to Wedora — typically consent or legitimate interest.
+                providing guest data to Vowora — typically consent or legitimate interest.
               </p>
               <p className="text-sm leading-relaxed mt-2">
                 We provide tools for guests to manage their own data, including the ability to update their details,
@@ -300,7 +300,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">10. Children&rsquo;s data</h2>
               <p className="text-sm leading-relaxed">
-                Wedora is not intended for use by children under 16. Couples may include children as guests in their
+                Vowora is not intended for use by children under 16. Couples may include children as guests in their
                 wedding, but we do not knowingly collect personal data directly from children. If you believe a child
                 has provided us with personal data without parental consent, please contact us.
               </p>
@@ -350,7 +350,7 @@ export default function PrivacyPage() {
             <section className="mt-8 pt-6 border-t border-secondary-200">
               <h2 className="font-heading text-lg text-foreground-900 mb-3">Open legal-review questions</h2>
               <ol className="list-decimal pl-5 text-xs text-foreground-600 space-y-1.5">
-                <li>Confirm the legal entity name and registered address for Wedora.</li>
+                <li>Confirm the legal entity name and registered address for Vowora.</li>
                 <li>Confirm the hosting location of all personal data and whether any data is stored or processed in the United States.</li>
                 <li>Confirm whether a Data Protection Officer has been appointed and their contact details.</li>
                 <li>Confirm the ICO registration number.</li>

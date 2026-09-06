@@ -227,56 +227,28 @@ export function useEmailCampaigns() {
   const buildRecipients = useCallback(async (campaignId: string, filter: Record<string, unknown>): Promise<number> => {
     if (!weddingId) throw new Error('No active wedding');
 
-    // Invoke edge function to build recipient list
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token;
-
-    const res = await fetch(`${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1/email-campaign-send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'build_recipients', campaign_id: campaignId, wedding_id: weddingId, audience_filter: filter }),
+    const { data: result, error: fnErr } = await supabase.functions.invoke('email-campaign-send', {
+      body: { action: 'build_recipients', campaign_id: campaignId, wedding_id: weddingId, audience_filter: filter },
     });
 
-    if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(errBody || 'Failed to build recipients');
-    }
-
-    const result = await res.json();
-    return result.recipient_count || 0;
+    if (fnErr) throw fnErr;
+    return (result as { recipient_count?: number }).recipient_count || 0;
   }, [weddingId]);
 
   const sendTestEmail = useCallback(async (campaignId: string): Promise<void> => {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token;
-
-    const res = await fetch(`${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1/email-campaign-send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'test', campaign_id: campaignId, wedding_id: weddingId }),
+    const { error: fnErr } = await supabase.functions.invoke('email-campaign-send', {
+      body: { action: 'test', campaign_id: campaignId, wedding_id: weddingId },
     });
 
-    if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(errBody || 'Test send failed');
-    }
+    if (fnErr) throw fnErr;
   }, [weddingId]);
 
   const sendCampaign = useCallback(async (campaignId: string): Promise<void> => {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData?.session?.access_token;
-
-    const res = await fetch(`${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1/email-campaign-send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ action: 'send', campaign_id: campaignId, wedding_id: weddingId }),
+    const { error: fnErr } = await supabase.functions.invoke('email-campaign-send', {
+      body: { action: 'send', campaign_id: campaignId, wedding_id: weddingId },
     });
 
-    if (!res.ok) {
-      const errBody = await res.text();
-      throw new Error(errBody || 'Send failed');
-    }
-
+    if (fnErr) throw fnErr;
     await fetchAll();
   }, [weddingId, fetchAll]);
 

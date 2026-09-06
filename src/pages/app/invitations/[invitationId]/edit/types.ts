@@ -57,6 +57,7 @@ export interface InvitationLayer {
   height: number;
   rotation: number;
   zIndex: number;
+  opacity: number;
   props: TextLayerProps | AssetLayerProps;
 }
 

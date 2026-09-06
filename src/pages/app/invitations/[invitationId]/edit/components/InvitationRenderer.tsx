@@ -592,7 +592,7 @@ export default function InvitationRenderer({
         // When editing, render the editable version instead of the read-only one
         if (isEditing) {
           return (
-            <div key={layer.id} style={{ zIndex: layer.zIndex + 200 }}>
+            <div key={layer.id} style={{ zIndex: layer.zIndex + 200, opacity: layer.opacity ?? 1 }}>
               <TextContentEditable
                 layer={layer}
                 scale={scale}
@@ -620,6 +620,7 @@ export default function InvitationRenderer({
               cursor: interactive ? 'grab' : 'default',
               touchAction: interactive ? 'none' : undefined,
               zIndex: layer.zIndex,
+              opacity: layer.opacity ?? 1,
             }}
             role={interactive ? 'button' : undefined}
             aria-label={

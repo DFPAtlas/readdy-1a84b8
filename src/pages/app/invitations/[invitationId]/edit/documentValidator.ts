@@ -76,6 +76,10 @@ export function parseInvitationDocument(value: unknown): ValidationResult {
     const rotation = Number(l.rotation);
     const zIndex = Number(l.zIndex);
 
+    // Validate opacity — default to 1, clamp to [0.1, 1]
+    const rawOpacity = Number(l.opacity);
+    const opacity = Number.isFinite(rawOpacity) ? clamp(rawOpacity, 0.1, 1) : 1;
+
     if (
       !Number.isFinite(x) ||
       !Number.isFinite(y) ||
@@ -106,14 +110,14 @@ export function parseInvitationDocument(value: unknown): ValidationResult {
           ? tp.textTransform as TextLayerProps['textTransform']
           : undefined,
       };
-      validatedLayers.push({ id, type, x, y, width: w, height: h, rotation, zIndex, props: validProps });
+      validatedLayers.push({ id, type, x, y, width: w, height: h, rotation, zIndex, opacity, props: validProps });
     } else {
       const ap = props as Record<string, unknown>;
       const validProps: AssetLayerProps = {
         assetId: String(ap.assetId ?? ''),
         flipX: Boolean(ap.flipX),
       };
-      validatedLayers.push({ id, type, x, y, width: w, height: h, rotation, zIndex, props: validProps });
+      validatedLayers.push({ id, type, x, y, width: w, height: h, rotation, zIndex, opacity, props: validProps });
     }
   }
 

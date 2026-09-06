@@ -1,6 +1,7 @@
-// ── Settings Types for Wedora ──
+// ── Settings Types for Vowora ──
 
 import type { WeddingRole, WeddingMembershipStatus } from './membership';
+import type { BillingPlanKey, SubscriptionStatus } from '@/types/billing';
 
 // ── Profile Settings ──
 
@@ -175,8 +176,8 @@ export interface PrivacySettings {
 
 // ── Billing / Subscription ──
 
-export type BillingPlan = 'free' | 'essential' | 'premium' | 'enterprise';
-export type BillingStatus = 'active' | 'past_due' | 'cancelled' | 'expired';
+export type BillingPlan = BillingPlanKey;
+export type BillingStatus = SubscriptionStatus;
 
 export interface BillingInfo {
   plan: BillingPlan;
@@ -191,22 +192,22 @@ export interface BillingInfo {
 export const PLAN_LABELS: Record<BillingPlan, string> = {
   free: 'Free',
   essential: 'Essential',
-  premium: 'Premium',
-  enterprise: 'Enterprise',
+  complete: 'Complete',
+  luxury: 'Luxury',
 };
 
 export const PLAN_PRICES: Record<BillingPlan, string> = {
   free: '£0',
   essential: '£9/mo',
-  premium: '£29/mo',
-  enterprise: '£79/mo',
+  complete: '£19/mo',
+  luxury: '£39/mo',
 };
 
 export const PLAN_FEATURES: Record<BillingPlan, string[]> = {
   free: ['Up to 20 guests', 'Basic guest portal', '1 collaborator', 'Community support'],
-  essential: ['Up to 80 guests', 'Full guest portal', '3 collaborators', 'Email support', 'Gallery uploads', 'RSVP tracking'],
-  premium: ['Up to 200 guests', 'Advanced guest portal', '10 collaborators', 'Priority support', 'Seating planner', 'Budget tracker', 'Email campaigns', 'Travel concierge'],
-  enterprise: ['Unlimited guests', 'White-label portal', 'Unlimited collaborators', 'Dedicated support', 'Everything in Premium', 'Custom domain', 'API access', 'SLA'],
+  essential: ['Up to 80 guests', 'Full guest portal', '3 collaborators', 'Email support', 'Gallery uploads', 'RSVP tracking', 'Travel guide'],
+  complete: ['Up to 200 guests', 'Advanced guest portal', '10 collaborators', 'Priority support', 'Seating planner', 'Budget tracker', 'Email campaigns', 'Travel concierge'],
+  luxury: ['Unlimited guests', 'White-label portal', 'Unlimited collaborators', 'Dedicated support', 'Everything in Complete', 'Custom domain', 'API access', 'SLA'],
 };
 
 // ── Data Management ──

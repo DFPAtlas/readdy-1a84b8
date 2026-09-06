@@ -8,7 +8,7 @@ export default function FeatureCards() {
     <section className="bg-background-100 py-20 md:py-28">
       <div ref={ref} className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
         <div className="text-center mb-14">
-          <span className="section-label">What Wedora does</span>
+          <span className="section-label">What Vowora does</span>
           <h2 className="font-heading text-3xl md:text-4xl text-foreground-900 mt-2">
             Everything you need to plan beautifully
           </h2>

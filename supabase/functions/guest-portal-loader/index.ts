@@ -205,9 +205,6 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── GIFT FUNDING (Stripe Connect) ──
-    // Queries active/public funds and confirmed contributions for the wedding.
-    // Connect account readiness checked by wedding_id (not user_id).
-    // Confirmed statuses: paid, partially_refunded, dispute_won.
     let giftFundData: Record<string, unknown> | null = null;
     const { data: activeFunds } = await supabase
       .from("gift_funds")
@@ -228,7 +225,6 @@ Deno.serve(async (req: Request) => {
         .in("payment_status", CONFIRMED_STATUSES)
         .order("paid_at", { ascending: false });
 
-      // Check connect account readiness by wedding_id
       let coupleAccountReady = false;
       const { data: connectAcct } = await supabase
         .from("gift_fund_accounts")
@@ -346,9 +342,16 @@ Deno.serve(async (req: Request) => {
     }
 
     // Questions, Contacts, Settings, Travel
-    const { data: faqs } = await supabase.from("wedding_faqs").select("*").eq("wedding_id", session.wedding_id).eq("is_published", true).order("sort_order");
+    const { data: faqs } = await supabase.from("wedding_faqs").select("*").eq("wedding_id", session.wedding_id).eq("status", "published").order("sort_order");
     const { data: myQuestions } = await supabase.from("guest_questions").select("*").eq("wedding_id", session.wedding_id).eq("invitation_id", session.invitation_id).order("created_at", { ascending: false });
-    const questionsData = { faqs: (faqs || []).map((f) => ({ id: f.id, category: f.category, question: f.question, answer: f.answer, sort_order: f.sort_order || 0, helpful_count: 0, not_helpful_count: 0, my_feedback: null, related_links: [] })), my_questions: (myQuestions || []).map((q) => ({ id: q.id, category: q.category, subject: q.subject, message: q.message, preferred_response_method: q.preferred_response_method || "portal", status: q.status || "pending", answer: q.answer || null, answered_at: q.answered_at || null, created_at: q.created_at })), total_faqs: (faqs || []).length };
+    // Load feedback for this invitation's guests to set my_feedback
+    const faqIds = (faqs || []).map((f) => f.id);
+    let feedbackMap = new Map<string, string>();
+    if (faqIds.length > 0 && guestIds.length > 0) {
+      const { data: feedbackRows } = await supabase.from("question_activity").select("faq_id, activity_type").eq("invitation_id", session.invitation_id).in("guest_id", guestIds).in("faq_id", faqIds);
+      (feedbackRows || []).forEach((fb: Record<string, unknown>) => { if (fb.faq_id) feedbackMap.set(fb.faq_id as string, fb.activity_type as string); });
+    }
+    const questionsData = { faqs: (faqs || []).map((f) => ({ id: f.id, category: f.category || "general", question: f.question, answer: f.answer, sort_order: f.sort_order || 0, helpful_count: f.helpful_count || 0, not_helpful_count: f.not_helpful_count || 0, my_feedback: (feedbackMap.get(f.id) as "helpful" | "not_helpful") || null, related_links: f.related_links || [] })), my_questions: (myQuestions || []).map((q) => ({ id: q.id, category: q.category || "general", subject: q.subject, message: q.message, preferred_response_method: q.preferred_response_method || "portal", status: q.status || "pending", answer: q.response || null, answered_at: q.responded_at || null, created_at: q.created_at })), total_faqs: (faqs || []).length };
     const { data: contacts } = await supabase.from("wedding_contacts").select("*").eq("wedding_id", session.wedding_id).eq("is_published", true).order("sort_order");
     const contactsData = contacts && contacts.length > 0 ? { contacts: contacts.map((c) => ({ id: c.id, name: c.name, role: c.role, phone: c.phone || null, email: c.email || null, availability: c.availability || null, is_emergency: !!(c.is_emergency) })), total: contacts.length } : null;
     const { data: guestProfiles } = await supabase.from("guests").select("id, preferred_name, email, mobile_phone, alternative_phone, preferred_contact_method, dietary_requirements, allergy_notes, accessibility_notes, accessibility_needs").in("id", guestIds).eq("wedding_id", session.wedding_id);

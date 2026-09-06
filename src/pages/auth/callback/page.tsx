@@ -59,7 +59,7 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen bg-background-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         <Link to="/" className="font-heading text-3xl font-semibold text-foreground-900 inline-block mb-8 cursor-pointer">
-          Wedora
+          Vowora
         </Link>
 
         {status === 'verifying' && (
@@ -99,7 +99,7 @@ export default function AuthCallbackPage() {
                 Go to login
               </Link>
               <Link to="/" className="text-sm text-foreground-500 hover:text-foreground-700 cursor-pointer">
-                Back to Wedora
+                Back to Vowora
               </Link>
             </div>
           </div>

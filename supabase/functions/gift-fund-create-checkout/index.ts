@@ -218,14 +218,14 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── Build origin URLs ──
-    const origin = req.headers.get("origin") || "https://wedora.app";
+    const origin = req.headers.get("origin") || "https://vowora.uk";
     const basePathHeader = req.headers.get("x-base-path") || "";
     const pathPrefix = basePathHeader ? `/${basePathHeader}` : "";
 
     const successUrl = `${origin}${pathPrefix}/guest/fund/contribution/success?contribution_id=${contributionId}`;
     const cancelUrl = `${origin}${pathPrefix}/guest/fund/contribution/cancel?contribution_id=${contributionId}&fund_id=${fund.id}`;
 
-    // ── Compute application fee (0% — Wedora takes no cut) ──
+    // ── Compute application fee (0% — Vowora takes no cut) ──
     const applicationFee = 0;
 
     // ── Create Stripe Checkout Session ──

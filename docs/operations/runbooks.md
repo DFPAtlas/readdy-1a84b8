@@ -1,4 +1,4 @@
-# Wedora — Operations Runbooks
+# Vowora — Operations Runbooks
 
 Date: 2026-07-23
 Phase: Production Prompt 17
@@ -32,7 +32,7 @@ Status: Draft — review with on-call team before production use
 #### Supabase Outage
 1. Check https://status.supabase.com
 2. If Supabase is down: communicate to users via status page, wait for Supabase recovery
-3. If only Wedora is affected:
+3. If only Vowora is affected:
    - Check RLS policies haven't changed
    - Check API rate limits
    - Verify service_role key hasn't been rotated unexpectedly
@@ -63,7 +63,7 @@ Status: Draft — review with on-call team before production use
 ## Runbook 2: Rollback Procedure
 
 ### Frontend Rollback
-Wedora uses the Readdy.ai build system. To roll back:
+Vowora uses the Readdy.ai build system. To roll back:
 1. Go to Version History in the Readdy dashboard
 2. Identify the last known-good version
 3. Restore that version
@@ -178,7 +178,7 @@ Monthly: restore the latest backup to a staging project and run the sanity check
 | View RSVP submissions | RSVP responses page in-app | Planner+ role |
 
 ### No Silent Impersonation
-Wedora does NOT support admin user impersonation. All admin actions are:
+Vowora does NOT support admin user impersonation. All admin actions are:
 - Audited in relevant activity log tables
 - Performed by the admin's own identity (never as another user)
 - Logged with actor user ID, timestamp, and action summary

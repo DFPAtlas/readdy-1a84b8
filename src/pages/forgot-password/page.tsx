@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link to="/" className="font-heading text-3xl font-semibold text-foreground-900 cursor-pointer">
-              Wedora
+              Vowora
             </Link>
           </div>
 
@@ -114,7 +114,7 @@ export default function ForgotPasswordPage() {
 
           <div className="mt-6 p-4 rounded-lg bg-white/60 backdrop-blur-sm border border-white/40 text-center">
             <p className="text-xs text-foreground-500">
-              For your security, we never reveal whether an email address is registered with Wedora.
+              For your security, we never reveal whether an email address is registered with Vowora.
             </p>
           </div>
         </div>

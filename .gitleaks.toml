@@ -1,7 +1,7 @@
-# Gitleaks configuration for Wedora CI
+# Gitleaks configuration for Vowora CI
 # Prevents secrets from being committed to the repository
 
-title = "Wedora Gitleaks Config"
+title = "Vowora Gitleaks Config"
 
 [allowlist]
   description = "Global allowlist"

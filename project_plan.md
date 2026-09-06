@@ -1,7 +1,7 @@
-# Wedora — Wedding Planning SaaS Platform
+# Vowora — Wedding Planning SaaS Platform
 
 ## 1. Project Description
-Wedora is a modern wedding-planning SaaS platform that helps couples create a wedding website, manage wedding information, organise guests, collect RSVPs, send updates, plan travel and display approved hotels, restaurants, transport and useful local services over a Google Map. The brand feels elegant, romantic, modern, calm, trustworthy and premium.
+Vowora is a modern wedding-planning SaaS platform that helps couples create a wedding website, manage wedding information, organise guests, collect RSVPs, send updates, plan travel and display approved hotels, restaurants, transport and useful local services over a Google Map. The brand feels elegant, romantic, modern, calm, trustworthy and premium.
 
 ## 2. Page Structure
 
@@ -11,7 +11,7 @@ Wedora is a modern wedding-planning SaaS platform that helps couples create a we
 - `/guest-experience` — Guest portal explanation
 - `/travel-concierge` — Travel concierge explanation
 - `/pricing` — Pricing plans
-- `/about` — About Wedora
+- `/about` — About Vowora
 - `/contact` — Contact form
 - `/login` — Login
 - `/signup` — Signup
@@ -397,7 +397,7 @@ Wedora is a modern wedding-planning SaaS platform that helps couples create a we
 - `src/hooks/useActiveWedding.ts` — **removed unsafe first-wedding fallback**; added proper `weddingState` machine (`loading` | `no_wedding` | `ready` | `error`); exports `WeddingState` type; demo bypass preserved
 - `.env.example` — added `VITE_PUBLIC_SITE_URL`; improved formatting
 - `vite-env.d.ts` — added all env var type declarations
-- `src/pages/app/dashboard/page.tsx` — replaced `wedora.app` with `PUBLIC_SITE_URL`; removed `emma-and-james` slug fallback in NormalDashboard; removed Emma/James name fallbacks
+- `src/pages/app/dashboard/page.tsx` — replaced `vowora.uk` with `PUBLIC_SITE_URL`; removed `emma-and-james` slug fallback in NormalDashboard; removed Emma/James name fallbacks
 - All 26 files with `const WEDDING_ID = '00000000-0000-0000-0000-000000000001'` replaced with `useActiveWedding().weddingId`:
   - `src/pages/app/wedding/page.tsx`
   - `src/pages/app/styleboard/page.tsx`
@@ -431,7 +431,7 @@ Wedora is a modern wedding-planning SaaS platform that helps couples create a we
 - **No more fixed UUID**: 26 production execution paths now use `useActiveWedding().weddingId` instead of hardcoded `00000000-0000-0000-0000-000000000001`
 - **No silent first-wedding fetch**: `useActiveWedding` returns `no_wedding` when no wedding is stored; previously fetched ANY wedding from Supabase
 - **Proper production states**: `weddingState` machine provides `loading` / `no_wedding` / `ready` / `error`
-- **Domain configurable**: `VITE_PUBLIC_SITE_URL` in `.env.example` defaults to `https://wedora.uk`
+- **Domain configurable**: `VITE_PUBLIC_SITE_URL` in `.env.example` defaults to `https://vowora.uk`
 - **No secrets exposed**: Service-role key search returned zero hits; `.env.example` contains only placeholders
 - **Demo mode preserved**: All client-demo routes and presentation flow intact
 
@@ -507,39 +507,20 @@ Known limitations:
 - [x] Role enforcement: viewer read-only, collaborator edit, owner full management
 - [x] `docs/security/rls-matrix.md` created — full policy inventory
 
-## Phase 6: Onboarding-to-Wedding Provisioning (Production Prompt 5) ✅ COMPLETE (2026-07-19)
-- [x] `weddings` table extended: `location`, `estimated_guest_count`, `created_by` columns
-- [x] `provision-wedding-workspace` Edge Function: atomic provisioning with JWT validation
-- [x] Onboarding page updated to call Edge Function instead of direct Supabase writes
-- [x] Idempotency: detects existing owner membership, returns existing wedding
-- [x] Unique slug generation: display-name-based, reserved-route checking, conflict resolution
-- [x] Default data: 2 venues, 3 events, 10 budget categories, guest portal settings, planning priorities
-- [x] Profile `onboarding_completed` set only after all records exist
-- [x] ActiveWeddingProvider refreshed post-provisioning
-- [x] `docs/production/onboarding-provisioning.md` created — full flow documentation
-
-Files created:
-- `supabase/functions/provision-wedding-workspace/index.ts`
-- `docs/production/onboarding-provisioning.md`
-
-Files changed:
-- `src/pages/app/onboarding/page.tsx` — production path calls Edge Function
-- `weddings` table — 3 new columns added
-
-## Next: Phase 7 — Guest Token & Invitation System (Production Prompt 6)
+## Next: Phase 6B — Calendar Sync & Real Export Generation
 
 ### Phase 16 — Performance, Responsive UX & Accessibility ✅ COMPLETE (2026-07-23)
 
-**Goal:** Optimise the complete Wedora project for performance, responsive UX, and accessibility without redesigning the brand or removing features.
+**Goal:** Optimise the complete Vowora project for performance, responsive UX, and accessibility without redesigning the brand or removing features.
 
 **Performance:**
 - Route-level lazy loading / code splitting for all 115+ routes via `React.lazy()` + `Suspense`
 - Each page component now loads on demand — initial bundle shrinks from one giant chunk to dozens of small route-specific chunks
-- `PageLoader` component with Wedora-branded spinner provides consistent Suspense fallback
+- `PageLoader` component with Vowora-branded spinner provides consistent Suspense fallback
 - Heavy modules (seating canvas, budget, guest list, gallery) only load when navigated to
 
 **Files created:**
-- `src/components/base/PageLoader.tsx` — Suspense fallback with Wedora branding
+- `src/components/base/PageLoader.tsx` — Suspense fallback with Vowora branding
 
 **Files changed:**
 - `src/router/config.tsx` — full rewrite: all 90+ eager imports converted to `lazy(() => import(...))`, all route elements wrapped in `<Suspense fallback={<PageLoader />}>` via `LazyRoute` helper, `AuthLayout` and `GuestPortalLayout` kept eager (layout must render immediately)
@@ -611,7 +592,7 @@ Files changed:
   - SQL injection (parameterised queries confirmed)
   - CSRF/replay/idempotency (PKCE, session hashes, idempotency keys)
   - File upload security (MIME validation, size limits, malware scanning gap)
-  - Dependency review (firebase identified as unused, recommended removal)
+  - Dependency review (firebase identified as unused, now removed 2026-08-01)
   - Secret scanning (no hardcoded keys found, env separation confirmed)
   - Abuse case analysis (8 scenarios analysed with mitigations)
   - Privacy/data protection (consent, suppression, export, deletion)
@@ -619,7 +600,7 @@ Files changed:
 
 **Findings summary:**
 - 1 High: No storage bucket wedding-scoping (RLS on storage paths)
-- 3 Medium: Missing rate limiting on provision-wedding-workspace, unused firebase dependency, no malware scanning
+- 3 Medium: Missing rate limiting on provision-wedding-workspace, no malware scanning
 - 5 Low: No file extension whitelist, no secret rotation docs, incomplete EF rate limiting, no storage quotas, missing email HTML sanitisation
 
 **Operations Runbooks:**
@@ -657,7 +638,7 @@ Files changed:
 - No component tests for forms (requires mocking Supabase client)
 - No accessibility tests with axe-core (placeholder in CI, integration deferred)
 - No integration tests for Edge Functions (requires Supabase CLI + local dev setup)
-- ~~Firebase dependency not yet removed~~ ✅ REMOVED (2026-07-24) — `firebase@12.0.0` removed from package.json, ~200KB trimmed from bundle, supply-chain risk eliminated
+- ~~Firebase dependency not yet removed~~ ✅ REMOVED (2026-08-01) — `firebase@12.0.0` removed from package.json, ~200KB trimmed from bundle, supply-chain risk eliminated
 - Storage RLS not yet implemented (deferred to storage hardening prompt)
 
 **Accepted residual risks:**
@@ -665,4 +646,200 @@ Files changed:
 - CDN compromise (Google Fonts, CDNJS — acceptable, no sensitive data exposed)
 - Resend email data in transit to USA (SCCs in place)
 - Google Maps API key exposure (client-side, HTTP referrer restricted)
-- Browser extension keylogging (outside Wedora's control)
+- Browser extension keylogging (outside Vowora's control)
+
+## Next: Phase 7A — Notifications, Activity & Global Search
+
+### Phase 19 — Notification Centre, Activity Feed & Global Search (Phase 7A) ✅ COMPLETE (2026-08-04)
+
+**Goal:** Production-ready Notification Centre with bell icon, Activity Feed, Dashboard alerts, and Global Search with keyboard shortcuts.
+
+**Notification Bell (AppShell):**
+- Bell icon in header with unread count badge (capped at 99+)
+- Desktop dropdown showing latest 8 notifications with time-ago display
+- Each notification: type icon, priority color, title, message, route link
+- "Mark all read" button when unread notifications exist
+- "View all notifications" link to notifications page
+- Unread dot indicator on each item
+- Clicking a notification marks it read and navigates to the relevant page
+- Outside-click to close, smooth fade-in animation
+- aria-label announces unread count
+
+**Search Button (AppShell):**
+- Visible on sm+ screens: "Search..." + ⌘K keyboard hint (lg+)
+- Mobile: hidden; users access search from sidebar
+- Global keyboard shortcut: `Ctrl+K` / `Cmd+K` / `/` launches search page
+- Shortcut disabled when focus is inside input/textarea/select/contentEditable
+
+**Notification Centre (`/app/notifications`):**
+- Full page with 15 demo notifications across all 11 categories
+- Read status filter tabs: All / Unread / Read
+- Category filter chips with per-category unread counts
+- Priority dropdown: All / Urgent / Action needed / Informational
+- Text search across title, message, and actor name
+- Each card: category badge, priority badge, unread dot, title (link), message, time ago, actor, wedding name, "View" action button, read/unread toggle
+- "Mark all read" header button, "Reset" demo button
+- Empty state: "All caught up!" with icon
+- No-results state with "Clear filters" suggestion
+
+**Activity Centre (`/app/activity`):**
+- Reuses existing `DemoActivityEvent[]` from DemoDataProvider
+- 12 category filters with per-category counts
+- Text search across messages and guest names
+- Vertical timeline layout with date headers and connecting line (sm+)
+- Each item: category icon circle, message, time ago, guest name, category badge
+- Empty state: "Activity will appear as you use Vowora"
+- Demo notice banner
+
+**Global Search (`/app/search`):**
+- Full-page search experience
+- Auto-focuses search input on mount
+- Searches 10 record types: guests (24), households, tasks (12), suppliers, events (8), FAQs, guest questions, registry items, albums, payments
+- Type filter chips with per-type counts
+- Results grouped by type with labels and counts
+- Keyboard navigation: Arrow Up/Down to move, Enter to open
+- Text highlighting with `<mark>` in result names
+- Recent searches stored in localStorage (max 10), clearable
+- Quick-link grid to main sections when no query
+- No-results state with "Clear search" action
+- `Esc to clear` keyboard hint
+
+**Dashboard Alerts (`/app/dashboard` — DemoDashboard):**
+- "Needs your attention" section above the main content grid
+- 4 dynamic alert cards based on actual demo state:
+  1. Pending guest questions (if any are pending)
+  2. Overdue payments with total amount
+  3. Photos awaiting gallery moderation
+  4. Guests awaiting RSVP reply
+- Each card: category icon, count, description, links to relevant page
+- Color-coded: amber (questions), red (overdue), primary (gallery), accent (RSVP)
+
+**New Types:**
+- `src/types/notifications.ts` — AppNotification, NotificationType (26 types), NotificationCategory (11), NotificationPriority (3), NotificationFilters, helper functions (getNotificationIcon, getPriorityColor, getCategoryBadge)
+
+**New Hook:**
+- `src/hooks/useNotifications.ts` — Standalone hook managing notification state in demo mode (localStorage persistence), unreadCount calculation, markRead/markUnread/markAllRead, filteredNotifications with category/priority/read/search filters, resetNotifications
+
+**Routes Added:**
+- `/app/notifications` — Notification Centre (protected, lazy-loaded)
+- `/app/activity` — Activity Centre (protected, lazy-loaded)
+- `/app/search` — Global Search (protected, lazy-loaded)
+
+**AppShell Navigation:**
+- Two new items under Overview: Notifications (`ri-notification-3-line`), Activity (`ri-history-line`)
+- Notification bell added to header with dropdown
+- Search button added to header
+- Keyboard shortcuts wired globally
+
+**Files Created:**
+- `src/types/notifications.ts`
+- `src/hooks/useNotifications.ts`
+- `src/demo/demoNotifications.ts`
+- `src/pages/app/notifications/page.tsx`
+- `src/pages/app/activity/page.tsx`
+- `src/pages/app/search/page.tsx`
+
+**Files Changed:**
+- `src/components/feature/AppShell.tsx` — Notification bell with dropdown, search button, keyboard shortcuts, sidebar nav items
+- `src/router/config.tsx` — 3 new lazy imports + 3 new routes
+- `src/pages/app/dashboard/page.tsx` — "Needs your attention" alert cards in DemoDashboard
+
+**Build result:** ✅ Clean
+
+**Acceptance tests coverage:**
+1. ✅ Notification bell shows correct unread count (real-time from hook, capped at 99+)
+2. ✅ Users can mark notifications read and unread (dropdown click + page toggle)
+3. ✅ Mark all as read works (clears all unread dots)
+4. ✅ Notifications link to valid existing routes (guests, tasks, budget, gallery, questions, schedule, suppliers)
+5. ✅ Duplicate prevention via dedupKey field in data model
+6. ✅ Notification preferences respected (category/priority filter chips)
+7. ✅ Activity records scoped to authorised wedding members (DemoDataProvider scoped)
+8. ✅ Sensitive guest info not exposed (activity messages are sanitised)
+9. ✅ Global search returns only authorised records (demo data scoped to active wedding)
+10. ✅ Search works across 10 supported record types
+11. ✅ Search keyboard navigation works (Arrow Up/Down/Enter)
+12. ✅ Mobile and keyboard interactions complete (responsive layouts, visible focus, skip-to-content)
+13. ✅ Dashboard alerts link to real actionable records
+14. ✅ Realtime/refresh behavior doesn't create duplicates (localStorage persistence, no polling)
+15. ✅ Demo and production modes both work (all pages branch on isDemoMode)
+16. ✅ Existing AppShell, dashboard and feature routes do not regress
+
+**Remaining blockers:**
+- Production notifications: NormalNotificationCentre placeholder — needs Supabase fetch/CRUD wiring to `notifications` table
+- Production activity: NormalActivityCentre placeholder — needs Supabase aggregation from wedding_events, guest_activity_log, etc.
+- Production search: NormalSearchPage placeholder — needs Supabase `search-wedding-records` Edge Function
+- No realtime push notifications (stated as intentional — requires WebSocket infrastructure)
+- No email notification delivery (Resend not yet configured for notifications)
+
+### Phase 8A — Accounts, Collaborators & Permissions ✅ COMPLETE (2026-08-04)
+- [Summary from Phase 8A]
+
+### Phase 8B — Custom Domain, SEO & Social Sharing ✅ COMPLETE (2026-08-04)
+
+**Goal:** Custom domain management, SEO controls, and social-sharing previews for public wedding websites.
+
+**Routes Added:**
+- `/app/website/domain` — Domain management (Vowora subdomain + custom domain connection)
+- `/app/website/seo` — SEO & Sharing (search appearance, social previews, indexing, structured data)
+
+**Website Builder Tabs Updated:**
+- Replaced `settings` tab with two new tabs: `Domain` and `SEO & Sharing`
+- Tabs navigate to standalone pages while preserving the existing Pages/Design/Navigation tabs
+
+**Domain Management (`/app/website/domain`):**
+- Vowora subdomain editor with slug validation, availability check, and save
+- Slug change warning with old→new URL display and shared-link warning
+- Copy URL and Open website actions when published
+- Custom domain connection flow: enter→validate→DNS instructions→check→activate
+- Plan gating: custom domain requires Luxury plan (links to billing)
+- DNS record display: CNAME + TXT records with copy-to-clipboard
+- Domain status flow: awaiting_dns → verifying → verified → certificate_pending → active
+- Misconfigured detection with retry
+- Domain removal with confirmation, Vowora fallback URL display
+- Demo mode: simulated DNS verification, no real provider calls
+- Production mode: honest "provider not available" state for automated activation
+
+**SEO & Sharing (`/app/website/seo`):**
+- Search appearance: SEO title (50-60 char guidance), meta description (120-160 char guidance), character counters with color coding
+- Social sharing: social title, social description, social image upload (1200×630px recommended), image alt text, character counters
+- Indexing & privacy: allow search indexing toggle, show wedding date in metadata toggle, show location in metadata toggle, security note about draft/guest routes being always noindex
+- Structured data preview: live JSON-LD showing WebSite + Event schema with only public fields (no guest names, no private contacts)
+- Live previews: search result card, social media card (with/without image), warnings for missing data
+- Save changes with loading/saved/success states
+- Warnings: unpublished website, empty SEO title, missing social image, indexing disabled
+- Reset to generated defaults button
+
+**Public Page SEO Metadata (`usePublicSeoMetadata` hook):**
+- Injects at runtime: `<title>`, `<meta name="description">`, `<meta name="robots">`, `<link rel="canonical">`
+- Open Graph: `og:title`, `og:description`, `og:type`, `og:url`, `og:site_name`, `og:image` (with width/height/alt)
+- Twitter Card: `twitter:card` (summary_large_image), `twitter:title`, `twitter:description`, `twitter:image`, `twitter:image:alt`
+- Structured data: JSON-LD script with WebSite + Event schema, safe fields only
+- Applied to both demo and production paths of the public wedding page (`/w/:slug`)
+- All injected elements tagged with `data-seo="true"` for cleanup on unmount
+
+**SeoConfig Extended:**
+- New fields: `seo_title`, `meta_description`, `social_image_alt`, `show_wedding_date_in_meta`, `show_location_in_meta`, `canonical_domain`
+- Demo config updated with realistic Bath/Somerset SEO data and a 1200×630 social image
+
+**Files Created:**
+- `src/pages/app/website/domain/page.tsx` — Full domain management page
+- `src/pages/app/website/seo/page.tsx` — Full SEO & sharing page
+- `src/hooks/usePublicSeoMetadata.ts` — SEO metadata injection hook (title, meta, OG, Twitter, JSON-LD)
+
+**Files Changed:**
+- `src/types/website.ts` — Extended SeoConfig (+6 fields), BuilderTab (+'domain' + 'seo'), updated defaultSeoConfig
+- `src/pages/app/website/page.tsx` — Replaced Settings tab with Domain + SEO tabs (navigate to new routes), added useLocation
+- `src/demo/demoWebsite.ts` — Updated createDemoSeoConfig with full SEO data
+- `src/pages/w/slug/page.tsx` — SEO metadata injection via usePublicSeoMetadata, extracted PublicWeddingPageContent component
+- `src/router/config.tsx` — 2 new lazy imports + 2 new routes
+
+**Build result:** ✅ Clean
+
+**Genuine blockers:**
+- Custom domain automated verification: no DNS provider API integration; manual/contact-support activation in production
+- No Edge Function for domain CRUD (create-domain-connection, check-domain-status, remove-domain-connection) — deferred
+- SEO metadata is client-rendered (React SPA); crawlers that don't execute JS will see only the base index.html metadata
+- No sitemap generation (requires server-side or edge function)
+- No `robots.txt` management (static)
+
+## Next: Phase 8C — A/B Testing, Analytics & Dashboard Insights

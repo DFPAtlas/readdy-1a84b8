@@ -39,7 +39,7 @@ export function generateICSFile(events: WeddingEvent[], coupleNames: string): Bl
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Wedora//Wedding Itinerary//EN',
+    'PRODID:-//Vowora//Wedding Itinerary//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
   ];

@@ -253,6 +253,155 @@ function DemoDashboard() {
           </div>
         </div>
 
+        {/* ═══════ Needs your attention ═══════ */}
+        <div className="mb-6 rounded-xl bg-white border border-secondary-100 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+              <i className="ri-alert-line text-sm" />
+            </div>
+            <div>
+              <h2 className="font-label text-sm font-semibold text-foreground-900">Needs your attention</h2>
+              <p className="text-xs text-foreground-400">Urgent items and pending actions</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Pending questions */}
+            {(() => {
+              const pendingQuestions = state.guestQuestions.filter((q) => q.status === 'pending');
+              if (pendingQuestions.length === 0) return null;
+              return (
+                <button
+                  onClick={() => navigate('/app/questions')}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 border border-amber-100 hover:border-amber-200 transition-colors text-left cursor-pointer"
+                >
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-amber-200 text-amber-600 flex-shrink-0">
+                    <i className="ri-question-answer-line text-xs" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-amber-800 font-label font-medium">{pendingQuestions.length} pending question{pendingQuestions.length !== 1 ? 's' : ''}</p>
+                    <p className="text-[10px] text-amber-600 mt-0.5">Reply to guests</p>
+                  </div>
+                </button>
+              );
+            })()}
+
+            {/* Overdue payments */}
+            {(() => {
+              const overdue = state.payments.filter((p) => p.status === 'overdue');
+              if (overdue.length === 0) return null;
+              return (
+                <button
+                  onClick={() => navigate('/app/budget/payments')}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-red-50 border border-red-100 hover:border-red-200 transition-colors text-left cursor-pointer"
+                >
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-red-200 text-red-600 flex-shrink-0">
+                    <i className="ri-bank-card-line text-xs" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-red-800 font-label font-medium">{overdue.length} overdue payment{overdue.length !== 1 ? 's' : ''}</p>
+                    <p className="text-[10px] text-red-600 mt-0.5">£{overdue.reduce((s, p) => s + p.amount, 0).toLocaleString()} total</p>
+                  </div>
+                </button>
+              );
+            })()}
+
+            {/* Pending gallery */}
+            {(() => {
+              const pending = state.galleryItems.filter((g) => g.moderation_status === 'needs_review');
+              if (pending.length === 0) return null;
+              return (
+                <button
+                  onClick={() => navigate('/app/gallery?tab=moderation')}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-primary-50 border border-primary-100 hover:border-primary-200 transition-colors text-left cursor-pointer"
+                >
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-primary-200 text-primary-600 flex-shrink-0">
+                    <i className="ri-image-line text-xs" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-primary-800 font-label font-medium">{pending.length} photo{pending.length !== 1 ? 's' : ''} to review</p>
+                    <p className="text-[10px] text-primary-600 mt-0.5">Gallery moderation</p>
+                  </div>
+                </button>
+              );
+            })()}
+
+            {/* RSVP deadline */}
+            {(() => {
+              const awaiting = stats.awaitingReply;
+              if (awaiting === 0) return null;
+              return (
+                <button
+                  onClick={() => navigate('/app/invitations/responses')}
+                  className="flex items-start gap-3 p-3 rounded-lg bg-accent-50 border border-accent-100 hover:border-accent-200 transition-colors text-left cursor-pointer"
+                >
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-accent-200 text-accent-600 flex-shrink-0">
+                    <i className="ri-alarm-line text-xs" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-accent-800 font-label font-medium">{awaiting} awaiting reply</p>
+                    <p className="text-[10px] text-accent-600 mt-0.5">RSVP deadline approaching</p>
+                  </div>
+                </button>
+              );
+            })()}
+          </div>
+        </div>
+
+        {/* Setup progress card */}
+        {(() => {
+          // Compute demo setup progress
+          const setupChecks: { label: string; done: boolean }[] = [
+            { label: 'Wedding details', done: Boolean(w.title && w.partner_one_name && w.location) },
+            { label: 'Wedding date', done: Boolean(w.wedding_date) },
+            { label: 'Ceremony event', done: state.events.length > 0 },
+            { label: 'Guest list', done: stats.totalInvited > 0 },
+            { label: 'Invitations', done: state.invitations.length > 0 },
+            { label: 'RSVP configured', done: Boolean(state.rsvpSettings) },
+            { label: 'Travel info', done: stats.travelPlacesCount > 0 },
+            { label: 'Budget', done: stats.budgetPlanned > 0 },
+          ];
+          const doneCount = setupChecks.filter((c) => c.done).length;
+          const totalCount = setupChecks.length;
+          const setupPct = Math.round((doneCount / totalCount) * 100);
+
+          if (doneCount >= totalCount) return null; // All done, no card needed
+
+          return (
+            <div className="mb-6 rounded-xl bg-white border border-primary-200/70 p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-primary-50 text-primary-500">
+                    <i className="ri-guide-line text-base" />
+                  </div>
+                  <div>
+                    <h2 className="font-label text-sm font-semibold text-foreground-900">Setup in progress</h2>
+                    <p className="text-xs text-foreground-500">{doneCount} of {totalCount} steps complete</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-heading font-semibold text-primary-600">{setupPct}%</span>
+                  <Link to="/app/getting-started" className="btn-primary text-xs py-2 cursor-pointer whitespace-nowrap">
+                    Continue setup <i className="ri-arrow-right-line ml-1" />
+                  </Link>
+                </div>
+              </div>
+              <div className="h-1.5 rounded-full bg-background-200 overflow-hidden mb-4">
+                <div className="h-full rounded-full bg-primary-400 transition-all duration-500" style={{ width: `${setupPct}%` }} />
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {setupChecks.map((item) => (
+                  <div key={item.label} className="flex items-center gap-1.5">
+                    <div className={`w-4 h-4 flex items-center justify-center rounded-full ${item.done ? 'bg-accent-100 text-accent-600' : 'bg-background-100 text-foreground-300'}`}>
+                      <i className={`${item.done ? 'ri-check-line' : 'ri-time-line'} text-[9px]`} />
+                    </div>
+                    <span className={`text-[11px] font-label ${item.done ? 'text-foreground-600' : 'text-foreground-400'}`}>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
         {/* ═══════ Main content grid ═══════ */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* ── Left column (8/12) ── */}

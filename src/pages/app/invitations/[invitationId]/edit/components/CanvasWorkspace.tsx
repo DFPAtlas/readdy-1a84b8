@@ -35,7 +35,7 @@ function toRadians(deg: number) {
   return (deg * Math.PI) / 180;
 }
 
-// ── Custom MIME type for Wedora asset drag payload ──
+// ── Custom MIME type for Vowora asset drag payload ──
 
 const WEDORA_ASSET_MIME = 'application/x-wedora-asset';
 

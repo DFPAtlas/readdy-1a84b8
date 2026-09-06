@@ -340,7 +340,7 @@ function WeddingSection({ weddingId }: { weddingId: string | null }) {
               className="input-field"
               placeholder="emma-and-james"
             />
-            <p className="text-[11px] text-foreground-400 mt-1">wedora.app/{data.slug || 'your-slug'}</p>
+            <p className="text-[11px] text-foreground-400 mt-1">vowora.uk/{data.slug || 'your-slug'}</p>
           </div>
           <div className="sm:col-span-2">
             <label className="block text-xs font-label font-medium text-foreground-700 mb-1.5">Contact information</label>
@@ -783,7 +783,7 @@ function BillingSection({ weddingId }: { weddingId: string | null }) {
       {/* Upgrade */}
       <SettingsCard title="Upgrade plan">
         <p className="text-xs text-foreground-600 leading-relaxed mb-4">
-          Need more guests, collaborators, or advanced features? Upgrade your plan to unlock the full Wedora experience.
+          Need more guests, collaborators, or advanced features? Upgrade your plan to unlock the full Vowora experience.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {(Object.entries(PLAN_PRICES) as [typeof currentPlan, string][]).filter(([p]) => p !== 'free').map(([plan, price]) => {

@@ -14,7 +14,7 @@ export default function RetentionPage() {
 
           <div className="card-default mb-8">
             <p className="text-sm text-foreground-600 italic">
-              <strong>Review note for legal counsel:</strong> This schedule describes how long Wedora retains different categories
+              <strong>Review note for legal counsel:</strong> This schedule describes how long Vowora retains different categories
               of personal data. Retention periods, the legal bases cited and the deletion mechanisms must be reviewed against
               the actual data-processing architecture and applicable legal obligations (UK GDPR, limitation periods for legal
               claims, HMRC record-keeping requirements).
@@ -25,7 +25,7 @@ export default function RetentionPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">1. About this schedule</h2>
               <p className="text-sm leading-relaxed">
-                This schedule explains how long Wedora keeps different types of personal data and what happens when data
+                This schedule explains how long Vowora keeps different types of personal data and what happens when data
                 reaches the end of its retention period. We retain data only for as long as necessary for the purposes
                 for which it was collected, or as required by law.
               </p>
@@ -140,7 +140,7 @@ export default function RetentionPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">4. Account deletion process</h2>
               <p className="text-sm leading-relaxed">
-                When a couple requests deletion of their Wedora account:
+                When a couple requests deletion of their Vowora account:
               </p>
               <ol className="list-decimal pl-5 text-sm space-y-2 mt-2">
                 <li>A deletion request is created with a 30-day cooling-off period</li>
@@ -155,7 +155,7 @@ export default function RetentionPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">5. Automated retention jobs</h2>
               <p className="text-sm leading-relaxed">
-                Wedora runs scheduled jobs to enforce the retention periods described above. Specifically:
+                Vowora runs scheduled jobs to enforce the retention periods described above. Specifically:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-2 mt-2">
                 <li><strong>Expired tokens:</strong> Invitation and access tokens past their expiry date + 30 days are purged daily</li>

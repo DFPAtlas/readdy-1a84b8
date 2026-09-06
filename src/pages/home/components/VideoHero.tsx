@@ -44,13 +44,13 @@ export default function VideoHero({ videoSrc, posterSrc }: VideoHeroProps) {
   const heroReady = videoLoaded || posterLoaded;
 
   return (
-    <section className="relative w-full h-screen min-h-[600px] max-h-[900px] overflow-hidden" aria-label="Wedora hero">
+    <section className="relative w-full h-screen min-h-[600px] max-h-[900px] overflow-hidden" aria-label="Vowora hero">
       {/* Loading screen */}
       {!heroReady && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-white transition-opacity duration-700">
           <div className="text-center">
             <p className="font-heading text-3xl md:text-4xl text-foreground-900 tracking-tight">
-              Wedora
+              Vowora
             </p>
             <div className="mt-4 flex items-center justify-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -121,7 +121,7 @@ export default function VideoHero({ videoSrc, posterSrc }: VideoHeroProps) {
                 to="/features"
                 className="inline-flex items-center justify-center whitespace-nowrap rounded-lg border border-white/30 text-white px-6 py-3.5 text-sm font-medium font-label cursor-pointer hover:bg-white/10 transition-all"
               >
-                Explore Wedora
+                Explore Vowora
               </Link>
             </div>
             <p className="text-white/60 text-xs mt-6 font-label">

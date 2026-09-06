@@ -93,7 +93,7 @@ export default function FeaturesPage() {
                   <em className="font-light italic">for a beautifully planned wedding</em>
                 </h1>
                 <p className="text-foreground-600 text-base md:text-lg mt-5 max-w-lg">
-                  From your first invitation to the last thank-you note, Wedora gives you the tools to stay organised, keep guests informed and plan with confidence.
+                  From your first invitation to the last thank-you note, Vowora gives you the tools to stay organised, keep guests informed and plan with confidence.
                 </p>
               </div>
               <div className="w-full lg:w-1/2">
@@ -127,7 +127,7 @@ export default function FeaturesPage() {
                   <p className="text-sm text-foreground-600 leading-relaxed">{feature.description}</p>
                   {feature.status === 'coming-soon' && (
                     <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-1 rounded-full bg-secondary-100 text-secondary-800 text-xs font-label">
-                      Coming in a later Wedora release
+                      Coming in a later Vowora release
                     </span>
                   )}
                 </div>
@@ -143,7 +143,7 @@ export default function FeaturesPage() {
               Ready to start planning?
             </h2>
             <p className="text-foreground-600 mt-4 mb-8">
-              Create your Wedora account and bring every wedding detail together.
+              Create your Vowora account and bring every wedding detail together.
             </p>
             <Link to="/signup" className="btn-primary text-base px-8 py-3.5">Start planning your wedding</Link>
           </div>

@@ -15,6 +15,8 @@ import AddRoomObjectModal from './components/AddRoomObjectModal';
 import BackgroundUploader from './components/BackgroundUploader';
 import RoomSettingsModal from './components/RoomSettingsModal';
 import WarningsDrawer from './components/WarningsDrawer';
+import MobileAssignSheet from './components/MobileAssignSheet';
+import ResponsiveSheet from '@/components/base/ResponsiveSheet';
 import type {
   SeatingPlan, TableWithData, RoomObject, SeatingZone, BackgroundAsset,
   GuestInfo, UnseatedGuest, GuestSeating, SeatingSeat, SeatingTable, SeatingAssignment,
@@ -68,6 +70,9 @@ export default function SeatingPlanWorkspacePage() {
   const [showBackground, setShowBackground] = useState(false);
   const [showRoomSettings, setShowRoomSettings] = useState(false);
   const [showWarnings, setShowWarnings] = useState(false);
+  const [showMobileGuests, setShowMobileGuests] = useState(false);
+  const [showMobileInspector, setShowMobileInspector] = useState(false);
+  const [showMobileAssign, setShowMobileAssign] = useState(false);
 
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -818,25 +823,32 @@ export default function SeatingPlanWorkspacePage() {
           onAddObject={() => setShowAddObject(true)}
           onSaveNow={handleSaveNow}
           onDeleteSelected={handleDeleteSelected}
+          unseatedGuestCount={unseatedGuests.length}
+          onShowMobileGuests={() => setShowMobileGuests(true)}
+          onShowMobileAssign={() => setShowMobileAssign(true)}
+          onShowMobileInspector={() => setShowMobileInspector(true)}
         />
 
         {/* Main workspace */}
         <div className="flex flex-1 overflow-hidden">
-          <LeftPanel
-            planId={planId!}
-            unseatedGuests={unseatedGuests}
-            tables={tables}
-            roomObjects={roomObjects}
-            zones={zones}
-            isReadOnly={false}
-            onAssignGuest={handleAssignGuestToSeat}
-            onSelectTable={handleSelectTable}
-            onSelectObject={handleSelectObject}
-            selectedTableIds={selectedTableIds}
-            selectedObjectIds={selectedObjectIds}
-            layerVisibility={layerVisibility}
-            onToggleLayer={handleToggleLayer}
-          />
+          {/* Desktop LeftPanel — only shown on lg+ */}
+          <div className="hidden lg:block">
+            <LeftPanel
+              planId={planId!}
+              unseatedGuests={unseatedGuests}
+              tables={tables}
+              roomObjects={roomObjects}
+              zones={zones}
+              isReadOnly={false}
+              onAssignGuest={handleAssignGuestToSeat}
+              onSelectTable={handleSelectTable}
+              onSelectObject={handleSelectObject}
+              selectedTableIds={selectedTableIds}
+              selectedObjectIds={selectedObjectIds}
+              layerVisibility={layerVisibility}
+              onToggleLayer={handleToggleLayer}
+            />
+          </div>
 
           <Canvas
             ref={canvasRef}
@@ -881,6 +893,60 @@ export default function SeatingPlanWorkspacePage() {
             onUpdatePlan={handleUpdatePlan}
           />
 
+          {/* Desktop RightPanel — only shown on lg+ */}
+          <div className="hidden lg:block">
+            <RightPanel
+              selectedTable={selectedTable}
+              selectedObject={selectedObject}
+              selectedSeatId={selectedSeatId}
+              tables={tables}
+              isReadOnly={false}
+              onDeleteTable={handleDeleteTable}
+              onDeleteObject={handleDeleteObject}
+              onRotateTable={handleRotateTable}
+              onUpdateTable={handleUpdateTable}
+              onResizeObject={handleResizeObject}
+              onRemoveGuest={handleRemoveGuest}
+              onAssignGuestToSeat={handleAssignGuestToSeat}
+              onDuplicateObject={handleDuplicateObject}
+              unseatedGuests={unseatedGuests}
+              onClose={() => { setSelectedTableIds(new Set()); setSelectedObjectIds(new Set()); setSelectedSeatId(null); }}
+            />
+          </div>
+        </div>
+
+        {/* Mobile sheets */}
+        <ResponsiveSheet
+          open={showMobileGuests}
+          onClose={() => setShowMobileGuests(false)}
+          side="left"
+          title="Guests & Tables"
+          desktopPanel={false}
+        >
+          <LeftPanel
+            planId={planId!}
+            unseatedGuests={unseatedGuests}
+            tables={tables}
+            roomObjects={roomObjects}
+            zones={zones}
+            isReadOnly={false}
+            onAssignGuest={handleAssignGuestToSeat}
+            onSelectTable={(id, multi) => { handleSelectTable(id, multi); setShowMobileGuests(false); setShowMobileInspector(true); }}
+            onSelectObject={(id, multi) => { handleSelectObject(id, multi); setShowMobileGuests(false); }}
+            selectedTableIds={selectedTableIds}
+            selectedObjectIds={selectedObjectIds}
+            layerVisibility={layerVisibility}
+            onToggleLayer={handleToggleLayer}
+          />
+        </ResponsiveSheet>
+
+        <ResponsiveSheet
+          open={showMobileInspector && !!(selectedTable || selectedObject)}
+          onClose={() => setShowMobileInspector(false)}
+          side="right"
+          title="Inspector"
+          desktopPanel={false}
+        >
           <RightPanel
             selectedTable={selectedTable}
             selectedObject={selectedObject}
@@ -896,9 +962,24 @@ export default function SeatingPlanWorkspacePage() {
             onAssignGuestToSeat={handleAssignGuestToSeat}
             onDuplicateObject={handleDuplicateObject}
             unseatedGuests={unseatedGuests}
-            onClose={() => { setSelectedTableIds(new Set()); setSelectedObjectIds(new Set()); setSelectedSeatId(null); }}
+            onClose={() => { setSelectedTableIds(new Set()); setSelectedObjectIds(new Set()); setSelectedSeatId(null); setShowMobileInspector(false); }}
           />
-        </div>
+        </ResponsiveSheet>
+
+        <ResponsiveSheet
+          open={showMobileAssign}
+          onClose={() => setShowMobileAssign(false)}
+          side="right"
+          title="Quick Assign"
+          desktopPanel={false}
+        >
+          <MobileAssignSheet
+            unseatedGuests={unseatedGuests}
+            tables={tables}
+            onAssignGuest={handleAssignGuestToSeat}
+            onClose={() => setShowMobileAssign(false)}
+          />
+        </ResponsiveSheet>
 
         {/* Modals */}
         {showAddTable && (

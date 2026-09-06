@@ -12,7 +12,7 @@ const steps = [
   {
     step: 2,
     title: 'Discover nearby places',
-    description: 'Wedora uses Google Places to search for useful businesses near your venues — hotels, restaurants, transport hubs and more.',
+    description: 'Vowora uses Google Places to search for useful businesses near your venues — hotels, restaurants, transport hubs and more.',
   },
   {
     step: 3,

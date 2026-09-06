@@ -73,9 +73,9 @@ export default function PublicNavbar({ transparent: initialTransparent = true }:
               className={`font-heading text-2xl font-semibold tracking-tight cursor-pointer transition-colors ${
                 isTransparent ? 'text-white' : 'text-foreground-900'
               }`}
-              aria-label="Wedora home"
+              aria-label="Vowora home"
             >
-              Wedora
+              Vowora
             </Link>
 
             {/* Desktop nav */}

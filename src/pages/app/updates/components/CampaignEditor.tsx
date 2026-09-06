@@ -140,7 +140,7 @@ export default function CampaignEditor({ templates, initialData, onSave, onClose
           })}
         </div>
         <div className="p-4 text-center text-foreground-400 text-xs" style={{ background: s }}>
-          <p>Sent by {form.sender_name || 'Wedora'}</p>
+          <p>Sent by {form.sender_name || 'Vowora'}</p>
           <p className="mt-1">Unsubscribe from future emails</p>
         </div>
       </div>

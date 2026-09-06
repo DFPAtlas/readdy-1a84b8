@@ -1,4 +1,4 @@
-# Wedora Guest Management — Production Persistence
+# Vowora Guest Management — Production Persistence
 
 ## Status: Prompt 6 Complete
 

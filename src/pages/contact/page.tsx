@@ -76,7 +76,7 @@ export default function ContactPage() {
                     <em className="font-light italic">to hear from you</em>
                   </h1>
                   <p className="text-white/80 text-base mt-4 max-w-sm">
-                    Whether you have a question about Wedora, want to share feedback or need help with your wedding planning, send us a message and we will get back to you.
+                    Whether you have a question about Vowora, want to share feedback or need help with your wedding planning, send us a message and we will get back to you.
                   </p>
                 </div>
               </div>
@@ -191,7 +191,7 @@ export default function ContactPage() {
                             className="mt-1 w-4 h-4 rounded border-secondary-300 text-primary-500 focus:ring-primary-400 cursor-pointer"
                           />
                           <label htmlFor="contact-consent" className="text-xs text-foreground-600 leading-relaxed cursor-pointer">
-                            I agree to Wedora processing my personal data in accordance with the <Link to="/privacy" className="text-primary-600 underline">Privacy Policy</Link>. <span className="text-primary-500">*</span>
+                            I agree to Vowora processing my personal data in accordance with the <Link to="/privacy" className="text-primary-600 underline">Privacy Policy</Link>. <span className="text-primary-500">*</span>
                           </label>
                         </div>
 

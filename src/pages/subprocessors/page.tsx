@@ -37,7 +37,7 @@ const SUBPROCESSORS = [
   },
   {
     name: 'Stripe',
-    service: 'Payment processing for paid Wedora plans (when connected)',
+    service: 'Payment processing for paid Vowora plans (when connected)',
     location: 'USA',
     privacyUrl: 'https://stripe.com/gb/privacy',
     dpaUrl: 'https://stripe.com/gb/legal/dpa',
@@ -73,7 +73,7 @@ export default function SubprocessorsPage() {
 
           <div className="card-default mb-8">
             <p className="text-sm text-foreground-600 italic">
-              <strong>Review note for legal counsel:</strong> This list describes the third-party services Wedora relies on to
+              <strong>Review note for legal counsel:</strong> This list describes the third-party services Vowora relies on to
               operate the platform. Each service, the data it processes, its hosting location and the applicable legal safeguards
               must be verified before this document is considered final. This list should be maintained as a living record and
               updated whenever a new subprocessor is engaged.
@@ -84,7 +84,7 @@ export default function SubprocessorsPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">1. About this list</h2>
               <p className="text-sm leading-relaxed">
-                Wedora uses third-party service providers (&ldquo;subprocessors&rdquo;) to help deliver the platform.
+                Vowora uses third-party service providers (&ldquo;subprocessors&rdquo;) to help deliver the platform.
                 This page lists the subprocessors we currently use, what they do, where they are based and the legal
                 safeguards in place to protect your data.
               </p>
@@ -123,7 +123,7 @@ export default function SubprocessorsPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">3. Data processed by subprocessors</h2>
               <p className="text-sm leading-relaxed">
-                The data processed by each subprocessor depends on which Wedora features you use. For example:
+                The data processed by each subprocessor depends on which Vowora features you use. For example:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-2 mt-2">
                 <li>If you use the Travel Concierge, venue addresses may be sent to Google Maps / Places</li>
@@ -154,7 +154,7 @@ export default function SubprocessorsPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">5. Updates to this list</h2>
               <p className="text-sm leading-relaxed">
-                We will update this page when we engage new subprocessors or change existing ones. If you are a Wedora customer
+                We will update this page when we engage new subprocessors or change existing ones. If you are a Vowora customer
                 and would like to be notified of subprocessor changes, please contact us and we will add you to our notification list.
               </p>
             </section>

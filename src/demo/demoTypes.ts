@@ -46,6 +46,29 @@ export interface DemoWeddingEvent {
   description: string;
   is_public: boolean;
   sort_order: number;
+  // Schedule-manager fields
+  visibility: 'public' | 'invitation_holders' | 'included_guests' | 'reveal_on_date' | 'hidden';
+  status: 'draft' | 'published' | 'cancelled' | 'archived';
+  guest_description: string;
+  reveal_at: string | null;
+  published_at: string | null;
+  arrival_offset_minutes: number;
+  parking_notes: string;
+  transport_notes: string;
+  accessibility_notes: string;
+  children_notes: string;
+  // Denormalised venue for display
+  venue_name?: string;
+  venue_city?: string;
+}
+
+export interface DemoEventAudience {
+  id: string;
+  wedding_id: string;
+  event_id: string;
+  audience_type: 'invitation' | 'guest' | 'household';
+  audience_reference_id: string;
+  created_at: string;
 }
 
 export interface DemoGuest {
@@ -363,10 +386,65 @@ export interface DemoActivityEvent {
   wedding_id: string;
 }
 
+// ── Questions & FAQs ──
+
+export interface DemoFaq {
+  id: string;
+  wedding_id: string;
+  category: string;
+  question: string;
+  answer: string;
+  related_links: Array<{ label: string; url: string; type: 'internal' | 'external' }>;
+  is_published: boolean;
+  status: 'draft' | 'published' | 'archived';
+  sort_order: number;
+  helpful_count: number;
+  not_helpful_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DemoGuestQuestion {
+  id: string;
+  wedding_id: string;
+  invitation_id: string;
+  guest_id: string;
+  category: string;
+  subject: string;
+  message: string;
+  preferred_response_method: string;
+  status: 'pending' | 'answered' | 'closed';
+  response: string | null;
+  responded_by: string | null;
+  responded_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DemoQuestionActivity {
+  id: string;
+  wedding_id: string;
+  question_id: string | null;
+  faq_id: string | null;
+  invitation_id: string | null;
+  guest_id: string | null;
+  activity_type: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface DemoPortalSettings {
+  show_questions: boolean;
+  allow_guest_questions: boolean;
+  questions_contact_message: string;
+  questions_response_time_message: string;
+}
+
 export interface DemoState {
   wedding: DemoWedding;
   venues: DemoWeddingVenue[];
   events: DemoWeddingEvent[];
+  eventAudiences: DemoEventAudience[];
   guests: DemoGuest[];
   households: DemoHousehold[];
   invitations: DemoInvitation[];
@@ -390,6 +468,15 @@ export interface DemoState {
   onboardingComplete: boolean;
   planningPriorities: string[];
   guestEstimate: number;
+  // Questions & FAQs
+  faqs: DemoFaq[];
+  guestQuestions: DemoGuestQuestion[];
+  questionActivity: DemoQuestionActivity[];
+  portalSettings: DemoPortalSettings;
+  // Website Builder
+  websiteConfig: Record<string, unknown> | null;
+  /** Billing subscription state (demo only) */
+  subscription: Record<string, unknown> | null;
 }
 
 export interface DemoCalculatedStats {

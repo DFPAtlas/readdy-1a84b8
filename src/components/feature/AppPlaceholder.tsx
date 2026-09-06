@@ -18,7 +18,7 @@ export default function AppPlaceholder({ title, icon, description, phase = 'late
           <h1 className="font-heading text-2xl text-foreground-900 mb-3">{title}</h1>
           <p className="text-sm text-foreground-600 max-w-sm mx-auto">{description}</p>
           <span className="inline-flex items-center mt-6 px-3 py-1.5 rounded-full bg-secondary-100 text-secondary-700 text-xs font-label">
-            Coming in a {phase} Wedora release
+            Coming in a {phase} Vowora release
           </span>
         </div>
       </div>

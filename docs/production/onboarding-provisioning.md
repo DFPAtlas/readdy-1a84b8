@@ -1,6 +1,6 @@
 # Onboarding-to-Wedding Provisioning
 
-> Production Prompt 5 — Wedora
+> Production Prompt 5 — Vowora
 
 ## Current Flow
 

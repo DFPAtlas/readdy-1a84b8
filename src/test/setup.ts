@@ -39,7 +39,7 @@ vi.stubGlobal('import', {
       DEV: true,
       PROD: false,
       VITE_DEMO_MODE: 'false',
-      VITE_PUBLIC_SITE_URL: 'https://wedora.uk',
+      VITE_PUBLIC_SITE_URL: 'https://vowora.uk',
       VITE_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
       VITE_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
       VITE_PUBLIC_GOOGLE_MAPS_KEY: '',

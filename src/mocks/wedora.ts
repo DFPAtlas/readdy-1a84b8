@@ -97,7 +97,7 @@ export const collaborationRoles = [
 
 export const testimonials = [
   {
-    text: 'Wedora helped us keep track of everything without feeling overwhelmed. The guest management alone saved us countless hours of back-and-forth messages.',
+    text: 'Vowora helped us keep track of everything without feeling overwhelmed. The guest management alone saved us countless hours of back-and-forth messages.',
     author: 'Early-access couple',
     theme: 'Less stress managing replies',
   },
@@ -122,7 +122,7 @@ export const pricingPlans = [
       'Up to 20 guests',
       'Simple RSVP collection',
       'Essential wedding details',
-      'Wedora branding',
+      'Vowora branding',
     ],
     highlighted: false,
   },
@@ -135,7 +135,7 @@ export const pricingPlans = [
       'Email updates',
       'Travel guide',
       'Custom sections',
-      'Remove Wedora branding',
+      'Remove Vowora branding',
     ],
     highlighted: false,
   },
@@ -212,7 +212,7 @@ export const weddingData = {
 export const guestPageConfig = {
   published: true,
   publicUrl: '/w/emma-and-james',
-  fullUrl: 'https://wedora.app/w/emma-and-james',
+  fullUrl: 'https://vowora.uk/w/emma-and-james',
 };
 
 export const weddingSchedule = [

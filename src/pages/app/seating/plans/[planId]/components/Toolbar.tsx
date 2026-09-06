@@ -11,6 +11,7 @@ interface ToolbarProps {
   undoStack: UndoEntry[]; redoStack: UndoEntry[];
   canvasWarnings: CanvasWarning[];
   selectedCount: number; allTableCount: number;
+  unseatedGuestCount?: number;
   isDemo?: boolean;
   onBack: () => void;
   onNavigate: (path: string) => void;
@@ -21,6 +22,9 @@ interface ToolbarProps {
   onUndo: () => void; onRedo: () => void;
   onAddTable: () => void; onAddObject: () => void;
   onSaveNow: () => void; onDeleteSelected: () => void;
+  onShowMobileGuests?: () => void;
+  onShowMobileAssign?: () => void;
+  onShowMobileInspector?: () => void;
 }
 
 function MaybeTooltip({ isDemo, children, ...tooltip }: { isDemo?: boolean; children: React.ReactNode } & Omit<React.ComponentProps<typeof ToolbarHoverTooltip>, 'children'>) {
@@ -30,11 +34,12 @@ function MaybeTooltip({ isDemo, children, ...tooltip }: { isDemo?: boolean; chil
 
 export default function Toolbar({
   plan, planId, saveStatus, isReadOnly, zoom, showGrid, snapEnabled, showGuides,
-  undoStack, redoStack, canvasWarnings, selectedCount, allTableCount,
+  undoStack, redoStack, canvasWarnings, selectedCount, allTableCount, unseatedGuestCount,
   isDemo,
   onBack, onNavigate, onZoomIn, onZoomOut, onZoomReset, onFit,
   onToggleGrid, onToggleSnap, onToggleGuides, onShowWarnings, onShowRoomSettings, onShowBackground,
   onUndo, onRedo, onAddTable, onAddObject, onSaveNow, onDeleteSelected,
+  onShowMobileGuests, onShowMobileAssign, onShowMobileInspector,
 }: ToolbarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -72,6 +77,32 @@ export default function Toolbar({
             <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-label font-semibold flex-shrink-0 ${PLAN_STATUS_COLOURS[plan.status]}`}>{PLAN_STATUS_LABELS[plan.status]}</span>
           </div>
         </div>
+      </div>
+
+      {/* Mobile trigger buttons (only visible below lg) */}
+      <div className="flex lg:hidden items-center gap-1 flex-shrink-0">
+        {onShowMobileGuests && (
+          <MaybeTooltip isDemo={isDemo} title="Guest list" description="View and assign unseated guests from a mobile-friendly list." icon="ri-group-line">
+            <button onClick={onShowMobileGuests} className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground-500 hover:bg-background-100 cursor-pointer relative" title="Guest list" aria-label="Open guest list">
+              <i className="ri-group-line" style={{ fontSize: '14px' }} />
+              {unseatedGuestCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-4 flex items-center justify-center rounded-full bg-primary-500 text-white text-[9px] font-label px-0.5">{unseatedGuestCount}</span>
+              )}
+            </button>
+          </MaybeTooltip>
+        )}
+        {onShowMobileAssign && (
+          <MaybeTooltip isDemo={isDemo} title="Quick assign" description="Step-by-step guest-to-table assignment for touch screens." icon="ri-user-add-line">
+            <button onClick={onShowMobileAssign} className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground-500 hover:bg-background-100 cursor-pointer" title="Quick assign" aria-label="Quick assign guests to tables">
+              <i className="ri-user-add-line" style={{ fontSize: '14px' }} />
+            </button>
+          </MaybeTooltip>
+        )}
+        {onShowMobileInspector && (selectedCount > 0) && (
+          <button onClick={onShowMobileInspector} className="w-8 h-8 flex items-center justify-center rounded-lg text-primary-600 bg-primary-50 cursor-pointer" title="Inspect selected" aria-label="Open inspector for selected">
+            <i className="ri-information-line" style={{ fontSize: '14px' }} />
+          </button>
+        )}
       </div>
 
       {/* Centre: tools */}

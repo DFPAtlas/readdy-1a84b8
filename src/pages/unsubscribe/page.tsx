@@ -50,7 +50,7 @@ export default function UnsubscribePage() {
       setStatus('success');
       setMessage(
         prefType === 'all'
-          ? 'You have been unsubscribed from all Wedora emails. This change is effective immediately.'
+          ? 'You have been unsubscribed from all Vowora emails. This change is effective immediately.'
           : prefType === 'marketing'
             ? 'You have been unsubscribed from marketing emails. You will still receive essential service communications.'
             : 'You have been unsubscribed from wedding update emails.'
@@ -72,7 +72,7 @@ export default function UnsubscribePage() {
             </div>
             <h1 className="font-heading text-2xl md:text-3xl text-foreground-900 mb-2">Email Preferences</h1>
             <p className="text-sm text-foreground-500">
-              Manage which emails you receive from Wedora.
+              Manage which emails you receive from Vowora.
             </p>
           </div>
 
@@ -87,7 +87,7 @@ export default function UnsubscribePage() {
                   to="/"
                   className="inline-flex items-center justify-center whitespace-nowrap rounded-lg bg-primary-500 text-white px-5 py-2.5 text-sm font-label font-medium cursor-pointer hover:bg-primary-600 transition-colors"
                 >
-                  Return to Wedora
+                  Return to Vowora
                 </Link>
               </div>
             ) : (
@@ -115,7 +115,7 @@ export default function UnsubscribePage() {
                     </label>
                     <div className="space-y-2">
                       {[
-                        { value: 'all', label: 'All emails', desc: 'Stop receiving all emails from Wedora' },
+                        { value: 'all', label: 'All emails', desc: 'Stop receiving all emails from Vowora' },
                         { value: 'marketing', label: 'Marketing emails only', desc: 'Keep essential service emails, stop marketing' },
                         { value: 'updates', label: 'Wedding updates only', desc: 'Stop wedding update emails, keep account notifications' },
                       ].map((opt) => (

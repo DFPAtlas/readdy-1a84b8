@@ -1,4 +1,4 @@
-# Wedora — Security Audit Report
+# Vowora — Security Audit Report
 
 Date: 2026-07-23
 Phase: Production Prompt 17 — Automated Testing, Security Audit & Operations
@@ -9,7 +9,7 @@ Scope: Full codebase (frontend + Edge Functions + database + storage)
 
 ## 1. Executive Summary
 
-Wedora has been through 16 production hardening prompts and already has strong security foundations. This audit reviews the remaining attack surface and provides a structured assessment of authentication, authorisation, data protection, injection risks, and operational security.
+Vowora has been through 16 production hardening prompts and already has strong security foundations. This audit reviews the remaining attack surface and provides a structured assessment of authentication, authorisation, data protection, injection risks, and operational security.
 
 **Overall Rating: Good — with specific remediations recommended.**
 
@@ -186,12 +186,12 @@ All policies extract `wedding_id` from the second path segment and verify the us
 | `react-dom` | ^19.1.2 | Low | Matches React |
 | `react-router-dom` | ^7.6.3 | Low | Latest v7 |
 | `@supabase/supabase-js` | 2.57.4 | Low | Recent stable |
-| `firebase` | — | — | ✅ REMOVED (2026-07-24) — was unused; Supabase is the sole backend |
+| `firebase` | — | — | ✅ REMOVED (2026-08-01) — was an unused dependency; Supabase is the sole backend |
 | `recharts` | 3.2.0 | Low | Charting library, data visualisation only |
 | `lucide-react` | ^0.469.0 | Low | Icon library |
 | `i18next` | ^25.3.2 | Low | Internationalisation |
 
-**Finding:** ~~`firebase@12.0.0` was listed as a dependency~~ → ✅ **REMOVED (2026-07-24).** Firebases removed from `package.json`. Has zero impact on the codebase — Wedora uses Supabase exclusively, and no code ever imported firebase. This trims ~200KB from the bundle and removes an unnecessary supply-chain risk.
+**Finding:** ~~`firebase@12.0.0` was listed as a dependency~~ → ✅ **REMOVED (2026-08-01).** Firebase removed from `package.json`. Has zero impact on the codebase — Vowora uses Supabase exclusively, and no code ever imported firebase. This trims ~200KB from the bundle and removes an unnecessary supply-chain risk.
 
 ---
 
@@ -248,7 +248,7 @@ None identified.
 ## 11. Remediation Roadmap
 
 ### Immediate (this sprint)
-- ~~Remove `firebase` dependency~~ ✅ Done
+- ~~Remove `firebase` dependency~~ ✅ Done (2026-08-01)
 - Add file extension whitelist to `guest-gallery-upload`
 - Add rate limiting to `provision-wedding-workspace`
 
@@ -273,7 +273,7 @@ None identified.
 | Third-party CDN compromise (Google Fonts, CDNJS) | Product | Acceptable for UI; no sensitive data exposed via CDN |
 | Resend email data in transit (USA) | Product | SCCs in place; UK-facing but email is inherently not end-to-end encrypted |
 | Google Maps API key exposure | Product | VITE_PUBLIC_ prefix = client-side; restricted by HTTP referrer in GCP console |
-| Browser extension keylogging | N/A | Outside Wedora's control |
+| Browser extension keylogging | N/A | Outside Vowora's control |
 
 ---
 
@@ -294,4 +294,4 @@ None identified.
 
 ---
 
-Last Updated: 2026-07-24
+Last Updated: 2026-08-01

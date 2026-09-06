@@ -52,7 +52,7 @@ export default function FinalCTA() {
             into one beautiful place
           </h2>
           <p className="text-white/80 text-base md:text-lg leading-relaxed mt-5 max-w-md">
-            Start creating your Wedora space and make planning easier for you, your partner and every guest.
+            Start creating your Vowora space and make planning easier for you, your partner and every guest.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 mt-8">
             <Link

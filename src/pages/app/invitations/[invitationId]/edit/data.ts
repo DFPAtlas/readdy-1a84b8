@@ -26,6 +26,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 48,
       rotation: 0,
       zIndex: 1,
+      opacity: 1,
       props: {
         content: '\u2766',
         fontSize: 36,
@@ -47,6 +48,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 48,
       rotation: 0,
       zIndex: 1,
+      opacity: 1,
       props: {
         content: '\u2766',
         fontSize: 36,
@@ -68,6 +70,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 48,
       rotation: 0,
       zIndex: 1,
+      opacity: 1,
       props: {
         content: '\u2766',
         fontSize: 36,
@@ -89,6 +92,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 48,
       rotation: 0,
       zIndex: 1,
+      opacity: 1,
       props: {
         content: '\u2766',
         fontSize: 36,
@@ -110,6 +114,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 2,
       rotation: 0,
       zIndex: 1,
+      opacity: 1,
       props: {
         content: '',
         fontSize: 0,
@@ -131,6 +136,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 30,
       rotation: 0,
       zIndex: 2,
+      opacity: 1,
       props: {
         content: 'TOGETHER WITH THEIR FAMILIES',
         fontSize: 12,
@@ -153,6 +159,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 60,
       rotation: 0,
       zIndex: 2,
+      opacity: 1,
       props: {
         content: 'Amelia',
         fontSize: 52,
@@ -174,6 +181,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 60,
       rotation: 0,
       zIndex: 2,
+      opacity: 1,
       props: {
         content: '& Jonathan',
         fontSize: 44,
@@ -195,6 +203,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 24,
       rotation: 0,
       zIndex: 1,
+      opacity: 1,
       props: {
         content: '\u2500  \u2665  \u2500',
         fontSize: 16,
@@ -216,6 +225,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 30,
       rotation: 0,
       zIndex: 2,
+      opacity: 1,
       props: {
         content: 'INVITE YOU TO CELEBRATE THEIR WEDDING',
         fontSize: 12,
@@ -238,6 +248,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 30,
       rotation: 0,
       zIndex: 2,
+      opacity: 1,
       props: {
         content: 'SATURDAY  \u00B7  24 MAY 2027  \u00B7  3:00 PM',
         fontSize: 13,
@@ -260,6 +271,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 2,
       rotation: 0,
       zIndex: 1,
+      opacity: 1,
       props: {
         content: '',
         fontSize: 0,
@@ -281,6 +293,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 32,
       rotation: 0,
       zIndex: 2,
+      opacity: 1,
       props: {
         content: 'The Garden Pavilion',
         fontSize: 22,
@@ -302,6 +315,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 24,
       rotation: 0,
       zIndex: 2,
+      opacity: 1,
       props: {
         content: 'Cotswolds, England',
         fontSize: 13,
@@ -324,6 +338,7 @@ export const DEFAULT_INVITATION: InvitationDocument = {
       height: 40,
       rotation: 0,
       zIndex: 1,
+      opacity: 1,
       props: {
         content: '\u2726   \u2726   \u2726',
         fontSize: 16,

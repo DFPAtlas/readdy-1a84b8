@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { storeGuestSession } from '@/hooks/useGuestPortal';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
+import { supabase } from '@/lib/supabase';
 
-const EDGE_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/validate-invitation';
 const DEMO_INVITE_FLAG = 'wedora_demo_invite';
 
 interface InviteData {
@@ -112,15 +112,11 @@ export default function InviteLandingPage() {
 
     (async () => {
       try {
-        const res = await fetch(EDGE_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ rawToken: token }),
+        const { data: result, error: invokeErr } = await supabase.functions.invoke('validate-invitation', {
+          body: { rawToken: token },
         });
 
-        if (!res.ok) throw new Error('invitation_unavailable');
-
-        const result = await res.json();
+        if (invokeErr || !result) throw new Error('invitation_unavailable');
 
         if (!result.valid) {
           const reason = result.reason || 'invalid_link';

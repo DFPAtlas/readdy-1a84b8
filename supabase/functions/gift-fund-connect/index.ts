@@ -242,7 +242,7 @@ Deno.serve(async (req: Request) => {
       }
 
       // Get the base path for return URL
-      const origin = req.headers.get("origin") || "https://wedora.app";
+      const origin = req.headers.get("origin") || "https://vowora.uk";
       const basePathHeader = req.headers.get("x-base-path") || "";
       const pathPrefix = basePathHeader ? `/${basePathHeader}` : "";
 

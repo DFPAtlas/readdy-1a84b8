@@ -421,7 +421,7 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // ── 12. Create wedding events ──
+    // ── 12. Create wedding events (visibility: public for guest portal compatibility) ──
     const ceremonyStartAt = p.wedding_date && p.ceremony_time
       ? `${p.wedding_date}T${p.ceremony_time}:00.000Z`
       : null;
@@ -432,7 +432,7 @@ Deno.serve(async (req: Request) => {
       name: "Wedding Ceremony",
       start_at: ceremonyStartAt || undefined,
       venue_id: ceremonyVenueId || undefined,
-      visibility: "all_guests",
+      visibility: "public",
       status: "draft",
       created_at: now,
       updated_at: now,
@@ -448,7 +448,7 @@ Deno.serve(async (req: Request) => {
       name: "Wedding Reception",
       start_at: receptionStartAt || undefined,
       venue_id: receptionVenueId || undefined,
-      visibility: "all_guests",
+      visibility: "public",
       status: "draft",
       created_at: now,
       updated_at: now,
@@ -458,7 +458,7 @@ Deno.serve(async (req: Request) => {
       wedding_id: weddingId,
       event_type: "evening",
       name: "Evening Celebration",
-      visibility: "all_guests",
+      visibility: "public",
       status: "draft",
       created_at: now,
       updated_at: now,

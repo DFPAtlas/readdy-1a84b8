@@ -121,7 +121,7 @@ export default function GuestCharitiesPage() {
 
       {/* Disclaimer */}
       <p className="text-center text-[10px] text-foreground-350 mt-8 max-w-md mx-auto leading-relaxed">
-        Clicking a donate link will take you to the charity&apos;s official page. Wedora does not process charity donations directly and is not responsible for third-party content.
+        Clicking a donate link will take you to the charity&apos;s official page. Vowora does not process charity donations directly and is not responsible for third-party content.
       </p>
     </div>
   );

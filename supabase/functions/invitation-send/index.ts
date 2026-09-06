@@ -1,4 +1,3 @@
-
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -99,7 +98,7 @@ function buildInvitationHtml(
   token: string,
   recipients: InvitationRecipientRow[],
 ): string {
-  const inviteUrl = `${Deno.env.get("SITE_URL") || "https://wedora.app"}/invite/${token}`;
+  const inviteUrl = `${Deno.env.get("SITE_URL") || "https://vowora.uk"}/invite/${token}`;
   const preset = invitation.template?.style_preset || "minimal";
   const isDark = preset === "editorial";
 
@@ -246,7 +245,7 @@ function buildPlainText(
   wedding: WeddingRow,
   token: string,
 ): string {
-  const inviteUrl = `${Deno.env.get("SITE_URL") || "https://wedora.app"}/invite/${token}`;
+  const inviteUrl = `${Deno.env.get("SITE_URL") || "https://vowora.uk"}/invite/${token}`;
   const lines: string[] = [];
   lines.push(`${wedding.partner_one_name} & ${wedding.partner_two_name}`);
   if (wedding.wedding_date) lines.push(formatDate(wedding.wedding_date));
@@ -476,7 +475,7 @@ async function handleSendIndividual(
 
     await logActivity(supabase, inv.wedding_id, invitationId, "token_generated", "Token generated (Resend not configured)", fingerprint);
 
-    const siteUrl = Deno.env.get("SITE_URL") || "https://wedora.app";
+    const siteUrl = Deno.env.get("SITE_URL") || "https://vowora.uk";
     const inviteUrl = `${siteUrl}/invite/${rawToken}`;
     return jsonResponse({
       success: true,
@@ -687,7 +686,7 @@ async function handleGenerateToken(
     created_at: new Date().toISOString(),
   });
 
-  const siteUrl = Deno.env.get("SITE_URL") || "https://wedora.app";
+  const siteUrl = Deno.env.get("SITE_URL") || "https://vowora.uk";
   const inviteUrl = `${siteUrl}/invite/${rawToken}`;
 
   return jsonResponse({

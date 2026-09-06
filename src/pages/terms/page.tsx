@@ -27,8 +27,8 @@ export default function TermsPage() {
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">1. About these terms</h2>
               <p className="text-sm leading-relaxed">
                 These Terms of Service (&ldquo;Terms&rdquo;) form a legal agreement between you (&ldquo;you&rdquo;, &ldquo;your&rdquo;)
-                and Wedora (&ldquo;Wedora&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;us&rdquo;) governing your use of the
-                Wedora wedding planning platform (&ldquo;the Service&rdquo;). By creating an account or using the Service,
+                and Vowora (&ldquo;Vowora&rdquo;, &ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;us&rdquo;) governing your use of the
+                Vowora wedding planning platform (&ldquo;the Service&rdquo;). By creating an account or using the Service,
                 you agree to these Terms. If you do not agree, you must not use the Service.
               </p>
               <p className="text-sm leading-relaxed mt-2">
@@ -40,7 +40,7 @@ export default function TermsPage() {
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">2. Eligibility and accounts</h2>
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">2.1 Eligibility</h3>
               <p className="text-sm leading-relaxed">
-                You must be at least 18 years old to create a Wedora account. By creating an account, you represent that you
+                You must be at least 18 years old to create a Vowora account. By creating an account, you represent that you
                 meet this requirement.
               </p>
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">2.2 Account responsibility</h3>
@@ -58,9 +58,9 @@ export default function TermsPage() {
             </section>
 
             <section>
-              <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">3. The Wedora Service</h2>
+              <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">3. The Vowora Service</h2>
               <p className="text-sm leading-relaxed">
-                Wedora provides a wedding planning platform that may include:
+                Vowora provides a wedding planning platform that may include:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-1 mt-1">
                 <li>Wedding website creation and hosting</li>
@@ -108,7 +108,7 @@ export default function TermsPage() {
               </p>
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">5.2 Guest data</h3>
               <p className="text-sm leading-relaxed">
-                When you add guest personal data to Wedora, you confirm that you have a lawful basis for providing that data,
+                When you add guest personal data to Vowora, you confirm that you have a lawful basis for providing that data,
                 such as the guest&rsquo;s consent or your legitimate interest in planning your wedding. You are responsible
                 for ensuring your use of guest data complies with applicable data protection laws.
               </p>
@@ -124,7 +124,7 @@ export default function TermsPage() {
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">6. Payments and billing</h2>
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">6.1 Plans</h3>
               <p className="text-sm leading-relaxed">
-                Wedora may offer both free and paid plans. The features, limits and pricing for each plan are described on our
+                Vowora may offer both free and paid plans. The features, limits and pricing for each plan are described on our
                 pricing page and in your account settings. Prices are in pounds sterling (£) and include VAT where applicable.
               </p>
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">6.2 Payment processing</h3>
@@ -143,7 +143,7 @@ export default function TermsPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">7. Intellectual property</h2>
               <p className="text-sm leading-relaxed">
-                The Wedora platform, including its design, code, branding, logos and documentation, is protected by intellectual
+                The Vowora platform, including its design, code, branding, logos and documentation, is protected by intellectual
                 property rights owned by or licensed to us. You may not copy, modify, distribute, sell or create derivative
                 works based on the platform without our prior written permission.
               </p>
@@ -202,7 +202,7 @@ export default function TermsPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">11. Indemnification</h2>
               <p className="text-sm leading-relaxed">
-                You agree to indemnify and hold harmless Wedora and its team members from any claims, damages, losses or expenses
+                You agree to indemnify and hold harmless Vowora and its team members from any claims, damages, losses or expenses
                 arising from your violation of these Terms, your User Content, or your violation of any third-party rights.
               </p>
             </section>
@@ -255,7 +255,7 @@ export default function TermsPage() {
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">15. General provisions</h2>
               <ul className="list-disc pl-5 text-sm space-y-1 mt-1">
                 <li><strong>Entire agreement:</strong> These Terms, together with our Privacy Notice, Cookie Notice,
-                  Content Rules and any applicable DPA, constitute the entire agreement between you and Wedora.</li>
+                  Content Rules and any applicable DPA, constitute the entire agreement between you and Vowora.</li>
                 <li><strong>Severability:</strong> If any provision of these Terms is found unenforceable, the remaining
                   provisions remain in full effect.</li>
                 <li><strong>No waiver:</strong> Our failure to enforce any provision does not constitute a waiver of that provision.</li>

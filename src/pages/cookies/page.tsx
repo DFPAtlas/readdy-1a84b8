@@ -31,7 +31,7 @@ export default function CookieNoticePage() {
             </section>
 
             <section>
-              <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">2. How Wedora uses cookies</h2>
+              <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">2. How Vowora uses cookies</h2>
               <p className="text-sm leading-relaxed">
                 We group the cookies we use into three categories:
               </p>
@@ -73,7 +73,7 @@ export default function CookieNoticePage() {
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-6 mb-2">Analytics cookies (optional)</h3>
               <p className="text-sm leading-relaxed">
                 These cookies help us understand how visitors interact with the website by collecting and reporting information
-                anonymously. They allow us to measure page views, feature usage and performance so we can improve Wedora.
+                anonymously. They allow us to measure page views, feature usage and performance so we can improve Vowora.
               </p>
               <div className="overflow-x-auto mt-2">
                 <table className="w-full text-xs border-collapse">
@@ -102,7 +102,7 @@ export default function CookieNoticePage() {
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-6 mb-2">Marketing cookies (optional)</h3>
               <p className="text-sm leading-relaxed">
                 These cookies may be set through our site by advertising partners. They may be used to build a profile of your
-                interests and show you relevant advertisements on other sites. Wedora does not currently deploy marketing
+                interests and show you relevant advertisements on other sites. Vowora does not currently deploy marketing
                 cookies directly. If we partner with advertising networks in future, we will update this notice and ask for
                 fresh consent.
               </p>
@@ -111,7 +111,7 @@ export default function CookieNoticePage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">3. Managing your cookie preferences</h2>
               <p className="text-sm leading-relaxed">
-                When you first visit Wedora, we show a cookie consent banner. You can:
+                When you first visit Vowora, we show a cookie consent banner. You can:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-2 mt-2">
                 <li><strong>Accept all</strong> — enable all cookie categories</li>

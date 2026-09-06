@@ -1,4 +1,4 @@
-# Wedora — Production Baseline
+# Vowora — Production Baseline
 
 Date: 19 July 2026
 Phase: Production Prompt 1 — Post-Demo Audit & Branch Protection
@@ -36,7 +36,7 @@ npm run lint       # ESLint
 | Variable | Required | Purpose |
 |----------|----------|---------|
 | `VITE_DEMO_MODE` | No | Enable demo mode (`true`) |
-| `VITE_PUBLIC_SITE_URL` | No | Canonical site URL (e.g. `https://wedora.uk`) |
+| `VITE_PUBLIC_SITE_URL` | No | Canonical site URL (e.g. `https://vowora.uk`) |
 | `VITE_PUBLIC_SUPABASE_URL` | Yes* | Supabase project URL |
 | `VITE_PUBLIC_SUPABASE_ANON_KEY` | Yes* | Supabase anonymous key |
 | `VITE_PUBLIC_GOOGLE_MAPS_KEY` | No | Google Maps API key |
@@ -107,7 +107,7 @@ npm run lint       # ESLint
 
 - Fixed UUID `00000000-0000-0000-0000-000000000001` removed from all 26 production execution paths
 - `useActiveWedding` no longer silently selects the first wedding from the database
-- Dashboard no longer falls back to `emma-and-james` slug or `https://wedora.app` hardcoded URLs
+- Dashboard no longer falls back to `emma-and-james` slug or `https://vowora.uk` hardcoded URLs
 - Production mode shows proper `no_wedding` state instead of demo data
 - Public wedding page `/w/:slug` shows branded "not found" for unknown slugs
 - Guest portal requires valid session token (only `demo-session` bypasses)

@@ -4,6 +4,8 @@ import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { supabase } from '@/lib/supabase';
 import type { DemoTravelPlace, DemoGalleryItem } from '@/demo/demoTypes';
+import { createDemoSeoConfig } from '@/demo/demoWebsite';
+import { usePublicSeoMetadata } from '@/hooks/usePublicSeoMetadata';
 
 export default function PublicWeddingPage() {
   const { slug } = useParams();
@@ -132,7 +134,7 @@ export default function PublicWeddingPage() {
             <h1 className="font-heading text-2xl text-foreground-900 mb-3">Wedding page not found</h1>
             <p className="text-sm text-foreground-600 mb-6">The wedding page you are looking for is not available. Please check the link and try again.</p>
             <Link to="/" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary-500 text-background-50 text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap">
-              Back to Wedora
+              Back to Vowora
             </Link>
           </div>
         </div>
@@ -195,7 +197,7 @@ export default function PublicWeddingPage() {
           <p className="font-heading text-xl text-foreground-900 mb-1">{lwTitle}</p>
           <p className="text-xs text-foreground-400">{lwDate}{lw.location ? ` · ${lw.location}` : ''}</p>
           <p className="text-[11px] text-foreground-300 mt-4">
-            Powered by <Link to="/" className="text-foreground-400 hover:text-foreground-600 cursor-pointer">Wedora</Link>
+            Powered by <Link to="/" className="text-foreground-400 hover:text-foreground-600 cursor-pointer">Vowora</Link>
           </p>
         </footer>
       </div>
@@ -212,6 +214,59 @@ export default function PublicWeddingPage() {
       </div>
     );
   }
+
+  // SEO metadata for demo mode
+  const demoSeo = createDemoSeoConfig();
+
+  return (
+    <PublicWeddingPageContent
+      wedding={wedding}
+      dateDisplay={dateDisplay}
+      navLinks={navLinks}
+      scheduleItems={scheduleItems}
+      faqs={faqs}
+      updates={updates}
+      registryItems={registryItems}
+      galleryItems={galleryItems}
+      travelGroups={travelGroups}
+      ceremonyVenue={ceremonyVenue}
+      receptionVenue={receptionVenue}
+      mobileMenuOpen={mobileMenuOpen}
+      setMobileMenuOpen={setMobileMenuOpen}
+      faqOpen={faqOpen}
+      setFaqOpen={setFaqOpen}
+      previewBarVisible={previewBarVisible}
+      setPreviewBarVisible={setPreviewBarVisible}
+      seo={demoSeo}
+      coupleNames={`${wedding.partner_one_name} & ${wedding.partner_two_name}`}
+      siteUrl={`vowora.uk/w/${DEMO_CONFIG.publicSlug}`}
+    />
+  );
+}
+
+// ── Extracted content component ──
+function PublicWeddingPageContent({
+  wedding, dateDisplay, navLinks, scheduleItems, faqs, updates, registryItems,
+  galleryItems, travelGroups, ceremonyVenue, receptionVenue, mobileMenuOpen,
+  setMobileMenuOpen, faqOpen, setFaqOpen, previewBarVisible, setPreviewBarVisible,
+  seo, coupleNames, siteUrl,
+}: {
+  wedding: any; dateDisplay: string; navLinks: any; scheduleItems: any; faqs: any;
+  updates: any; registryItems: any; galleryItems: any; travelGroups: any;
+  ceremonyVenue: any; receptionVenue: any; mobileMenuOpen: boolean;
+  setMobileMenuOpen: (v: boolean) => void; faqOpen: number | null;
+  setFaqOpen: (v: number | null) => void; previewBarVisible: boolean;
+  setPreviewBarVisible: (v: boolean) => void; seo: any; coupleNames: string; siteUrl: string;
+}) {
+  usePublicSeoMetadata({
+    seo,
+    siteTitle: coupleNames,
+    siteUrl,
+    coupleNames,
+    weddingDate: wedding?.wedding_date,
+    location: wedding?.location,
+    searchIndexing: seo.search_indexing,
+  });
 
   return (
     <div className="min-h-screen bg-background-50">
@@ -719,7 +774,7 @@ export default function PublicWeddingPage() {
             </a>
             <span className="text-foreground-300">·</span>
             <span className="text-[11px] text-foreground-300">
-              Powered by <Link to="/" className="text-foreground-400 hover:text-foreground-600 cursor-pointer">Wedora</Link>
+              Powered by <Link to="/" className="text-foreground-400 hover:text-foreground-600 cursor-pointer">Vowora</Link>
             </span>
           </div>
         </div>

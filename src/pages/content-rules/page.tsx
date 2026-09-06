@@ -14,7 +14,7 @@ export default function ContentRulesPage() {
 
           <div className="card-default mb-8">
             <p className="text-sm text-foreground-600 italic">
-              <strong>Review note for legal counsel:</strong> These rules govern user-generated content on the Wedora platform.
+              <strong>Review note for legal counsel:</strong> These rules govern user-generated content on the Vowora platform.
               The scope, definitions of prohibited content, enforcement process and jurisdictional references should be reviewed
               for completeness and compliance with applicable law including the UK Online Safety Act.
             </p>
@@ -24,8 +24,8 @@ export default function ContentRulesPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">1. Purpose</h2>
               <p className="text-sm leading-relaxed">
-                Wedora is a platform for celebrating love and bringing people together. These Community &amp; Content Rules
-                (&ldquo;the Rules&rdquo;) set out what is and is not acceptable when you upload, post or share content on Wedora.
+                Vowora is a platform for celebrating love and bringing people together. These Community &amp; Content Rules
+                (&ldquo;the Rules&rdquo;) set out what is and is not acceptable when you upload, post or share content on Vowora.
                 They apply to all users — couples, wedding party members, collaborators and guests.
               </p>
             </section>
@@ -33,7 +33,7 @@ export default function ContentRulesPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">2. What we expect</h2>
               <p className="text-sm leading-relaxed">
-                All content shared on Wedora should be:
+                All content shared on Vowora should be:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-2 mt-2">
                 <li><strong>Relevant</strong> — connected to the wedding or celebration</li>
@@ -46,7 +46,7 @@ export default function ContentRulesPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">3. Prohibited content</h2>
               <p className="text-sm leading-relaxed">
-                The following content is not permitted on Wedora:
+                The following content is not permitted on Vowora:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-2 mt-2">
                 <li>Content that is illegal under UK law</li>
@@ -64,7 +64,7 @@ export default function ContentRulesPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">4. Photo &amp; video uploads</h2>
               <p className="text-sm leading-relaxed">
-                When you upload photos or videos to a wedding gallery on Wedora, you confirm that:
+                When you upload photos or videos to a wedding gallery on Vowora, you confirm that:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-2 mt-2">
                 <li>You have permission from any identifiable people in the image to share it</li>
@@ -81,7 +81,7 @@ export default function ContentRulesPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">5. Reporting content</h2>
               <p className="text-sm leading-relaxed">
-                If you see content on Wedora that you believe violates these Rules, you can report it:
+                If you see content on Vowora that you believe violates these Rules, you can report it:
               </p>
               <ul className="list-disc pl-5 text-sm space-y-2 mt-2">
                 <li><strong>Guest gallery:</strong> Use the report button on any photo or video in the gallery</li>

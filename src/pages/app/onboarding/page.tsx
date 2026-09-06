@@ -304,15 +304,8 @@ export default function OnboardingPage() {
         return;
       }
 
-      const fnUrl = `${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1/provision-wedding-workspace`;
-
-      const response = await fetch(fnUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
+      const response = await supabase.functions.invoke('provision-wedding-workspace', {
+        body: {
           partner_one_first: partnerOneFirst,
           partner_one_last: partnerOneLast,
           partner_two_first: partnerTwoFirst,
@@ -329,12 +322,12 @@ export default function OnboardingPage() {
           timezone,
           publish_website: publishWebsite,
           provisioning_request_id: provisioningRequestId.current,
-        }),
+        },
       });
 
-      const result = await response.json();
+      const result = response.data || {};
 
-      if (!response.ok || !result.success) {
+      if (response.error || !result.success) {
         const msg = result?.error || 'Something went wrong. Please try again.';
         setError(msg);
         setLoading(false);
@@ -381,7 +374,7 @@ export default function OnboardingPage() {
 
         <header className="h-16 bg-white border-b border-secondary-100 flex items-center px-4 md:px-6">
           <Link to="/" className="font-heading text-xl font-semibold text-foreground-900 cursor-pointer">
-            Wedora
+            Vowora
           </Link>
         </header>
 
@@ -426,7 +419,7 @@ export default function OnboardingPage() {
       {/* Top bar */}
       <header className="h-16 bg-white border-b border-secondary-100 flex items-center px-4 md:px-6">
         <Link to="/" className="font-heading text-xl font-semibold text-foreground-900 cursor-pointer">
-          Wedora
+          Vowora
         </Link>
         <div className="flex-1 mx-4 md:mx-8">
           <div className="flex items-center gap-2">
@@ -479,7 +472,7 @@ export default function OnboardingPage() {
                   : "Let's set up your wedding workspace"}
               </h2>
               <p className="text-sm text-foreground-600 max-w-sm mx-auto leading-relaxed">
-                Wedora brings together your wedding website, guest list, invitations, RSVP tracking,
+                Vowora brings together your wedding website, guest list, invitations, RSVP tracking,
                 budget, seating plan, travel information, and wedding-day memories — all in one place.
               </p>
 

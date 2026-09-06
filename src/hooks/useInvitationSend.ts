@@ -5,8 +5,6 @@ import { isDemoMode } from '@/demo/demoConfig';
 import type { SendResult, BulkSendResult } from '@/types/invitation';
 import { hashToken, generateAccessToken } from '@/lib/api';
 
-const EDGE_URL = `${import.meta.env.VITE_PUBLIC_SUPABASE_URL}/functions/v1/invitation-send`;
-
 export function useInvitationSend() {
   const { weddingId } = useActiveWedding();
   const [sending, setSending] = useState(false);
@@ -22,23 +20,15 @@ export function useInvitationSend() {
     setSendingIds((prev) => new Set(prev).add(invitationId));
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      const res = await fetch(EDGE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const { data: result, error: fnErr } = await supabase.functions.invoke('invitation-send', {
+        body: {
           action: 'send_individual',
           invitation_id: invitationId,
           wedding_id: weddingId,
-        }),
+        },
       });
 
-      const result = await res.json();
+      if (fnErr) throw fnErr;
       return result as SendResult;
     } catch (err: unknown) {
       return { success: false, error: err instanceof Error ? err.message : 'Send failed' };
@@ -60,23 +50,15 @@ export function useInvitationSend() {
     setBulkSending(true);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      const res = await fetch(EDGE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const { data: result, error: fnErr } = await supabase.functions.invoke('invitation-send', {
+        body: {
           action: 'send_bulk',
           invitation_ids: invitationIds,
           wedding_id: weddingId,
-        }),
+        },
       });
 
-      const result = await res.json();
+      if (fnErr) throw fnErr;
       return result as BulkSendResult;
     } catch (err: unknown) {
       return { total: invitationIds.length, sent: 0, failed: invitationIds.length, results: invitationIds.map((id) => ({ id, success: false, error: err instanceof Error ? err.message : 'Bulk send failed' })) };
@@ -94,23 +76,15 @@ export function useInvitationSend() {
     setSendingIds((prev) => new Set(prev).add(invitationId));
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      const res = await fetch(EDGE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const { data: result, error: fnErr } = await supabase.functions.invoke('invitation-send', {
+        body: {
           action: 'resend',
           invitation_id: invitationId,
           wedding_id: weddingId,
-        }),
+        },
       });
 
-      const result = await res.json();
+      if (fnErr) throw fnErr;
       return result as SendResult;
     } catch (err: unknown) {
       return { success: false, error: err instanceof Error ? err.message : 'Resend failed' };
@@ -130,23 +104,15 @@ export function useInvitationSend() {
     }
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData?.session?.access_token;
-
-      const res = await fetch(EDGE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const { data: result, error: fnErr } = await supabase.functions.invoke('invitation-send', {
+        body: {
           action: 'generate_token',
           invitation_id: invitationId,
           wedding_id: weddingId,
-        }),
+        },
       });
 
-      const result = await res.json();
+      if (fnErr) throw fnErr;
       return result as SendResult;
     } catch (err: unknown) {
       return { success: false, error: err instanceof Error ? err.message : 'Token generation failed' };

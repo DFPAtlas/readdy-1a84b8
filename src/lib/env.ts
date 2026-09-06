@@ -19,6 +19,15 @@ export const SUPABASE_ANON_KEY = import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY |
 // ── Google Maps ──
 export const GOOGLE_MAPS_KEY = import.meta.env.VITE_PUBLIC_GOOGLE_MAPS_KEY || '';
 
+// ── Release Version ──
+// Set before each production deployment. Format: YYYY.MM.DD.N or semver.
+// Displayed in system-readiness Launch Control for deployment tracking.
+export const RELEASE_VERSION = import.meta.env.VITE_RELEASE_VERSION || 'dev';
+
+// ── Build Timestamp ──
+// Set at build time (e.g. via Vite define). Falls back to current time for dev.
+export const BUILD_TIMESTAMP = import.meta.env.VITE_BUILD_TIMESTAMP || new Date().toISOString();
+
 // ── Validation ──
 export function isProductionConfigured(): boolean {
   return !!(SUPABASE_URL && SUPABASE_ANON_KEY);

@@ -14,7 +14,7 @@ export default function DPAPage() {
 
           <div className="card-default mb-8">
             <p className="text-sm text-foreground-600 italic">
-              <strong>Review note for legal counsel:</strong> This is an outline of the Data Processing Addendum that Wedora would
+              <strong>Review note for legal counsel:</strong> This is an outline of the Data Processing Addendum that Vowora would
               enter into with business customers who require one. The full DPA must be drafted or reviewed by a qualified data-protection
               lawyer to reflect the actual data flows, security measures and subprocessing arrangements in place. This outline
               describes the intended scope and is not a binding agreement.
@@ -25,12 +25,12 @@ export default function DPAPage() {
             <section>
               <h2 className="font-heading text-xl text-foreground-900 mt-8 mb-3">1. When is a DPA needed?</h2>
               <p className="text-sm leading-relaxed">
-                Under the UK GDPR, if you are a business using Wedora (for example, a wedding planner managing multiple
-                couples&rsquo; weddings), you are a data controller and Wedora is a data processor. A Data Processing
+                Under the UK GDPR, if you are a business using Vowora (for example, a wedding planner managing multiple
+                couples&rsquo; weddings), you are a data controller and Vowora is a data processor. A Data Processing
                 Addendum (DPA) sets out the respective obligations and is legally required under Article 28 of the UK GDPR.
               </p>
               <p className="text-sm leading-relaxed mt-2">
-                For individual couples using Wedora to plan their own wedding, Wedora is also a data controller for the
+                For individual couples using Vowora to plan their own wedding, Vowora is also a data controller for the
                 platform data, and a full DPA is not typically required. Our standard{' '}
                 <Link to="/terms" className="text-primary-600 underline cursor-pointer">Terms of Service</Link> and{' '}
                 <Link to="/privacy" className="text-primary-600 underline cursor-pointer">Privacy Policy</Link> govern
@@ -64,26 +64,26 @@ export default function DPAPage() {
 
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">2.3 Subprocessing</h3>
               <p className="text-sm leading-relaxed">
-                Wedora would maintain an up-to-date list of subprocessors (available at{' '}
+                Vowora would maintain an up-to-date list of subprocessors (available at{' '}
                 <Link to="/subprocessors" className="text-primary-600 underline cursor-pointer">/subprocessors</Link>),
                 provide notice of changes, and ensure subprocessors are bound by equivalent data protection obligations.
               </p>
 
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">2.4 International transfers</h3>
               <p className="text-sm leading-relaxed">
-                Where personal data is transferred outside the UK, Wedora would ensure appropriate safeguards such as
+                Where personal data is transferred outside the UK, Vowora would ensure appropriate safeguards such as
                 UK International Data Transfer Agreements or Standard Contractual Clauses with the UK Addendum.
               </p>
 
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">2.5 Security measures</h3>
               <p className="text-sm leading-relaxed">
-                Wedora would describe the technical and organisational measures in place: encryption at rest and in transit,
+                Vowora would describe the technical and organisational measures in place: encryption at rest and in transit,
                 access controls, authentication, logging and monitoring, regular testing and staff training.
               </p>
 
               <h3 className="font-label text-sm font-semibold text-foreground-900 mt-4 mb-2">2.6 Breach notification</h3>
               <p className="text-sm leading-relaxed">
-                Wedora would notify the controller without undue delay (and within 72 hours where feasible) of any personal
+                Vowora would notify the controller without undue delay (and within 72 hours where feasible) of any personal
                 data breach affecting the controller&rsquo;s data.
               </p>
 

@@ -4,8 +4,13 @@ import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useAuth } from '@/context/AuthProvider';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
+import { useNotifications } from '@/hooks/useNotifications';
+import { RELEASE_VERSION, IS_DEMO_MODE as IS_DEMO_MODE_ENV } from '@/lib/env';
 import WeddingSelector from '@/components/feature/WeddingSelector';
 import DemoGuide from '@/components/feature/DemoGuide';
+import FocusTrap from '@/components/base/FocusTrap';
+import type { AppNotification } from '@/types/notifications';
+import { getNotificationIcon, getPriorityColor } from '@/types/notifications';
 
 const DEMO_SESSION_KEY = 'wedora.demo.session';
 
@@ -15,6 +20,9 @@ const sidebarLinks = [
   { label: 'Dashboard', href: '/app/dashboard', icon: 'ri-dashboard-line' },
   { label: 'Wedding details', href: '/app/wedding', icon: 'ri-heart-line' },
   { label: 'Styleboard', href: '/app/styleboard', icon: 'ri-palette-line' },
+  { label: 'Notifications', href: '/app/notifications', icon: 'ri-notification-3-line' },
+  { label: 'Activity', href: '/app/activity', icon: 'ri-history-line' },
+  { label: 'Getting Started', href: '/app/getting-started', icon: 'ri-guide-line' },
   ...(isDemoMode ? [] : [{ label: 'Updates', href: '/app/updates', icon: 'ri-notification-3-line' }]),
 ];
 
@@ -51,7 +59,7 @@ const demoBottomLinks = [
   { label: 'Budget', href: '/app/budget', icon: 'ri-money-pound-circle-line' },
   { label: 'Guests', href: '/app/guests', icon: 'ri-group-line' },
   { label: 'Travel', href: '/app/travel', icon: 'ri-map-pin-line' },
-  { label: 'Gallery & Wall', href: '/app/gallery-control', icon: 'ri-image-line' },
+  { label: 'Gallery & Wall', href: '/app/gallery', icon: 'ri-gallery-line' },
 ];
 
 // Normal mode: full bottom links
@@ -122,12 +130,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const demoData = useDemoDataSafe();
   const { profile, signOut, isAuthenticated } = useAuth();
   const { activeWedding } = useActiveWedding();
+  const { unreadCount, notifications, markRead, markAllRead } = useNotifications();
   const menuRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
 
   // Close sidebar on route change
   useEffect(() => {
@@ -170,6 +181,37 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
 
+  // Close notification dropdown on outside click
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [notifOpen]);
+
+  // Global search keyboard shortcut (Ctrl+K / Cmd+K / /)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput =
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable;
+      if (isInput) return;
+      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !e.shiftKey)) {
+        e.preventDefault();
+        navigate('/app/search');
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [navigate]);
+
   const handleLogout = async () => {
     setMenuOpen(false);
     if (isDemoMode) {
@@ -207,7 +249,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     const demoWedding = demoData?.state.wedding;
     const partnerOne = demoWedding?.partner_one_name || 'Emma';
     displayName = `${partnerOne} ${demoWedding?.partner_two_name || 'James'}`;
-    displayEmail = 'demo@wedora.uk';
+    displayEmail = 'demo@vowora.uk';
     initials = `${partnerOne.charAt(0)}${(demoWedding?.partner_two_name || 'James').charAt(0)}`;
   } else if (isAuthenticated && profile) {
     displayName = getDisplayLabel(profile);
@@ -230,11 +272,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar drawer */}
-      <div className={`fixed top-0 left-0 h-full w-64 bg-white z-50 transform transition-transform duration-300 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      {/* Sidebar drawer with focus trap */}
+      <FocusTrap
+        active={sidebarOpen}
+        onEscape={() => setSidebarOpen(false)}
+        className={`fixed top-0 left-0 h-full w-64 bg-white z-50 flex flex-col ${sidebarOpen ? '' : ''}`}
+      >
         <div className="flex items-center justify-between h-16 px-5 border-b border-secondary-100">
-          <Link to="/" className="font-heading text-xl font-semibold text-foreground-900 cursor-pointer">
-            Wedora
+          <Link to="/" className="font-heading text-xl font-semibold text-foreground-900 cursor-pointer" onClick={() => setSidebarOpen(false)}>
+            Vowora
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}
@@ -261,6 +307,20 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               {invitationSubLinks.map((link) => (
                 <SidebarNavLink key={link.href} {...link} isActive={isActive(link.href)} onClick={() => setSidebarOpen(false)} />
               ))}
+              <SidebarNavLink
+                href="/app/questions"
+                icon="ri-question-answer-line"
+                label="Guest Questions"
+                isActive={isActive('/app/questions')}
+                onClick={() => setSidebarOpen(false)}
+              />
+              <SidebarNavLink
+                href="/app/website"
+                icon="ri-layout-4-line"
+                label="Wedding Website"
+                isActive={isActive('/app/website')}
+                onClick={() => setSidebarOpen(false)}
+              />
             </div>
 
             {/* Budget & Vendors section */}
@@ -285,6 +345,34 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             {/* Day-of Planning section */}
             <div className="pt-2">
               <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Day-of Planning</div>
+              <SidebarNavLink
+                href="/app/schedule"
+                icon="ri-calendar-event-line"
+                label="Schedule &amp; Events"
+                isActive={isActive('/app/schedule')}
+                onClick={() => setSidebarOpen(false)}
+              />
+              <SidebarNavLink
+                href="/app/calendar"
+                icon="ri-calendar-2-line"
+                label="Calendar"
+                isActive={isActive('/app/calendar')}
+                onClick={() => setSidebarOpen(false)}
+              />
+              <SidebarNavLink
+                href="/app/timeline"
+                icon="ri-time-line"
+                label="Day Timeline"
+                isActive={isActive('/app/timeline')}
+                onClick={() => setSidebarOpen(false)}
+              />
+              <SidebarNavLink
+                href="/app/exports"
+                icon="ri-download-cloud-2-line"
+                label="Exports"
+                isActive={isActive('/app/exports')}
+                onClick={() => setSidebarOpen(false)}
+              />
               {isDemoMode ? (
                 <>
                   <SidebarNavLink
@@ -302,10 +390,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     onClick={() => setSidebarOpen(false)}
                   />
                   <SidebarNavLink
-                    href="/app/gallery-control"
-                    icon="ri-image-line"
-                    label="Gallery &amp; Wall"
-                    isActive={isActive('/app/gallery-control')}
+                    href="/app/gallery"
+                    icon="ri-gallery-line"
+                    label="Gallery"
+                    isActive={isActive('/app/gallery') || isActive('/app/gallery-control')}
                     onClick={() => setSidebarOpen(false)}
                   />
                 </>
@@ -340,14 +428,103 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </div>
 
-            {/* Account — no header, single item, non-demo only */}
+            {/* Account — non-demo only */}
             {!isDemoMode && (
               <div className="pt-2">
                 <SidebarNavLink
-                  href="/app/settings"
-                  icon="ri-settings-3-line"
-                  label="Settings"
-                  isActive={isActive('/app/settings')}
+                  href="/app/account/profile"
+                  icon="ri-user-line"
+                  label="My Profile"
+                  isActive={isActive('/app/account/profile')}
+                  onClick={() => setSidebarOpen(false)}
+                />
+                <SidebarNavLink
+                  href="/app/collaborators"
+                  icon="ri-team-line"
+                  label="Collaborators"
+                  isActive={isActive('/app/collaborators')}
+                  onClick={() => setSidebarOpen(false)}
+                />
+                <SidebarNavLink
+                  href="/app/account/security"
+                  icon="ri-shield-user-line"
+                  label="Account Security"
+                  isActive={isActive('/app/account/security')}
+                  onClick={() => setSidebarOpen(false)}
+                />
+                <SidebarNavLink
+                  href="/app/account/privacy"
+                  icon="ri-shield-check-line"
+                  label="Privacy &amp; Data"
+                  isActive={isActive('/app/account/privacy')}
+                  onClick={() => setSidebarOpen(false)}
+                />
+                <div className="border-t border-secondary-100 my-1" />
+                {/* Product Insights group */}
+                <div className="pt-1">
+                  <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Product Insights</div>
+                  <SidebarNavLink
+                    href="/app/admin/analytics"
+                    icon="ri-line-chart-line"
+                    label="Analytics"
+                    isActive={isActive('/app/admin/analytics')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  <SidebarNavLink
+                    href="/app/admin/feedback"
+                    icon="ri-feedback-line"
+                    label="Feedback"
+                    isActive={isActive('/app/admin/feedback')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  <SidebarNavLink
+                    href="/app/admin/improvements"
+                    icon="ri-rocket-line"
+                    label="Improvements"
+                    isActive={isActive('/app/admin/improvements')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                </div>
+                <div className="border-t border-secondary-100 my-1" />
+                {/* Data Protection group */}
+                <div className="pt-1">
+                  <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Data Protection</div>
+                  <SidebarNavLink
+                    href="/app/admin/backups"
+                    icon="ri-database-2-line"
+                    label="Backups"
+                    isActive={isActive('/app/admin/backups')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  <SidebarNavLink
+                    href="/app/admin/recovery"
+                    icon="ri-restart-line"
+                    label="Recovery"
+                    isActive={isActive('/app/admin/recovery')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                  <SidebarNavLink
+                    href="/app/admin/data-protection"
+                    icon="ri-shield-check-line"
+                    label="Data Protection"
+                    isActive={isActive('/app/admin/data-protection')}
+                    onClick={() => setSidebarOpen(false)}
+                  />
+                </div>
+                <div className="border-t border-secondary-100 my-1" />
+                {/* Performance */}
+                <SidebarNavLink
+                  href="/app/admin/performance"
+                  icon="ri-speed-up-line"
+                  label="Performance"
+                  isActive={isActive('/app/admin/performance')}
+                  onClick={() => setSidebarOpen(false)}
+                />
+                <SidebarNavLink
+                  href="/app/admin/operations"
+                  icon="ri-pulse-line"
+                  label="Operations"
+                  isActive={isActive('/app/admin/operations') || location.pathname.startsWith('/app/admin/')}
                   onClick={() => setSidebarOpen(false)}
                 />
               </div>
@@ -355,15 +532,24 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </nav>
         <div className="p-3 border-t border-secondary-100">
+          {!isDemoMode && (
+            <div className="px-3 py-1.5 mb-1 rounded-md bg-background-50 border border-background-200">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" title="Build verified" />
+                <span className="text-[10px] font-mono text-foreground-400">{RELEASE_VERSION !== 'dev' ? `v${RELEASE_VERSION}` : 'dev build'}</span>
+              </div>
+            </div>
+          )}
           <Link
             to="/"
             className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-label text-foreground-500 hover:bg-background-100 hover:text-foreground-800 transition-colors cursor-pointer"
+            onClick={() => setSidebarOpen(false)}
           >
             <i className="ri-arrow-left-line text-base w-5 text-center" />
             Back to website
           </Link>
         </div>
-      </div>
+      </FocusTrap>
 
       {/* Main content area */}
       <div className="flex-1">
@@ -377,6 +563,115 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <i className="ri-menu-line text-lg" />
           </button>
           <div className="flex-1" />
+
+          {/* Search button */}
+          <button
+            onClick={() => navigate('/app/search')}
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-secondary-200 bg-background-50 text-sm text-foreground-400 hover:text-foreground-600 hover:border-secondary-300 transition-colors cursor-pointer mr-3 whitespace-nowrap"
+            aria-label="Search (Ctrl+K)"
+            title="Search (Ctrl+K)"
+          >
+            <i className="ri-search-line text-sm" />
+            <span className="text-xs font-label hidden lg:inline">Search...</span>
+            <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded bg-secondary-100 text-[10px] font-mono text-foreground-400">⌘K</kbd>
+          </button>
+
+          {/* Help button */}
+          <button
+            onClick={() => navigate('/app/help')}
+            className="hidden sm:flex w-8 h-8 items-center justify-center rounded-lg text-foreground-500 hover:bg-background-100 hover:text-primary-500 transition-colors cursor-pointer mr-1"
+            aria-label="Help Centre"
+            title="Help Centre"
+          >
+            <i className="ri-question-line text-lg" />
+          </button>
+
+          {/* Notification bell */}
+          <div className="relative mr-3" ref={notifRef}>
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              className="relative w-8 h-8 flex items-center justify-center rounded-lg text-foreground-500 hover:bg-background-100 hover:text-primary-500 transition-colors cursor-pointer"
+              aria-label={`Notifications${unreadCount > 0 ? ` — ${unreadCount} unread` : ''}`}
+            >
+              <i className="ri-notification-3-line text-lg" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold leading-none px-1 pointer-events-none">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification dropdown */}
+            {notifOpen && (
+              <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 bg-white border border-secondary-100 rounded-xl shadow-lg z-30 py-1 animate-[fadeIn_0.15s_ease-out]">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-secondary-100">
+                  <h2 className="text-sm font-label font-semibold text-foreground-900">Notifications</h2>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={() => { markAllRead(); setNotifOpen(false); }}
+                      className="text-xs text-primary-600 font-label hover:text-primary-700 cursor-pointer whitespace-nowrap"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-[400px] overflow-y-auto">
+                  {notifications.slice(0, 8).length === 0 ? (
+                    <div className="px-4 py-10 text-center">
+                      <div className="w-10 h-10 mx-auto flex items-center justify-center rounded-full bg-background-100 text-foreground-300 mb-3">
+                        <i className="ri-notification-off-line text-lg" />
+                      </div>
+                      <p className="text-sm text-foreground-500">No notifications yet</p>
+                    </div>
+                  ) : (
+                    notifications.slice(0, 8).map((n: AppNotification) => (
+                      <button
+                        key={n.id}
+                        onClick={() => {
+                          markRead(n.id);
+                          navigate(n.route);
+                          setNotifOpen(false);
+                        }}
+                        className={`w-full flex items-start gap-3 px-4 py-3 text-left hover:bg-background-50 transition-colors cursor-pointer ${!n.readAt ? 'bg-primary-50/40' : ''}`}
+                      >
+                        <div className={`w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0 mt-0.5 ${getPriorityColor(n.priority)}`}>
+                          <i className={`${getNotificationIcon(n.type)} text-xs`} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground-800 font-label font-medium truncate">{n.title}</p>
+                          <p className="text-xs text-foreground-500 mt-0.5 line-clamp-2">{n.message}</p>
+                          <p className="text-[10px] text-foreground-400 font-label mt-1">
+                            {(() => {
+                              const d = new Date(n.createdAt);
+                              const now = new Date();
+                              const diff = now.getTime() - d.getTime();
+                              if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+                              if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+                              return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+                            })()}
+                          </p>
+                        </div>
+                        {!n.readAt && (
+                          <span className="w-2 h-2 rounded-full bg-primary-500 flex-shrink-0 mt-1.5" />
+                        )}
+                      </button>
+                    ))
+                  )}
+                </div>
+                <div className="border-t border-secondary-100 px-4 py-2.5">
+                  <Link
+                    to="/app/notifications"
+                    onClick={() => setNotifOpen(false)}
+                    className="flex items-center justify-center gap-2 text-xs text-primary-600 font-label hover:text-primary-700 cursor-pointer py-1"
+                  >
+                    View all notifications
+                    <i className="ri-arrow-right-line text-sm" />
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
           {!isDemoMode && <WeddingSelector />}
           {isDemoMode && (
             <span className="mr-3 px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-label font-medium tracking-wide uppercase whitespace-nowrap" title="Demo Mode — data is simulated and stored locally">
@@ -417,6 +712,26 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     >
                       <i className="ri-settings-3-line text-base w-5 text-center" />
                       Demo start page
+                    </button>
+                    <div className="border-t border-secondary-100" />
+                  </>
+                )}
+
+                {!isDemoMode && (
+                  <>
+                    <button
+                      onClick={() => { setMenuOpen(false); navigate('/app/account/profile'); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-600 hover:bg-background-100 transition-colors cursor-pointer text-left whitespace-nowrap"
+                    >
+                      <i className="ri-user-line text-base w-5 text-center" />
+                      My Profile
+                    </button>
+                    <button
+                      onClick={() => { setMenuOpen(false); navigate('/app/account/security'); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-600 hover:bg-background-100 transition-colors cursor-pointer text-left whitespace-nowrap"
+                    >
+                      <i className="ri-shield-user-line text-base w-5 text-center" />
+                      Account Security
                     </button>
                     <div className="border-t border-secondary-100" />
                   </>
@@ -466,7 +781,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main id="main-content" className="p-4 md:p-6 lg:p-8" tabIndex={-1}>
+        <main id="main-content" className="p-4 md:p-6 lg:p-8" tabIndex={-1} role="main" aria-label="Page content">
           {children}
         </main>
 

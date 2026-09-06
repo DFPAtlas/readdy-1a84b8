@@ -259,7 +259,7 @@ function NormalImportPage() {
           <>
             <div className="card-default mb-6">
               <h3 className="font-label text-sm font-semibold text-foreground-900 mb-4">Map columns</h3>
-              <p className="text-xs text-foreground-500 mb-4">Match your CSV columns to Wedora guest fields. Auto-detected where possible.</p>
+              <p className="text-xs text-foreground-500 mb-4">Match your CSV columns to Vowora guest fields. Auto-detected where possible.</p>
               <div className="space-y-3">
                 {mappings.map((m) => (
                   <div key={m.csvHeader} className="flex flex-col sm:flex-row sm:items-center gap-2">

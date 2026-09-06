@@ -192,6 +192,11 @@ textarea:focus-visible,
   border-width: 0;
 }
 
+/* ── Safe area padding for mobile bottom bars ── */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Honeypot anti-spam — hidden but detectable */
 .form-hp-field {
   position: absolute;

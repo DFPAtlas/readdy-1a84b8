@@ -44,4 +44,18 @@ export interface WeddingPermissions {
   canManageGallery: boolean;
   canManageMembers: boolean;
   canDeleteWedding: boolean;
+  canViewBilling: boolean;
+  canChangeSubscription: boolean;
+  canManageSuppliers: boolean;
+  canManageRegistry: boolean;
+  canPublishWebsite: boolean;
+  canModerateGallery: boolean;
+  canExportPrivateData: boolean;
+  canTransferOwnership: boolean;
+  canViewPrivateRSVP: boolean;
+  canManageDietaryAccessibility: boolean;
+  canManageTimeline: boolean;
+  canManageTasks: boolean;
+  canViewGuestContactDetails: boolean;
+  canSendUpdates: boolean;
 }

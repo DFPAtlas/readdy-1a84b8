@@ -205,7 +205,7 @@ function GuestPortalContent() {
     <div className="flex flex-col h-full">
       <div className="px-5 pt-6 pb-4 flex-shrink-0">
         <Link to={basePath} className="inline-block cursor-pointer" onClick={onItemClick}>
-          <span className="font-heading text-xl font-semibold text-foreground-900 tracking-tight">Wedora</span>
+          <span className="font-heading text-xl font-semibold text-foreground-900 tracking-tight">Vowora</span>
         </Link>
         <p className="text-[10px] text-foreground-400 font-label uppercase tracking-widest mt-0.5">Guest Portal</p>
       </div>
@@ -259,7 +259,7 @@ function GuestPortalContent() {
           )}
         </div>
         <p className="text-[10px] text-foreground-300 text-center">
-          Powered by <span className="font-label font-medium text-foreground-400">Wedora</span>
+          Powered by <span className="font-label font-medium text-foreground-400">Vowora</span>
         </p>
         {isDemoSession && (
           <Link
@@ -361,7 +361,7 @@ function GuestPortalContent() {
           </p>
         </div>
 
-        <main id="main-content" className="flex-1" tabIndex={-1}>
+        <main id="main-content" className="flex-1" tabIndex={-1} role="main" aria-label="Guest portal content">
           {/* Breadcrumb bar for sub-pages */}
           {currentPath !== '' && (
             <div className="max-w-6xl mx-auto px-4 md:px-6 py-2">

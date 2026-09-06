@@ -120,7 +120,7 @@ function RealLiveWall({ weddingId, slug }: { weddingId: string; slug: string }) 
           </div>
           <h1 className="font-heading text-2xl text-white/60 mb-3">Wedding Photo Wall</h1>
           <p className="text-white/40 text-sm mb-8 leading-relaxed">
-            Photos shared during the celebration will appear here in real time. Guests can upload from their Wedora invitation.
+            Photos shared during the celebration will appear here in real time. Guests can upload from their Vowora invitation.
           </p>
           <button
             onClick={() => setShowQR(true)}
@@ -281,7 +281,7 @@ function RealLiveWall({ weddingId, slug }: { weddingId: string; slug: string }) 
         <div className={`absolute top-0 left-0 right-0 transition-opacity duration-500 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           <div className="bg-gradient-to-b from-black/60 to-transparent pt-4 pb-8 px-4 md:px-6">
             <div className="flex items-center justify-between max-w-6xl mx-auto">
-              <span className="font-heading text-white/40 text-sm">Wedora</span>
+              <span className="font-heading text-white/40 text-sm">Vowora</span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setTransitionSpeed('slow')}
@@ -463,7 +463,7 @@ function DemoLiveWall() {
               <h1 className="font-heading text-2xl text-white/60 mb-3">{wedding.partner_one_name} &amp; {wedding.partner_two_name}</h1>
               <p className="text-white/40 text-sm mb-2">24 April 2027 · {wedding.location}</p>
               <p className="text-white/30 text-sm leading-relaxed">Photos shared during the celebration will appear here.</p>
-              <p className="text-white/20 text-xs mt-6">Guests can upload from their Wedora invitation.</p>
+              <p className="text-white/20 text-xs mt-6">Guests can upload from their Vowora invitation.</p>
             </div>
           </div>
         )}
@@ -525,12 +525,12 @@ function DemoLiveWall() {
           </div>
         </div>
         <div className={`absolute top-4 left-4 md:top-6 md:left-6 transition-opacity duration-500 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-          <span className="font-heading text-white/40 text-sm">Wedora</span>
+          <span className="font-heading text-white/40 text-sm">Vowora</span>
         </div>
         <div className={`absolute top-4 right-4 md:top-6 md:right-6 transition-opacity duration-500 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
           <div className="text-white/25 text-[10px] text-right">
             <p className="mb-0.5">Share your wedding moments</p>
-            <p>Upload from your Wedora invitation</p>
+            <p>Upload from your Vowora invitation</p>
           </div>
         </div>
         {wallItems.length > 0 && (
@@ -607,7 +607,7 @@ export default function LivePhotoWallPage() {
           <h1 className="font-heading text-2xl text-foreground-900 mb-3">Photo Wall Unavailable</h1>
           <p className="text-sm text-foreground-600 mb-6">This photo wall is not available. Please check the link and try again.</p>
           <Link to="/" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary-500 text-background-50 text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap">
-            Back to Wedora
+            Back to Vowora
           </Link>
         </div>
       </div>

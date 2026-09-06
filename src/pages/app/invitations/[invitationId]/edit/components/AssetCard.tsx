@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { EditorAsset } from '../types';
 
-// ── Custom MIME type for Wedora asset drag payload ──
+// ── Custom MIME type for Vowora asset drag payload ──
 
 const WEDORA_ASSET_MIME = 'application/x-wedora-asset';
 

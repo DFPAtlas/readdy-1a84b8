@@ -191,7 +191,7 @@ export function useGalleryRealtime(weddingId: string | null, accessId?: string):
           }, 3000);
         }
         if (status === 'SUBSCRIBED') {
-          console.log('Gallery realtime connected');
+          // Realtime connection established
         }
       });
 

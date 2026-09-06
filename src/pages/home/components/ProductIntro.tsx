@@ -8,13 +8,13 @@ export default function ProductIntro() {
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           {/* Left content */}
           <div className="w-full lg:w-2/5 flex-shrink-0">
-            <span className="section-label">Wedora</span>
+            <span className="section-label">Vowora</span>
             <h2 className="font-heading text-3xl md:text-4xl lg:text-5xl text-foreground-900 leading-tight">
               Everything comes together<br />
-              <em className="font-light italic">in Wedora</em>
+              <em className="font-light italic">in Vowora</em>
             </h2>
             <p className="text-foreground-600 text-base leading-relaxed mt-4 max-w-md">
-              Planning a wedding means managing hundreds of details. Wedora brings your website, guest list, invitations, replies, updates, travel information and planning tools into one calm, organised workspace.
+              Planning a wedding means managing hundreds of details. Vowora brings your website, guest list, invitations, replies, updates, travel information and planning tools into one calm, organised workspace.
             </p>
             <div className="flex gap-3 mt-6">
               <Link to="/signup" className="btn-primary">Start planning</Link>

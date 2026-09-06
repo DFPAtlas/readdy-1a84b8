@@ -101,7 +101,7 @@ serve(async (req: Request) => {
 
         try {
           await resend.emails.send({
-            from: `Wedora <noreply@${resendFromDomain}>`,
+            from: `Vowora <noreply@${resendFromDomain}>`,
             to: [email],
             subject: `${inviterName} invited you to collaborate on ${weddingName}`,
             html: `
@@ -111,7 +111,7 @@ serve(async (req: Request) => {
                   ${inviterName} has invited you to collaborate on <strong>${weddingName}</strong> as a <strong>${role}</strong>.
                 </p>
                 <p style="font-size: 16px; color: #333; line-height: 1.6;">
-                  Wedora helps couples plan their perfect wedding — manage guests, seating, budget, travel, and more together.
+                  Vowora helps couples plan their perfect wedding — manage guests, seating, budget, travel, and more together.
                 </p>
                 <div style="margin: 32px 0;">
                   <a href="${acceptUrl}" style="background: #c4846d; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-size: 16px; display: inline-block;">
@@ -119,7 +119,7 @@ serve(async (req: Request) => {
                   </a>
                 </div>
                 <p style="font-size: 13px; color: #888; margin-top: 40px;">
-                  This invitation expires in 7 days. You'll need to create a Wedora account if you don't have one.
+                  This invitation expires in 7 days. You'll need to create a Vowora account if you don't have one.
                 </p>
               </div>
             `,

@@ -1,6 +1,6 @@
 import type { DemoState, DemoActivityEvent } from './demoTypes';
 import { DEMO_CONFIG } from './demoConfig';
-import { demoWedding, demoVenues, demoEvents } from './demoWedding';
+import { demoWedding, demoVenues, demoEvents, demoEventAudiences } from './demoWedding';
 import { demoGuests } from './demoGuests';
 import { demoHouseholds } from './demoHouseholds';
 import { demoInvitations, demoInvitationRecipients, demoInvitationTemplates } from './demoInvitations';
@@ -13,6 +13,9 @@ import { demoGalleryItems, demoGalleryAlbums, demoGallerySettings } from './demo
 import { demoGiftFunds, demoGiftFundContributions } from './demoGiftFunding';
 import { demoTasks } from './demoTasks';
 import { demoSuppliers } from './demoSuppliers';
+import { demoFaqs, demoGuestQuestions, demoQuestionActivity, demoPortalSettings } from './demoQuestions';
+import { createDemoWebsiteConfig } from './demoWebsite';
+import { demoSubscription } from '@/demo/demoBilling';
 
 export function createDemoActivityFeed(): DemoActivityEvent[] {
   return [
@@ -32,6 +35,7 @@ export function createInitialDemoState(): DemoState {
     wedding: demoWedding,
     venues: demoVenues,
     events: demoEvents,
+    eventAudiences: demoEventAudiences,
     guests: demoGuests,
     households: demoHouseholds,
     invitations: demoInvitations,
@@ -55,5 +59,11 @@ export function createInitialDemoState(): DemoState {
     onboardingComplete: false,
     planningPriorities: [],
     guestEstimate: 24,
+    faqs: demoFaqs,
+    guestQuestions: demoGuestQuestions,
+    questionActivity: demoQuestionActivity,
+    portalSettings: demoPortalSettings,
+    websiteConfig: createDemoWebsiteConfig(),
+    subscription: demoSubscription,
   };
 }

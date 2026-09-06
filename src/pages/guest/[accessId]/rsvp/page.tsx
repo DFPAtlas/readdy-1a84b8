@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useBlocker } from 'react-router-dom';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
@@ -36,6 +36,39 @@ function NormalRSVPPage() {
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'submitting' | 'error' | 'success'>('idle');
   const [serverError, setServerError] = useState('');
   const [submissionResult, setSubmissionResult] = useState<{ message: string; is_update: boolean; is_late: boolean } | null>(null);
+
+  // ── Unsaved-change guard ──
+  const [isDirty, setIsDirty] = useState(false);
+  const isDirtyRef = useRef(false);
+
+  const markDirty = useCallback(() => {
+    if (!isDirtyRef.current) {
+      isDirtyRef.current = true;
+      setIsDirty(true);
+    }
+  }, []);
+
+  const clearDirty = useCallback(() => {
+    isDirtyRef.current = false;
+    setIsDirty(false);
+  }, []);
+
+  // beforeunload — browser tab close / refresh
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirtyRef.current) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, []);
+
+  // useBlocker — in-app navigation guard
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && currentLocation.pathname !== nextLocation.pathname
+  );
 
   const portal = data?.portal_settings;
   const recipients = data?.recipients || [];
@@ -116,14 +149,16 @@ function NormalRSVPPage() {
   }, [recipients]);
 
   const updateGuestField = useCallback((guestId: string, field: keyof GuestFormState, value: unknown) => {
+    markDirty();
     setForms((prev) => {
       const gf = prev[guestId];
       if (!gf) return prev;
       return { ...prev, [guestId]: { ...gf, [field]: value } };
     });
-  }, []);
+  }, [markDirty]);
 
   const toggleAllergy = useCallback((guestId: string, allergy: string) => {
+    markDirty();
     setForms((prev) => {
       const gf = prev[guestId];
       if (!gf) return prev;
@@ -133,15 +168,16 @@ function NormalRSVPPage() {
       else curr.push(allergy);
       return { ...prev, [guestId]: { ...gf, allergies: curr } };
     });
-  }, []);
+  }, [markDirty]);
 
   const setEventAttendance = useCallback((guestId: string, eventKey: string, val: boolean) => {
+    markDirty();
     setForms((prev) => {
       const gf = prev[guestId];
       if (!gf) return prev;
       return { ...prev, [guestId]: setFormEventField(gf, eventKey, val) };
     });
-  }, []);
+  }, [markDirty]);
 
   function buildDietaryText(gf: GuestFormState): string {
     const parts: string[] = [];
@@ -251,9 +287,11 @@ function NormalRSVPPage() {
 
       if (res.ok && result.success) {
         if (saveDraft) {
+          clearDirty();
           setSubmitStatus('idle');
           setSubmissionResult({ message: 'Your draft has been saved.', is_update: false, is_late: false });
         } else {
+          clearDirty();
           setSubmitStatus('success');
           setSubmissionResult({ message: result.message || 'Thank you! Your RSVP has been received.', is_update: result.is_update || false, is_late: result.is_late || false });
           refresh();
@@ -446,6 +484,34 @@ function NormalRSVPPage() {
       </div>
 
       <p className="mt-4 text-center text-xs text-foreground-400">Your RSVP data is shared only with the couple. Allergy and accessibility information is marked as sensitive.</p>
+
+      {/* ── Navigation-blocker confirmation dialog ── */}
+      {blocker.state === 'blocked' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="rsvp-leave-title">
+          <div className="absolute inset-0 bg-black/40" onClick={() => blocker.reset?.()} />
+          <div className="relative bg-white rounded-2xl border border-secondary-100 p-6 md:p-8 max-w-md w-full shadow-lg">
+            <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-amber-50 text-amber-500 mb-4">
+              <i className="ri-error-warning-line text-2xl" />
+            </div>
+            <h3 id="rsvp-leave-title" className="font-heading text-lg text-foreground-900 text-center mb-2">Leave without saving?</h3>
+            <p className="text-sm text-foreground-500 text-center mb-6">You have unsaved changes to your RSVP. If you leave now, your changes will be lost.</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => { clearDirty(); blocker.proceed?.(); }}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-rose-500 text-white text-sm font-label font-medium hover:bg-rose-600 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Leave page
+              </button>
+              <button
+                onClick={() => blocker.reset?.()}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Keep editing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -503,6 +569,37 @@ function DemoRSVPPage() {
     song_request: guestObj?.rsvp_song_request || '',
   }));
 
+  // ── Unsaved-change guard ──
+  const [isDemoDirty, setIsDemoDirty] = useState(false);
+  const isDemoDirtyRef = useRef(false);
+
+  const markDemoDirty = useCallback(() => {
+    if (!isDemoDirtyRef.current) {
+      isDemoDirtyRef.current = true;
+      setIsDemoDirty(true);
+    }
+  }, []);
+
+  const clearDemoDirty = useCallback(() => {
+    isDemoDirtyRef.current = false;
+    setIsDemoDirty(false);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDemoDirtyRef.current) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, []);
+
+  const demoBlocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDemoDirty && currentLocation.pathname !== nextLocation.pathname
+  );
+
   if (!demo || !state) {
     return (<div className="max-w-2xl mx-auto px-4 py-16 text-center"><div className="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-secondary-100 text-secondary-400 mb-6"><i className="ri-error-warning-line text-3xl" /></div><h1 className="font-heading text-2xl text-foreground-900 mb-3">Demo Not Available</h1><p className="text-sm text-foreground-500">Demo mode must be active to use this page.</p></div>);
   }
@@ -517,7 +614,7 @@ function DemoRSVPPage() {
   const invitation = state.invitations.find((i) => i.id === 'demo-inv-bennett');
   const recip = state.invitationRecipients.find((r) => r.guest_id === 'demo-guest-oliver');
   const alreadySubmitted = !!guest.rsvp_submitted_at;
-  const update = (field: string, value: unknown) => setForm((prev) => ({ ...prev, [field]: value }));
+  const update = (field: string, value: unknown) => { markDemoDirty(); setForm((prev) => ({ ...prev, [field]: value })); };
   const isAttending = form.response_status === 'accepted';
   const hasPlusOne = recip?.plus_one_allowed ?? false;
   const deadline = invitation?.rsvp_deadline ? new Date(invitation.rsvp_deadline) : null;
@@ -545,6 +642,7 @@ function DemoRSVPPage() {
       accessibility_notes: form.accessibility_notes, plus_one_confirmed: form.plus_one_confirmed, plus_one_name: form.plus_one_name,
       message: form.message, song_request: form.song_request,
     });
+    clearDemoDirty();
     setSubmitting(false);
     navigate(`${basePath}/rsvp/confirmation`);
   };
@@ -680,6 +778,34 @@ function DemoRSVPPage() {
         </div>
       </div>
       <p className="mt-4 text-center text-xs text-foreground-400">Demo mode — your response is saved on this device only.</p>
+
+      {/* ── Navigation-blocker confirmation dialog ── */}
+      {demoBlocker.state === 'blocked' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="demo-rsvp-leave-title">
+          <div className="absolute inset-0 bg-black/40" onClick={() => demoBlocker.reset?.()} />
+          <div className="relative bg-white rounded-2xl border border-secondary-100 p-6 md:p-8 max-w-md w-full shadow-lg">
+            <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-amber-50 text-amber-500 mb-4">
+              <i className="ri-error-warning-line text-2xl" />
+            </div>
+            <h3 id="demo-rsvp-leave-title" className="font-heading text-lg text-foreground-900 text-center mb-2">Leave without saving?</h3>
+            <p className="text-sm text-foreground-500 text-center mb-6">You have unsaved changes to your RSVP. If you leave now, your changes will be lost.</p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => { clearDemoDirty(); demoBlocker.proceed?.(); }}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-rose-500 text-white text-sm font-label font-medium hover:bg-rose-600 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Leave page
+              </button>
+              <button
+                onClick={() => demoBlocker.reset?.()}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"
+              >
+                Keep editing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

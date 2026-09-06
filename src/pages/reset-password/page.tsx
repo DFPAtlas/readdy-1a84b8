@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link to="/" className="font-heading text-3xl font-semibold text-foreground-900 cursor-pointer">
-              Wedora
+              Vowora
             </Link>
           </div>
 

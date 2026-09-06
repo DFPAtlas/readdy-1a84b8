@@ -97,7 +97,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <Link to="/" className="font-heading text-3xl font-semibold text-foreground-900 cursor-pointer">
-              Wedora
+              Vowora
             </Link>
             <p className="text-foreground-600 text-sm mt-2">Welcome back to your wedding planning</p>
           </div>
@@ -141,7 +141,7 @@ export default function LoginPage() {
           )}
 
           <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-white/50 shadow-sm p-6 md:p-8">
-            <h1 className="font-heading text-xl text-foreground-900 mb-6">Log in to Wedora</h1>
+            <h1 className="font-heading text-xl text-foreground-900 mb-6">Log in to Vowora</h1>
 
             <form ref={formRef} onSubmit={handleSubmit} noValidate>
               <div className="space-y-4">

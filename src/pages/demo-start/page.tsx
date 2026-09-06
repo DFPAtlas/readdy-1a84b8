@@ -26,7 +26,7 @@ export default function DemoStartPage() {
   }, [resetDemo]);
 
   const launchLinks = [
-    { num: 1, label: 'Public Wedora homepage', href: '/', icon: 'ri-home-line', external: false },
+    { num: 1, label: 'Public Vowora homepage', href: '/', icon: 'ri-home-line', external: false },
     { num: 2, label: 'Demo login', href: '/login', icon: 'ri-login-box-line', external: false },
     { num: 3, label: 'Onboarding', href: '/app/onboarding', icon: 'ri-rocket-line', external: false },
     { num: 4, label: 'Couple dashboard', href: '/app/dashboard', icon: 'ri-dashboard-line', external: false },
@@ -61,7 +61,7 @@ export default function DemoStartPage() {
       {/* Top bar */}
       <header className="h-16 bg-white border-b border-secondary-100 flex items-center px-4 md:px-6">
         <Link to="/" className="font-heading text-xl font-semibold text-foreground-900 cursor-pointer">
-          Wedora
+          Vowora
         </Link>
         <div className="flex-1" />
         <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-[10px] font-label font-medium tracking-wide uppercase whitespace-nowrap">

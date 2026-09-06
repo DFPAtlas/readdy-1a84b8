@@ -10,7 +10,7 @@ const footerLinks = {
     { label: 'Pricing', href: '/pricing' },
   ],
   company: [
-    { label: 'About Wedora', href: '/about' },
+    { label: 'About Vowora', href: '/about' },
     { label: 'Contact', href: '/contact' },
   ],
   legal: [
@@ -30,7 +30,7 @@ export default function Footer() {
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
             <Link to="/" className="font-heading text-2xl font-semibold text-foreground-900 cursor-pointer">
-              Wedora
+              Vowora
             </Link>
             <p className="mt-3 text-sm text-foreground-600 leading-relaxed">
               Plan your wedding, manage every guest and keep everyone updated from one beautiful place.
@@ -96,7 +96,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-secondary-100 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-foreground-500">
-            &copy; {currentYear} Wedora. All rights reserved.
+            &copy; {currentYear} Vowora. All rights reserved.
           </p>
           <p className="text-xs text-foreground-400">
             Your wedding, beautifully organised.

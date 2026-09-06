@@ -8,6 +8,8 @@ import CanvasWorkspace from './CanvasWorkspace';
 import SendPanel from './SendPanel';
 import PreviewModal from './PreviewModal';
 import InvitationRenderer from './InvitationRenderer';
+import MobileEditorBottomBar from './MobileEditorBottomBar';
+import ResponsiveSheet from '@/components/base/ResponsiveSheet';
 import type {
   InvitationDocument,
   InvitationLayer,
@@ -128,6 +130,17 @@ export default function InvitationEditor({
 
   const handleToggleLayersPanel = useCallback(() => {
     setShowLayersPanel((prev) => !prev);
+  }, []);
+
+  // ── Mobile sheet state ──
+  const [mobileSheet, setMobileSheet] = useState<'assets' | 'layers' | 'send' | null>(null);
+
+  const handleOpenMobileSheet = useCallback((sheet: 'assets' | 'layers' | 'send') => {
+    setMobileSheet(sheet);
+  }, []);
+
+  const handleCloseMobileSheet = useCallback(() => {
+    setMobileSheet(null);
   }, []);
 
   // ── Loading guard — prevent actions while loading ──
@@ -398,6 +411,11 @@ export default function InvitationEditor({
     () => [...document.layers].sort((a, b) => a.zIndex - b.zIndex),
     [document.layers],
   );
+
+  const selectedLayer = useMemo(() => {
+    if (!selectedId) return null;
+    return document.layers.find((l) => l.id === selectedId) ?? null;
+  }, [document.layers, selectedId]);
 
   const selectedIndex = useMemo(() => {
     if (!selectedId) return -1;
@@ -896,6 +914,25 @@ export default function InvitationEditor({
     commitDocument(before, after);
   }, [selectedId, commitDocument]);
 
+  // ── Opacity change (undoable) ──
+
+  const handleOpacityChange = useCallback(
+    (newOpacity: number) => {
+      if (!selectedId) return;
+      const doc = documentRef.current;
+      const before = cloneDocument(doc);
+
+      const updatedLayers = doc.layers.map((l) =>
+        l.id === selectedId ? { ...l, opacity: clamp(newOpacity, 0.1, 1) } : l,
+      );
+
+      const after: InvitationDocument = { ...doc, layers: updatedLayers };
+      setDocument(after);
+      commitDocument(before, after);
+    },
+    [selectedId, commitDocument],
+  );
+
   // ── Asset drop handler — create a new asset layer at zoom-correct position ──
 
   const handleAssetDrop = useCallback(
@@ -968,6 +1005,7 @@ export default function InvitationEditor({
           height: roundGeom(h),
           rotation: 0,
           zIndex: maxZ + 1,
+          opacity: 1,
           props: {
             assetId,
             flipX: false,
@@ -1189,71 +1227,159 @@ export default function InvitationEditor({
 
       {/* Row 2: Main workspace (AssetLibrary | ToolRail | Canvas | SendPanel) */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left asset library sidebar */}
-        <div className="border-r border-[#eee7df]">
+        {/* Left asset library sidebar — desktop only */}
+        <div className="hidden lg:block border-r border-[#eee7df]">
           <AssetLibrary seeding={seedingAssets} />
         </div>
 
-        {/* Left tool rail */}
-        <ToolRail
-          selectedLayerId={selectedId}
-          onDuplicate={handleDuplicate}
-          onBringForward={handleBringForward}
-          onSendBackward={handleSendBackward}
-          onDelete={handleDelete}
-          canBringForward={canBringForward}
-          canSendBackward={canSendBackward}
-          background={document.canvas.background}
-          onBackgroundChange={handleBackgroundChange}
-          showLayersPanel={showLayersPanel}
-          onToggleLayersPanel={handleToggleLayersPanel}
-        />
+        {/* Left tool rail — desktop only */}
+        <div className="hidden lg:block">
+          <ToolRail
+            selectedLayerId={selectedId}
+            onDuplicate={handleDuplicate}
+            onBringForward={handleBringForward}
+            onSendBackward={handleSendBackward}
+            onDelete={handleDelete}
+            canBringForward={canBringForward}
+            canSendBackward={canSendBackward}
+            background={document.canvas.background}
+            onBackgroundChange={handleBackgroundChange}
+            showLayersPanel={showLayersPanel}
+            onToggleLayersPanel={handleToggleLayersPanel}
+            opacity={selectedLayer?.opacity}
+            onOpacityChange={handleOpacityChange}
+          />
+        </div>
 
-        {/* Layers panel — shown when toggled */}
+        {/* Layers panel — desktop only */}
         {showLayersPanel && (
+          <div className="hidden lg:block">
+            <LayersPanel
+              layers={document.layers}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              onReorder={handleLayerReorder}
+            />
+          </div>
+        )}
+
+        {/* Centre canvas — full width on mobile with bottom padding for the action bar */}
+        <div className="flex-1 min-w-0 lg:pb-0 pb-[64px]">
+          <CanvasWorkspace
+            document={document}
+            selectedId={selectedId}
+            editingId={editingId}
+            assetLookup={assetLookup}
+            assetsLoaded={assetsLoaded}
+            onSelect={handleSelect}
+            onDeselect={handleDeselect}
+            onDocumentChange={handleDocumentChange}
+            onInteractionCommit={handleInteractionCommit}
+            onPropertyCommit={handlePropertyCommit}
+            onTextEditCommit={handleTextEditCommit}
+            onEditingStart={handleEditingStart}
+            onEditingFinish={handleEditingFinish}
+            onCancelEditing={handleCancelEditing}
+            onAssetDrop={handleAssetDrop}
+            previewOpen={previewOpen}
+            interactionEpoch={interactionEpoch}
+          />
+        </div>
+
+        {/* Right send panel — desktop only */}
+        <div className="hidden lg:block">
+          <SendPanel
+            document={document}
+            assetLookup={assetLookup}
+            verifiedSenders={verifiedSenders}
+            sendersLoading={sendersLoading}
+            sendersError={sendersError}
+            onRetrySenders={loadSenders}
+            onSend={handleSend}
+            submissionState={submissionState}
+            submissionResult={submissionResult}
+            onDismissResult={handleDismissResult}
+          />
+        </div>
+      </div>
+
+      {/* ── Mobile sheets ── */}
+
+      {/* Mobile: Asset Library sheet */}
+      <ResponsiveSheet
+        isOpen={mobileSheet === 'assets'}
+        onClose={handleCloseMobileSheet}
+        side="left"
+        title="Asset Library"
+        className="lg:hidden"
+      >
+        <div className="h-full flex flex-col w-full [&>div]:!w-full [&>div]:!flex-shrink">
+          <AssetLibrary seeding={seedingAssets} />
+        </div>
+      </ResponsiveSheet>
+
+      {/* Mobile: Layers sheet */}
+      <ResponsiveSheet
+        isOpen={mobileSheet === 'layers'}
+        onClose={handleCloseMobileSheet}
+        side="left"
+        title="Layers"
+        className="lg:hidden"
+      >
+        <div className="h-full flex flex-col overflow-hidden w-full [&>div]:!w-full">
           <LayersPanel
             layers={document.layers}
             selectedId={selectedId}
-            onSelect={handleSelect}
+            onSelect={(id) => { handleSelect(id); handleCloseMobileSheet(); }}
             onReorder={handleLayerReorder}
           />
-        )}
+        </div>
+      </ResponsiveSheet>
 
-        {/* Centre canvas */}
-        <CanvasWorkspace
-          document={document}
-          selectedId={selectedId}
-          editingId={editingId}
-          assetLookup={assetLookup}
-          assetsLoaded={assetsLoaded}
-          onSelect={handleSelect}
-          onDeselect={handleDeselect}
-          onDocumentChange={handleDocumentChange}
-          onInteractionCommit={handleInteractionCommit}
-          onPropertyCommit={handlePropertyCommit}
-          onTextEditCommit={handleTextEditCommit}
-          onEditingStart={handleEditingStart}
-          onEditingFinish={handleEditingFinish}
-          onCancelEditing={handleCancelEditing}
-          onAssetDrop={handleAssetDrop}
-          previewOpen={previewOpen}
-          interactionEpoch={interactionEpoch}
-        />
+      {/* Mobile: Send sheet */}
+      <ResponsiveSheet
+        isOpen={mobileSheet === 'send'}
+        onClose={handleCloseMobileSheet}
+        side="right"
+        title="Send Invitation"
+        className="lg:hidden"
+      >
+        <div className="h-full flex flex-col overflow-hidden w-full [&>div]:!w-full">
+          <SendPanel
+            document={document}
+            assetLookup={assetLookup}
+            verifiedSenders={verifiedSenders}
+            sendersLoading={sendersLoading}
+            sendersError={sendersError}
+            onRetrySenders={loadSenders}
+            onSend={handleSend}
+            submissionState={submissionState}
+            submissionResult={submissionResult}
+            onDismissResult={handleDismissResult}
+          />
+        </div>
+      </ResponsiveSheet>
 
-        {/* Right send panel */}
-        <SendPanel
-          document={document}
-          assetLookup={assetLookup}
-          verifiedSenders={verifiedSenders}
-          sendersLoading={sendersLoading}
-          sendersError={sendersError}
-          onRetrySenders={loadSenders}
-          onSend={handleSend}
-          submissionState={submissionState}
-          submissionResult={submissionResult}
-          onDismissResult={handleDismissResult}
-        />
-      </div>
+      {/* Mobile: Bottom action bar */}
+      <MobileEditorBottomBar
+        saveState={saveState}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        hasSelection={selectedId !== null}
+        onUndo={handleUndo}
+        onRedo={handleRedo}
+        onDuplicate={handleDuplicate}
+        onDelete={handleDelete}
+        onBringForward={handleBringForward}
+        onSendBackward={handleSendBackward}
+        canBringForward={canBringForward}
+        canSendBackward={canSendBackward}
+        onOpenAssets={() => handleOpenMobileSheet('assets')}
+        onOpenLayers={() => handleOpenMobileSheet('layers')}
+        onOpenSend={() => handleOpenMobileSheet('send')}
+        onOpenPreview={handlePreview}
+        layerCount={document.layers.length}
+      />
 
       {/* Full preview modal — read-only */}
       <PreviewModal
