@@ -1,5 +1,5 @@
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { collaborationRoles } from '@/mocks/wedora';
+import { collaborationRoles } from '@/mocks/vowora';
 
 export default function Collaboration() {
   const { ref, isRevealed } = useScrollReveal();

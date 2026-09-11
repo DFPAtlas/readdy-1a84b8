@@ -29,11 +29,21 @@ export const COOKIE_CATEGORY_LABELS: Record<CookieCategory, { label: string; des
   },
 };
 
-export const COOKIE_STORAGE_KEY = 'wedora_cookie_consent';
+export const COOKIE_STORAGE_KEY = 'vowora_cookie_consent';
+// Legacy key from the pre-rebrand brand, read once to migrate any existing consent choice.
+export const LEGACY_COOKIE_STORAGE_KEY = 'wedora_cookie_consent';
 
 export function loadConsentState(): CookieConsentState | null {
   try {
-    const raw = localStorage.getItem(COOKIE_STORAGE_KEY);
+    let raw = localStorage.getItem(COOKIE_STORAGE_KEY);
+    // One-time migration from the legacy key so existing users keep their consent choice.
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_COOKIE_STORAGE_KEY);
+      if (raw) {
+        localStorage.setItem(COOKIE_STORAGE_KEY, raw);
+        localStorage.removeItem(LEGACY_COOKIE_STORAGE_KEY);
+      }
+    }
     if (!raw) return null;
     const parsed = JSON.parse(raw) as CookieConsentState;
     if (parsed.version !== COOKIE_CONSENT_VERSION) return null;

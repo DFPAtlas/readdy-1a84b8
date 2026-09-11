@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
+import { PUBLIC_SITE_HOST } from '@/lib/env';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { supabase } from '@/lib/supabase';
 import type { DemoTravelPlace, DemoGalleryItem } from '@/demo/demoTypes';
@@ -239,7 +240,7 @@ export default function PublicWeddingPage() {
       setPreviewBarVisible={setPreviewBarVisible}
       seo={demoSeo}
       coupleNames={`${wedding.partner_one_name} & ${wedding.partner_two_name}`}
-      siteUrl={`vowora.uk/w/${DEMO_CONFIG.publicSlug}`}
+      siteUrl={`${PUBLIC_SITE_HOST}/w/${DEMO_CONFIG.publicSlug}`}
     />
   );
 }

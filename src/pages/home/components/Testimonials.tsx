@@ -1,5 +1,5 @@
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { testimonials } from '@/mocks/wedora';
+import { testimonials } from '@/mocks/vowora';
 
 export default function Testimonials() {
   const { ref, isRevealed } = useScrollReveal();

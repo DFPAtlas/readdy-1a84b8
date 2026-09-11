@@ -57,7 +57,7 @@ export default function CookieNoticePage() {
                       <td className="py-2 text-foreground-500">Session / 7 days</td>
                     </tr>
                     <tr>
-                      <td className="py-2 pr-4 text-foreground-700">wedora_cookie_consent</td>
+                      <td className="py-2 pr-4 text-foreground-700">vowora_cookie_consent</td>
                       <td className="py-2 pr-4 text-foreground-600">Stores your cookie consent preferences</td>
                       <td className="py-2 text-foreground-500">6 months</td>
                     </tr>

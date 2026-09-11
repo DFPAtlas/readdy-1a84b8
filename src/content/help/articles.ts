@@ -51,11 +51,11 @@ export const HELP_CATEGORIES: { key: HelpCategory; label: string; icon: string; 
 export const HELP_ARTICLES: HelpArticle[] = [
   // ── Getting Started ──
   {
-    slug: 'welcome-to-wedora',
+    slug: 'welcome-to-vowora',
     title: 'Welcome to Vowora',
     summary: 'A quick overview of what Vowora can do for your wedding planning.',
     category: 'getting-started',
-    keywords: ['introduction', 'overview', 'features', 'what is wedora', 'getting started'],
+    keywords: ['introduction', 'overview', 'features', 'what is vowora', 'getting started'],
     content: `<p>Vowora is your all-in-one wedding planning workspace — bringing together your guest list, invitations, RSVP tracking, budget, seating plan, travel information, photo gallery, and wedding-day timeline in one beautiful place.</p>
 
 <h3>What you can do with Vowora</h3>
@@ -108,7 +108,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 <p><strong>RSVP overview:</strong> See how many guests are attending, awaiting reply, or have declined.</p>
 
 <p><strong>Share & preview:</strong> Copy your wedding website link, preview it, or view the guest portal as one of your guests would see it.</p>`,
-    relatedSlugs: ['welcome-to-wedora', 'setup-checklist'],
+    relatedSlugs: ['welcome-to-vowora', 'setup-checklist'],
     applicableRoles: ['owner', 'partner', 'planner', 'collaborator', 'viewer'],
     updatedDate: '2026-08-01',
     sortOrder: 2,
@@ -137,7 +137,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 <p>Yes. Only the essential steps are required. Optional steps like "Add suppliers" or "Start seating plan" can be completed at any time — or not at all. Skipping an optional step does not affect your overall progress.</p>
 
 <p>Each step card shows an estimated effort label — Quick, Medium, or Detailed — so you know what to expect before starting.</p>`,
-    relatedSlugs: ['welcome-to-wedora', 'dashboard-overview'],
+    relatedSlugs: ['welcome-to-vowora', 'dashboard-overview'],
     applicableRoles: ['owner', 'partner', 'planner'],
     updatedDate: '2026-08-01',
     sortOrder: 3,
@@ -569,7 +569,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 
 <h3>Need more help?</h3>
 <p>If you cannot find the answer here, use the <strong>Contact</strong> form or reach out through the support link in the help panel on any page. We respond to all queries within one business day.</p>`,
-    relatedSlugs: ['welcome-to-wedora', 'guest-portal-explained'],
+    relatedSlugs: ['welcome-to-vowora', 'guest-portal-explained'],
     applicableRoles: ['owner', 'partner', 'planner', 'collaborator', 'viewer'],
     updatedDate: '2026-08-01',
     sortOrder: 130,

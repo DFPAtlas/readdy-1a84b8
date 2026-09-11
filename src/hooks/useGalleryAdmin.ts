@@ -335,7 +335,7 @@ function useDemoGalleryAdmin(): UseGalleryAdminReturn {
     uploaded_by_invitation_id: null,
     moderation_status: item.moderation_status === 'needs_review' ? 'awaiting_review' : item.moderation_status as GalleryModerationStatus,
     moderation_ai_label: item.ai_label, moderation_reason: item.rejection_reason || null,
-    moderation_scanned_at: item.upload_time, scanned_by: 'wedora-simulated',
+    moderation_scanned_at: item.upload_time, scanned_by: 'vowora-simulated',
     moderation_updated_by: null, moderation_updated_at: null,
     original_file_hash: null, metadata_stripped: true,
     source_type: item.uploader_name === 'Wedding Admin' || item.uploader_name === 'Bath Wedding Photography' ? 'couple' : 'guest',

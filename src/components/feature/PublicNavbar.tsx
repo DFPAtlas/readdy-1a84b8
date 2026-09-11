@@ -98,7 +98,7 @@ export default function PublicNavbar({ transparent: initialTransparent = true }:
             {/* Desktop actions */}
             <div className="hidden md:flex items-center gap-3">
               <a
-                href="/invite/DEMO-WEDORA-2026"
+                href="/invite/DEMO-VOWORA-2026"
                 className={`text-sm font-label font-medium transition-colors cursor-pointer whitespace-nowrap ${
                   isTransparent
                     ? 'text-white/70 hover:text-white border-white/30 hover:border-white/60'
@@ -180,7 +180,7 @@ export default function PublicNavbar({ transparent: initialTransparent = true }:
           </div>
           <div className="border-t border-secondary-100 mt-4 pt-4 flex flex-col gap-3">
             <a
-              href="/invite/DEMO-WEDORA-2026"
+              href="/invite/DEMO-VOWORA-2026"
               className="text-foreground-500 text-base font-label py-3 px-2 rounded-md hover:bg-background-100 transition-colors cursor-pointer border border-secondary-200 text-center"
             >
               View Demo

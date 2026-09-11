@@ -13,7 +13,7 @@ export interface WalkthroughTour {
   steps: WalkthroughStep[];
 }
 
-const TOUR_STATE_KEY = 'wedora.tour.state';
+const TOUR_STATE_KEY = 'vowora.tour.state';
 
 interface TourState {
   started: Record<string, boolean>;

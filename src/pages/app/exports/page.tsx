@@ -70,7 +70,7 @@ function generateDemoICS(privacy: ExportPrivacy): string {
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Vowora//Wedding Calendar//EN', 'X-WR-CALNAME:Emma & James Wedding'];
   for (const item of items) {
     lines.push('BEGIN:VEVENT');
-    lines.push(`UID:${item.title.replace(/\s/g, '-').toLowerCase()}@wedora-demo`);
+    lines.push(`UID:${item.title.replace(/\s/g, '-').toLowerCase()}@vowora-demo`);
     lines.push(`DTSTART:${item.start}Z`);
     lines.push(`DTEND:${item.end}Z`);
     lines.push(`SUMMARY:${item.title}`);

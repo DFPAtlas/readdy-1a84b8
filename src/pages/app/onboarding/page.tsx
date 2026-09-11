@@ -47,8 +47,8 @@ const STEPS = [
   { title: 'Review', description: "You're all set" },
 ];
 
-const DRAFT_KEY = 'wedora.onboarding.draft';
-const DEMO_SESSION_KEY = 'wedora.demo.session';
+const DRAFT_KEY = 'vowora.onboarding.draft';
+const DEMO_SESSION_KEY = 'vowora.demo.session';
 
 // ═══════════════════════════════════════════
 // Types

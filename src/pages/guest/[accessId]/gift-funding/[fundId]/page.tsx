@@ -106,7 +106,7 @@ export default function GuestGiftFundDetailPage() {
     setCheckoutError('');
 
     try {
-      const sessionHash = sessionStorage.getItem('wedora_guest_session') || undefined;
+      const sessionHash = sessionStorage.getItem('vowora_guest_session') || undefined;
 
       const res = await fetch(CHECKOUT_URL, {
         method: 'POST',

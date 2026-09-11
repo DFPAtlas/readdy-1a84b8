@@ -44,7 +44,7 @@ export function sanitizeFilename(title: string): string {
     .trim()
     .replace(/^-+|-+$/g, '');
 
-  if (!cleaned || cleaned === '') return 'wedora-invitation';
+  if (!cleaned || cleaned === '') return 'vowora-invitation';
   return cleaned;
 }
 

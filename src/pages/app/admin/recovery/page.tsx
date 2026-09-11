@@ -51,14 +51,14 @@ function ResultBadge({ result }: { result: VerifyResult | null }) {
 // ── Demo data ──
 const DEMO_TESTS: RestoreTest[] = [
   {
-    id: 'rt-042', backup_id: 'bak-001', test_environment: 'staging-wedora-01', status: 'passed',
+    id: 'rt-042', backup_id: 'bak-001', test_environment: 'staging-vowora-01', status: 'passed',
     requested_by: 'System Admin', started_at: '2027-08-05T08:00:00Z', completed_at: '2027-08-05T08:27:30Z',
     database_restoration_result: 'passed', storage_restoration_result: 'skipped', authentication_verification: 'passed',
     rls_verification: 'passed', guest_rsvp_verification: 'passed', stripe_isolation: true, email_isolation: true,
     issues_found: null, resolution: null, overall_result: 'passed', created_at: '2027-08-05T08:00:00Z',
   },
   {
-    id: 'rt-041', backup_id: 'bak-005', test_environment: 'staging-wedora-01', status: 'passed_with_warnings',
+    id: 'rt-041', backup_id: 'bak-005', test_environment: 'staging-vowora-01', status: 'passed_with_warnings',
     requested_by: 'System Admin', started_at: '2027-08-04T09:00:00Z', completed_at: '2027-08-04T09:32:15Z',
     database_restoration_result: 'passed', storage_restoration_result: 'partial', authentication_verification: 'passed',
     rls_verification: 'passed', guest_rsvp_verification: 'passed', stripe_isolation: true, email_isolation: true,
@@ -66,7 +66,7 @@ const DEMO_TESTS: RestoreTest[] = [
     resolution: 'Files re-verified; affected records matched.', overall_result: 'passed_with_warnings', created_at: '2027-08-04T09:00:00Z',
   },
   {
-    id: 'rt-040', backup_id: null, test_environment: 'staging-wedora-01', status: 'failed',
+    id: 'rt-040', backup_id: null, test_environment: 'staging-vowora-01', status: 'failed',
     requested_by: 'System Admin', started_at: '2027-08-03T14:00:00Z', completed_at: '2027-08-03T14:15:10Z',
     database_restoration_result: 'failed', storage_restoration_result: 'skipped', authentication_verification: 'skipped',
     rls_verification: 'skipped', guest_rsvp_verification: 'skipped', stripe_isolation: true, email_isolation: true,

@@ -464,7 +464,7 @@ function DemoGuestPortalDataProvider({ children }: { children: React.ReactNode }
       error: '',
       refresh: async () => {},
       logout: () => {
-        try { sessionStorage.removeItem('wedora_guest_session'); } catch { /* ignore */ }
+        try { sessionStorage.removeItem('vowora_guest_session'); } catch { /* ignore */ }
       },
     }}>
       {children}

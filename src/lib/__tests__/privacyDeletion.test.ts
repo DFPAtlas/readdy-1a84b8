@@ -125,7 +125,7 @@ describe('Backup and restore records', () => {
 
   it('restore tests always isolated from production', () => {
     const restoreTest = {
-      test_environment: 'staging-wedora-01',
+      test_environment: 'staging-vowora-01',
       stripe_isolation: true,
       email_isolation: true,
     };

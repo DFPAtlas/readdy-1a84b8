@@ -36,12 +36,12 @@ describe('sanitizeFilename', () => {
     expect(result.length).toBeLessThanOrEqual(80);
   });
 
-  it('falls back to wedora-invitation for empty result', () => {
-    expect(sanitizeFilename('!!!')).toBe('wedora-invitation');
+  it('falls back to vowora-invitation for empty result', () => {
+    expect(sanitizeFilename('!!!')).toBe('vowora-invitation');
   });
 
   it('falls back for whitespace-only', () => {
-    expect(sanitizeFilename('   ')).toBe('wedora-invitation');
+    expect(sanitizeFilename('   ')).toBe('vowora-invitation');
   });
 
   it('normalizes unicode characters', () => {

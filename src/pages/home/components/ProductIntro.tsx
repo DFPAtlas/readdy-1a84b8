@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { dashboardStats } from '@/mocks/wedora';
+import { dashboardStats } from '@/mocks/vowora';
 
 export default function ProductIntro() {
   return (

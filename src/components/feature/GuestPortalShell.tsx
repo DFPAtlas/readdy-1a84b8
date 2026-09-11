@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import type { GuestAccessResponse } from '@/types/access';
 
-const STORAGE_PREFIX = 'wedora_guest_';
+const STORAGE_PREFIX = 'vowora_guest_';
 
 export function useGuestData(accessId: string | undefined) {
   const [data, setData] = useState<(GuestAccessResponse['data'] & { session_id: string }) | null>(null);

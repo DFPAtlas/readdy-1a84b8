@@ -12,6 +12,11 @@ export const IS_DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 // In local development this may be http://localhost:5173
 export const PUBLIC_SITE_URL = import.meta.env.VITE_PUBLIC_SITE_URL || '';
 
+// Hostname form of the public site URL (no protocol) with a production fallback.
+// Used for display URLs like "vowora.uk/w/slug" that must remain correct even when
+// VITE_PUBLIC_SITE_URL is unset (e.g. local demo mode).
+export const PUBLIC_SITE_HOST = PUBLIC_SITE_URL ? PUBLIC_SITE_URL.replace(/^https?:\/\//, '') : 'vowora.uk';
+
 // ── Supabase ──
 export const SUPABASE_URL = import.meta.env.VITE_PUBLIC_SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY || '';

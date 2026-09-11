@@ -7,7 +7,7 @@ interface DemoSettingsRaw {
   themeAccent?: string;
 }
 
-const SETTINGS_KEY = 'wedora.demo.settings.v1';
+const SETTINGS_KEY = 'vowora.demo.settings.v1';
 
 /**
  * Reads demo theme colours from localStorage, converts hex → OKLCH scales,

@@ -12,7 +12,7 @@ import FocusTrap from '@/components/base/FocusTrap';
 import type { AppNotification } from '@/types/notifications';
 import { getNotificationIcon, getPriorityColor } from '@/types/notifications';
 
-const DEMO_SESSION_KEY = 'wedora.demo.session';
+const DEMO_SESSION_KEY = 'vowora.demo.session';
 
 // ── Sidebar link definitions ──
 

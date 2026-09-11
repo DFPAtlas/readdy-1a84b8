@@ -52,7 +52,7 @@ This document defines what Vowora caches, where, for how long, and how invalidat
 ### 3. Demo Mode Local Storage
 
 **Cached:** Demo wedding state (guest list, tasks, seating, etc.)
-**Key:** `wedora.demo.state.v1`
+**Key:** `vowora.demo.state.v1`
 **Duration:** Session — cleared on logout or reset
 **Invalidation:** Reset button, logout, version bump
 

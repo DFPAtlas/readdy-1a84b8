@@ -29,7 +29,7 @@ export type WeddingState = ActiveWeddingState;
 
 // ── Local storage key ──
 
-const STORAGE_KEY = 'wedora.activeWeddingId';
+const STORAGE_KEY = 'vowora.activeWeddingId';
 
 // ── Context shape ──
 

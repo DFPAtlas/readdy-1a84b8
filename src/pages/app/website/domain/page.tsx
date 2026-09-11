@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useWeddingWebsiteBuilder } from '@/hooks/useWeddingWebsiteBuilder';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { isDemoMode } from '@/demo/demoConfig';
+import { PUBLIC_SITE_HOST } from '@/lib/env';
 import { useSubscription } from '@/hooks/useSubscription';
 import type { BillingPlanKey } from '@/types/billing';
 
 // ── Domain status types ──
 type DomainStatus = 'none' | 'awaiting_dns' | 'verifying' | 'verified' | 'certificate_pending' | 'active' | 'misconfigured' | 'failed' | 'removing';
-type DomainType = 'wedora' | 'custom';
+type DomainType = 'vowora' | 'custom';
 
 interface DomainState {
   type: DomainType;
@@ -59,7 +60,7 @@ function isValidHostname(hostname: string): boolean {
 function demoDnsRecords(hostname: string): DnsRecord[] {
   return [
     { type: 'CNAME', host: hostname, value: 'sites.vowora.uk', ttl: 3600 },
-    { type: 'TXT', host: `_wedora.${hostname}`, value: `wedora-verify=${hostname.replace(/\./g, '-')}`, ttl: 3600 },
+    { type: 'TXT', host: `_vowora.${hostname}`, value: `vowora-verify=${hostname.replace(/\./g, '-')}`, ttl: 3600 },
   ];
 }
 
@@ -70,7 +71,7 @@ export default function WebsiteDomainPage() {
   const { subscription } = useSubscription(activeWedding?.id || null);
 
   const [domain, setDomain] = useState<DomainState>({
-    type: 'wedora',
+    type: 'vowora',
     hostname: '',
     normalizedHostname: '',
     status: 'none',
@@ -97,8 +98,8 @@ export default function WebsiteDomainPage() {
   const currentPlan = (subscription?.planKey || 'free') as BillingPlanKey;
   const canUseCustomDomain = currentPlan === 'luxury';
   const isPublished = publishStatus === 'published';
-  const wedoraUrl = currentSlug ? `/w/${currentSlug}` : '';
-  const fullWedoraUrl = currentSlug ? `vowora.uk/w/${currentSlug}` : '';
+  const voworaUrl = currentSlug ? `/w/${currentSlug}` : '';
+  const fullVoworaUrl = currentSlug ? `${PUBLIC_SITE_HOST}/w/${currentSlug}` : '';
 
   const showToast = useCallback((type: 'success' | 'error', message: string) => {
     setToast({ type, message });
@@ -216,7 +217,7 @@ export default function WebsiteDomainPage() {
       await new Promise((r) => setTimeout(r, 800));
     }
     setDomain({
-      type: 'wedora',
+      type: 'vowora',
       hostname: '',
       normalizedHostname: '',
       status: 'none',
@@ -318,7 +319,7 @@ export default function WebsiteDomainPage() {
           <div className="mt-4 pt-4 border-t border-secondary-100 flex items-center gap-3">
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-label text-foreground-400 mb-0.5">Live URL</p>
-              <p className="text-sm text-primary-600 font-mono truncate">{fullWedoraUrl}</p>
+              <p className="text-sm text-primary-600 font-mono truncate">{fullVoworaUrl}</p>
             </div>
             <button
               onClick={() => window.open(`/w/${currentSlug}`, '_blank')}
@@ -327,7 +328,7 @@ export default function WebsiteDomainPage() {
               <i className="ri-external-link-line mr-1" /> Open
             </button>
             <button
-              onClick={() => { navigator.clipboard.writeText(fullWedoraUrl); showToast('success', 'URL copied'); }}
+              onClick={() => { navigator.clipboard.writeText(fullVoworaUrl); showToast('success', 'URL copied'); }}
               className="px-3 py-1.5 text-xs rounded-lg border border-secondary-200 text-foreground-600 hover:bg-background-100 cursor-pointer transition-colors whitespace-nowrap"
             >
               <i className="ri-file-copy-line mr-1" /> Copy
@@ -362,7 +363,7 @@ export default function WebsiteDomainPage() {
         </div>
 
         {/* Plan gate */}
-        {!canUseCustomDomain && domain.type === 'wedora' && (
+        {!canUseCustomDomain && domain.type === 'vowora' && (
           <div className="bg-background-50 border border-secondary-100 rounded-lg p-4 mb-4">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 flex items-center justify-center rounded-full bg-amber-100 text-amber-600 flex-shrink-0">
@@ -383,7 +384,7 @@ export default function WebsiteDomainPage() {
         )}
 
         {/* No custom domain yet */}
-        {canUseCustomDomain && domain.type === 'wedora' && connectStep === 'idle' && (
+        {canUseCustomDomain && domain.type === 'vowora' && connectStep === 'idle' && (
           <div className="text-center py-6">
             <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-background-100 text-foreground-300 mb-3">
               <i className="ri-links-line text-xl" />
@@ -565,7 +566,7 @@ export default function WebsiteDomainPage() {
             <div className="bg-white rounded-xl p-6 max-w-sm mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
               <h3 className="text-sm font-label font-semibold text-foreground-900 mb-2">Remove custom domain?</h3>
               <p className="text-xs text-foreground-500 mb-1">Your website will still be available at your Vowora address:</p>
-              <p className="text-xs font-mono text-primary-600 mb-3">{fullWedoraUrl}</p>
+              <p className="text-xs font-mono text-primary-600 mb-3">{fullVoworaUrl}</p>
               <p className="text-xs text-foreground-400 mb-4">Shared links using the custom domain will stop working.</p>
               <div className="flex items-center gap-2 justify-end">
                 <button onClick={() => setRemoveConfirm(false)} className="px-4 py-2 text-xs font-label rounded-lg border border-secondary-200 text-foreground-600 hover:bg-background-100 cursor-pointer whitespace-nowrap">Cancel</button>

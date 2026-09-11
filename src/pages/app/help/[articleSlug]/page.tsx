@@ -4,7 +4,7 @@ import AppShell from '@/components/feature/AppShell';
 import { getArticle, HELP_ARTICLES, HELP_CATEGORIES } from '@/content/help/articles';
 import type { HelpArticle } from '@/content/help/articles';
 
-const RECENT_KEY = 'wedora.help.recentSlugs';
+const RECENT_KEY = 'vowora.help.recentSlugs';
 
 function addRecentSlug(slug: string) {
   try {

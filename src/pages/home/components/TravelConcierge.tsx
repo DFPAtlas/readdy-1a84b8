@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { travelCategories, mapPreviewListings } from '@/mocks/wedora';
+import { travelCategories, mapPreviewListings } from '@/mocks/vowora';
 import ScrollReveal from '@/components/base/ScrollReveal';
 
 const listingImages: Record<string, string> = {

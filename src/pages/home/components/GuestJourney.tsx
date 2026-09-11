@@ -1,4 +1,4 @@
-import { guestJourneySteps } from '@/mocks/wedora';
+import { guestJourneySteps } from '@/mocks/vowora';
 import ScrollReveal from '@/components/base/ScrollReveal';
 import { Link } from 'react-router-dom';
 

@@ -430,7 +430,7 @@ function DemoTimelinePage() {
   const demo = useDemoDataSafe();
   const [items, setItems] = useState<TimelineItem[]>(() => {
     try {
-      const saved = localStorage.getItem('wedora-demo-timeline');
+      const saved = localStorage.getItem('vowora-demo-timeline');
       if (saved) return JSON.parse(saved);
     } catch { /* ignore */ }
     return DEMO_TIMELINE_ITEMS;
@@ -447,7 +447,7 @@ function DemoTimelinePage() {
 
   // Persist to localStorage
   useEffect(() => {
-    localStorage.setItem('wedora-demo-timeline', JSON.stringify(items));
+    localStorage.setItem('vowora-demo-timeline', JSON.stringify(items));
   }, [items]);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500); };
@@ -515,7 +515,7 @@ function DemoTimelinePage() {
       const dtStart = item.start_at.replace(/[-:]/g, '').slice(0, 15) + 'Z';
       const dtEnd = item.end_at ? item.end_at.replace(/[-:]/g, '').slice(0, 15) + 'Z' : dtStart;
       icsLines.push('BEGIN:VEVENT');
-      icsLines.push(`UID:${item.id}@wedora-demo`);
+      icsLines.push(`UID:${item.id}@vowora-demo`);
       icsLines.push(`DTSTART:${dtStart}`);
       icsLines.push(`DTEND:${dtEnd}`);
       icsLines.push(`SUMMARY:${item.title}`);

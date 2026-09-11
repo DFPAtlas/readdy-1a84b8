@@ -7,7 +7,7 @@ import { mapAuthError } from '@/lib/authErrors';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
 
-const DEMO_SESSION_KEY = 'wedora.demo.session';
+const DEMO_SESSION_KEY = 'vowora.demo.session';
 
 function isDemoOnboardingComplete(): boolean {
   try {

@@ -1,4 +1,4 @@
-import { approvalActions } from '@/mocks/wedora';
+import { approvalActions } from '@/mocks/vowora';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 import ScrollReveal from '@/components/base/ScrollReveal';
 

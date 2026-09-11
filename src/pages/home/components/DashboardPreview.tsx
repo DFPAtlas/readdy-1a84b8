@@ -1,4 +1,4 @@
-import { dashboardStats } from '@/mocks/wedora';
+import { dashboardStats } from '@/mocks/vowora';
 import ScrollReveal from '@/components/base/ScrollReveal';
 import { Link } from 'react-router-dom';
 

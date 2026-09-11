@@ -5,7 +5,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { HELP_CATEGORIES, HELP_ARTICLES, searchArticles, getCategoryArticleCount } from '@/content/help/articles';
 import type { HelpArticle } from '@/content/help/articles';
 
-const RECENT_KEY = 'wedora.help.recentSlugs';
+const RECENT_KEY = 'vowora.help.recentSlugs';
 
 function getRecentSlugs(): string[] {
   try {
@@ -60,7 +60,7 @@ export default function HelpPage() {
   );
 
   const popularArticles = useMemo(
-    () => HELP_ARTICLES.filter((a) => ['welcome-to-wedora', 'adding-guests', 'creating-invitations', 'rsvp-flow', 'setting-up-budget', 'seating-plans']).sort((a, b) => a.sortOrder - b.sortOrder),
+    () => HELP_ARTICLES.filter((a) => ['welcome-to-vowora', 'adding-guests', 'creating-invitations', 'rsvp-flow', 'setting-up-budget', 'seating-plans']).sort((a, b) => a.sortOrder - b.sortOrder),
     [],
   );
 

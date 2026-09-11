@@ -4,7 +4,7 @@ import { storeGuestSession } from '@/hooks/useGuestPortal';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { supabase } from '@/lib/supabase';
 
-const DEMO_INVITE_FLAG = 'wedora_demo_invite';
+const DEMO_INVITE_FLAG = 'vowora_demo_invite';
 
 interface InviteData {
   wedding: {
@@ -144,7 +144,7 @@ export default function InviteLandingPage() {
   }, [token]);
 
   const handleViewDetails = () => {
-    const sessionHash = sessionStorage.getItem('wedora_guest_session');
+    const sessionHash = sessionStorage.getItem('vowora_guest_session');
     if (sessionHash) {
       navigate(`/guest/${sessionHash}`);
     } else if (inviteData) {

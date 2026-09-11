@@ -1,5 +1,5 @@
 import { useScrollReveal } from '@/hooks/useScrollReveal';
-import { coreFeatures } from '@/mocks/wedora';
+import { coreFeatures } from '@/mocks/vowora';
 
 export default function FeatureCards() {
   const { ref, isRevealed } = useScrollReveal();

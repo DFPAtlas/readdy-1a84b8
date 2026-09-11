@@ -1,7 +1,7 @@
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { Link } from 'react-router-dom';
-import { travelCategories } from '@/mocks/wedora';
+import { travelCategories } from '@/mocks/vowora';
 
 const steps = [
   {

@@ -54,7 +54,7 @@ function highlightMatch(text: string, query: string): React.ReactNode {
   );
 }
 
-const RECENT_SEARCHES_KEY = 'wedora.recent-searches.v1';
+const RECENT_SEARCHES_KEY = 'vowora.recent-searches.v1';
 
 function loadRecentSearches(): string[] {
   try {

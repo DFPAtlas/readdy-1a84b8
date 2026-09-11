@@ -165,7 +165,7 @@ const LAUNCH_CHECKLIST_GROUPS: { id: string; label: string; items: { id: string;
   },
 ];
 
-const STORAGE_KEY_PREFIX = 'wedora.launch-checklist';
+const STORAGE_KEY_PREFIX = 'vowora.launch-checklist';
 
 function getStorageKey(releaseVersion: string): string {
   return `${STORAGE_KEY_PREFIX}.${releaseVersion}`;

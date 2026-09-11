@@ -1,8 +1,8 @@
 import type { InvitationDocument } from '@/pages/app/invitations/[invitationId]/edit/types';
 import { DEFAULT_INVITATION } from '@/pages/app/invitations/[invitationId]/edit/data';
 
-const DEMO_DESIGNS_KEY = 'wedora.demo.designs';
-const DEMO_DESIGN_ACTIVE_ID = 'wedora.demo.design.activeId';
+const DEMO_DESIGNS_KEY = 'vowora.demo.designs';
+const DEMO_DESIGN_ACTIVE_ID = 'vowora.demo.design.activeId';
 
 interface StoredDesign {
   id: string;

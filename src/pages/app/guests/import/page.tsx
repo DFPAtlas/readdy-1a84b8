@@ -249,7 +249,7 @@ function NormalImportPage() {
             <div className="mt-6 p-4 bg-background-50 rounded-lg">
               <h4 className="text-sm font-label font-semibold text-foreground-800 mb-2">Sample CSV format</h4>
               <pre className="text-xs text-foreground-600 overflow-x-auto whitespace-pre font-mono bg-white p-3 rounded border border-secondary-200">{sampleCSV}</pre>
-              <button onClick={() => { const blob = new Blob([sampleCSV], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'wedora_sample_guests.csv'; a.click(); }} className="text-xs text-primary-600 hover:text-primary-700 cursor-pointer mt-2 inline-block">Download sample CSV</button>
+              <button onClick={() => { const blob = new Blob([sampleCSV], { type: 'text/csv' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'vowora_sample_guests.csv'; a.click(); }} className="text-xs text-primary-600 hover:text-primary-700 cursor-pointer mt-2 inline-block">Download sample CSV</button>
             </div>
           </div>
         )}

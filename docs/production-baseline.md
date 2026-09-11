@@ -20,7 +20,7 @@ The project uses the Readdy.ai cloud environment. Git operations are managed thr
 - **Centralised in**: `src/lib/env.ts` (via `IS_DEMO_MODE`)
 - **Demo config**: `src/demo/demoConfig.ts` uses `IS_DEMO_MODE`
 - **Demo data provider**: `src/demo/DemoDataProvider.tsx`
-- **Demo state storage**: `localStorage` key `wedora.demo.state.v1`
+- **Demo state storage**: `localStorage` key `vowora.demo.state.v1`
 - **Normal mode**: `VITE_DEMO_MODE=false` or absent — no demo data loaded
 
 ## Build Commands

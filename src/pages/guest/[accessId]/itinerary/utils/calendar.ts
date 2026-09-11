@@ -49,7 +49,7 @@ export function generateICSFile(events: WeddingEvent[], coupleNames: string): Bl
     const dtEnd = evt.end_at ? toICSDate(evt.end_at) : dtStart;
 
     lines.push('BEGIN:VEVENT');
-    lines.push(`UID:${evt.id}@wedora`);
+    lines.push(`UID:${evt.id}@vowora`);
     lines.push(`DTSTART:${dtStart}`);
     lines.push(`DTEND:${dtEnd}`);
     lines.push(`SUMMARY:${escapeICS(evt.name)}`);

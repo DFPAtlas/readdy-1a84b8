@@ -24,7 +24,7 @@ export default function ContributionSuccessPage() {
       try {
         // Try to reload the guest portal — if the contribution is confirmed,
         // the fund data will reflect it
-        const sessionHash = sessionStorage.getItem('wedora_guest_session');
+        const sessionHash = sessionStorage.getItem('vowora_guest_session');
         if (!sessionHash) {
           if (attempts >= maxAttempts) {
             clearInterval(interval);

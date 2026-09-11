@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 import type { GuestAccessResponse, GuestPortalSettings, WeddingEvent, GuestRecipientInfo, RsvpResponse, GuestSeatingResponse, LocalPlace, AccommodationPlan, GuestTravelPlan, SavedTravelLocation, WeddingShuttle, GuestShuttleRequest, LocationEventLink, TravelUpdate, GiftFundData } from '@/types/access';
 
 const LOADER_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-portal-loader';
-const SESSION_KEY = 'wedora_guest_session';
+const SESSION_KEY = 'vowora_guest_session';
 
 // ── Safe response model (what the context exposes) ──
 

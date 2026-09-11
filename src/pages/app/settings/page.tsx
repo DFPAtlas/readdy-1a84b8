@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import AppShell from '@/components/feature/AppShell';
 import { isDemoMode } from '@/demo/demoConfig';
+import { PUBLIC_SITE_HOST } from '@/lib/env';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useAuth } from '@/context/AuthProvider';
@@ -340,7 +341,7 @@ function WeddingSection({ weddingId }: { weddingId: string | null }) {
               className="input-field"
               placeholder="emma-and-james"
             />
-            <p className="text-[11px] text-foreground-400 mt-1">vowora.uk/{data.slug || 'your-slug'}</p>
+            <p className="text-[11px] text-foreground-400 mt-1">{PUBLIC_SITE_HOST}/{data.slug || 'your-slug'}</p>
           </div>
           <div className="sm:col-span-2">
             <label className="block text-xs font-label font-medium text-foreground-700 mb-1.5">Contact information</label>

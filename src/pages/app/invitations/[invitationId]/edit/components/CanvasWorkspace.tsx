@@ -37,7 +37,7 @@ function toRadians(deg: number) {
 
 // ── Custom MIME type for Vowora asset drag payload ──
 
-const WEDORA_ASSET_MIME = 'application/x-wedora-asset';
+const VOWORA_ASSET_MIME = 'application/x-vowora-asset';
 
 // Grid pattern as encoded SVG background
 const GRID_PATTERN =
@@ -814,10 +814,10 @@ export default function CanvasWorkspace({
   // ── Asset drop handlers ──
 
   const isValidAssetDrag = useCallback((e: React.DragEvent): string | null => {
-    const wedoraData = e.dataTransfer.getData(WEDORA_ASSET_MIME);
-    if (wedoraData) {
+    const voworaData = e.dataTransfer.getData(VOWORA_ASSET_MIME);
+    if (voworaData) {
       try {
-        const parsed = JSON.parse(wedoraData);
+        const parsed = JSON.parse(voworaData);
         if (parsed && typeof parsed.assetId === 'string' && parsed.assetId) {
           return parsed.assetId;
         }

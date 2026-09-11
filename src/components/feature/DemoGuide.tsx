@@ -121,7 +121,7 @@ const GUIDE_TIPS: GuideTip[] = [
 
 // ── Storage key ──
 
-const DISMISSED_TIPS_KEY = 'wedora.demo.guide.dismissed';
+const DISMISSED_TIPS_KEY = 'vowora.demo.guide.dismissed';
 
 // ── The guide component ──
 

@@ -225,7 +225,7 @@ function NormalRSVPPage() {
     setSubmitStatus('submitting');
     setServerError('');
     let sessionHash = '';
-    try { sessionHash = sessionStorage.getItem('wedora_guest_session') || ''; } catch { /* ignore */ }
+    try { sessionHash = sessionStorage.getItem('vowora_guest_session') || ''; } catch { /* ignore */ }
 
     try {
       const dietaryText = buildDietaryText(gf);

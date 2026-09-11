@@ -3,7 +3,7 @@ import type { EditorAsset } from '../types';
 
 // ── Custom MIME type for Vowora asset drag payload ──
 
-const WEDORA_ASSET_MIME = 'application/x-wedora-asset';
+const VOWORA_ASSET_MIME = 'application/x-vowora-asset';
 
 // ── Props ──
 
@@ -25,7 +25,7 @@ export default function AssetCard({ asset, assetLookupMap, compact = false }: As
 
     // Set custom MIME payload — minimal JSON with only assetId
     const payload = JSON.stringify({ assetId: asset.id });
-    e.dataTransfer.setData(WEDORA_ASSET_MIME, payload);
+    e.dataTransfer.setData(VOWORA_ASSET_MIME, payload);
 
     // Text/plain fallback with asset ID only
     e.dataTransfer.setData('text/plain', asset.id);

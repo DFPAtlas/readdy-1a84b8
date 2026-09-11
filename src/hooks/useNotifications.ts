@@ -3,7 +3,7 @@ import type { AppNotification, NotificationFilters } from '@/types/notifications
 import { isDemoMode } from '@/demo/demoConfig';
 import { demoNotifications } from '@/demo/demoNotifications';
 
-const DEMO_NOTIF_STORAGE_KEY = 'wedora.demo.notifications.v1';
+const DEMO_NOTIF_STORAGE_KEY = 'vowora.demo.notifications.v1';
 
 function loadDemoNotifications(): AppNotification[] {
   if (!isDemoMode) return demoNotifications;

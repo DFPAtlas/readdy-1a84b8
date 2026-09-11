@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useWeddingWebsiteBuilder } from '@/hooks/useWeddingWebsiteBuilder';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { isDemoMode } from '@/demo/demoConfig';
+import { PUBLIC_SITE_HOST } from '@/lib/env';
 import type { SeoConfig } from '@/types/website';
 
 // ── Character counter with color ──
@@ -22,7 +23,7 @@ function CharCount({ current, max, warningAt }: { current: number; max: number; 
 function SearchPreview({ seo, coupleNames, slug }: { seo: SeoConfig; coupleNames: string; slug: string }) {
   const title = seo.seo_title || `${coupleNames} Wedding`;
   const desc = seo.meta_description || `Join ${coupleNames} in celebrating their wedding day.`;
-  const url = `vowora.uk/w/${slug}`;
+  const url = `${PUBLIC_SITE_HOST}/w/${slug}`;
 
   return (
     <div className="border border-secondary-200 rounded-lg p-4 bg-white max-w-md">
@@ -64,7 +65,7 @@ function SocialPreview({ seo, coupleNames }: { seo: SeoConfig; coupleNames: stri
         </div>
       )}
       <div className="p-3">
-        <p className="text-[11px] text-foreground-400 font-mono">vowora.uk</p>
+        <p className="text-[11px] text-foreground-400 font-mono">{PUBLIC_SITE_HOST}</p>
         <p className="text-sm font-label font-semibold text-foreground-900 leading-snug mt-1">{title}</p>
         <p className="text-xs text-foreground-500 leading-snug mt-1 line-clamp-2">{desc}</p>
       </div>
@@ -79,7 +80,7 @@ function StructuredDataPreview({ seo, coupleNames, wedding }: { seo: SeoConfig; 
     '@type': 'WebSite',
     name: seo.seo_title || `${coupleNames} Wedding`,
     description: seo.meta_description || '',
-    url: seo.canonical_domain || 'vowora.uk/w/emma-and-james',
+    url: seo.canonical_domain || `${PUBLIC_SITE_HOST}/w/emma-and-james`,
     about: {
       '@type': 'Event',
       name: `${coupleNames} Wedding`,
