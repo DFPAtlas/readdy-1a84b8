@@ -33,9 +33,10 @@ export function guestCorsHeaders(origin: string | null, configured = "", local =
 }
 
 export function edgeGuestCorsHeaders(req: Request): Record<string, string> {
+  const env = (globalThis as typeof globalThis & { Deno?: { env: { get(name: string): string | undefined } } }).Deno?.env;
   return guestCorsHeaders(
     req.headers.get("origin"),
-    Deno.env.get("ALLOWED_ORIGINS") || "",
-    ["development", "local"].includes(Deno.env.get("ENVIRONMENT") || ""),
+    env?.get("ALLOWED_ORIGINS") || "",
+    ["development", "local"].includes(env?.get("ENVIRONMENT") || ""),
   );
 }
