@@ -1,0 +1,24 @@
+name: Guest credential boundary verification
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/**'
+      - 'src/lib/__tests__/guestCredentialContract.test.ts'
+      - 'src/pages/guest/**'
+      - '.github/workflows/guest-boundary-verification.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Main has no package-lock.json yet. This scoped workflow does not replace the release CI.
+      - run: npm install --no-package-lock --no-audit --no-fund
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npx vitest run
+      - run: npm run build
