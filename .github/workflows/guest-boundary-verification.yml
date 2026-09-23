@@ -1,0 +1,43 @@
+name: Guest credential boundary verification
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/**'
+      - 'src/lib/__tests__/guestCredentialContract.test.ts'
+      - 'src/pages/guest/**'
+      - '.github/workflows/guest-boundary-verification.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Main has no package-lock.json yet. This scoped workflow does not replace the release CI.
+      - run: npm install --no-package-lock --no-audit --no-fund
+      - id: types
+        continue-on-error: true
+        run: npm run type-check
+      - id: lint
+        continue-on-error: true
+        run: npm run lint
+      - id: tests
+        continue-on-error: true
+        run: npx vitest run
+      - id: build
+        continue-on-error: true
+        run: npm run build
+      - name: Report validation results
+        if: always()
+        run: |
+          echo "type-check: ${{ steps.types.outcome }}"
+          echo "lint: ${{ steps.lint.outcome }}"
+          echo "tests: ${{ steps.tests.outcome }}"
+          echo "build: ${{ steps.build.outcome }}"
+          test "${{ steps.types.outcome }}" = success &&
+          test "${{ steps.lint.outcome }}" = success &&
+          test "${{ steps.tests.outcome }}" = success &&
+          test "${{ steps.build.outcome }}" = success

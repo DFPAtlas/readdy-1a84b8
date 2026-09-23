@@ -144,9 +144,9 @@ export default function InviteLandingPage() {
   }, [token]);
 
   const handleViewDetails = () => {
-    const sessionHash = sessionStorage.getItem('vowora_guest_session');
-    if (sessionHash) {
-      navigate(`/guest/${sessionHash}`);
+    const sessionSecret = sessionStorage.getItem('vowora_guest_session');
+    if (sessionSecret) {
+      navigate(`/guest/${sessionSecret}`);
     } else if (inviteData) {
       setError('Could not establish a secure session. Please try your invitation link again.');
     }

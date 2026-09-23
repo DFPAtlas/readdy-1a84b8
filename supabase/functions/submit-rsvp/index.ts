@@ -1,12 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { edgeGuestCorsHeaders, sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-idempotency-key",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Cache-Control": "private, no-store, no-cache, max-age=0",
-};
+
 
 // ── Rate limiting ──
 const RATE_WINDOW_MS = 60_000; // 1 minute
@@ -110,10 +106,12 @@ interface RsvpSubmissionPayload {
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = edgeGuestCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  if (req.method !== "POST") return new Response(null, { status: 405, headers: corsHeaders });
   const fingerprint = buildFingerprint(req);
   if (!checkRateLimit(fingerprint)) {
     return new Response(
@@ -122,7 +120,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -131,7 +129,7 @@ Deno.serve(async (req: Request) => {
     const { session_hash, guest_responses, save_draft, idempotency_key } = body;
 
     // ── Validate session ──
-    if (!session_hash || typeof session_hash !== "string" || session_hash.length < 32) {
+    if (!validGuestSessionSecret(session_hash)) {
       return new Response(
         JSON.stringify({ success: false, error: "Invalid session." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -141,7 +139,7 @@ Deno.serve(async (req: Request) => {
     const { data: session, error: sessionErr } = await supabase
       .from("guest_access_sessions")
       .select("*")
-      .eq("session_hash", session_hash)
+      .eq("session_hash", await sha256Hex(session_hash))
       .eq("status", "active")
       .maybeSingle();
 
@@ -160,54 +158,44 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const { data: accessToken } = await supabase.from("invitation_access_tokens")
+      .select("wedding_id, invitation_id, status, expires_at")
+      .eq("id", session.access_token_id).eq("wedding_id", session.wedding_id).maybeSingle();
+    if (!accessToken || accessToken.status !== "active" || accessToken.invitation_id !== session.invitation_id || (accessToken.expires_at && new Date(accessToken.expires_at) <= new Date())) {
+      return new Response(JSON.stringify({ success: false, error: "Your invitation link is no longer valid." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const weddingId = session.wedding_id;
     const invitationId = session.invitation_id;
-
-    // ── Idempotency check ──
-    if (idempotency_key && !save_draft) {
-      const idempotencyHash = sha256(`${invitationId}:${idempotency_key}`);
-      const { data: existingCheck } = await supabase
-        .from("rsvp_submissions")
-        .select("id, status")
-        .eq("invitation_id", invitationId)
-        .eq("status", "submitted")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (existingCheck) {
-        // Idempotent — return existing result
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: "Your RSVP has already been received.",
-            submission_id: existingCheck.id,
-            is_update: false,
-            is_late: false,
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-    }
 
     // ── Fetch invitation + portal settings ──
     const { data: invitation } = await supabase
       .from("invitations")
       .select("rsvp_deadline, status")
       .eq("id", invitationId)
+      .eq("wedding_id", weddingId)
       .maybeSingle();
 
     const { data: portalSettings } = await supabase
       .from("guest_portal_settings")
-      .select("rsvp_enabled, household_rsvp_enabled, require_meal_choices, meal_options, allow_late_rsvp, allow_rsvp_updates, rsvp_questions_locked_after, dietary_options, allergy_labels")
+      .select("portal_enabled, portal_closes_at, rsvp_enabled, household_rsvp_enabled, require_meal_choices, meal_options, allow_late_rsvp, allow_rsvp_updates, rsvp_questions_locked_after, dietary_options, allergy_labels")
       .eq("wedding_id", weddingId)
       .maybeSingle();
 
-    if (!portalSettings?.rsvp_enabled) {
+    if (!invitation || invitation.status === "cancelled" || invitation.status === "archived" || !portalSettings?.portal_enabled || (portalSettings.portal_closes_at && new Date(portalSettings.portal_closes_at) <= new Date()) || !portalSettings?.rsvp_enabled) {
       return new Response(
         JSON.stringify({ success: false, error: "RSVPs are not currently open." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
+    }
+
+    // Repeat only the exact same request key after validating the session and invitation.
+    const idempotencyHash = !save_draft && typeof idempotency_key === "string" && /^[0-9a-f-]{36}$/.test(idempotency_key)
+      ? await sha256Hex(`${weddingId}:${invitationId}:${idempotency_key}`) : null;
+    if (idempotencyHash) {
+      const { data: previous } = await supabase.from("rsvp_submissions")
+        .select("id, status, is_late").eq("wedding_id", weddingId)
+        .eq("invitation_id", invitationId).eq("idempotency_key_hash", idempotencyHash).maybeSingle();
+      if (previous) return new Response(JSON.stringify({ success: true, message: "Your RSVP has already been received.", submission_id: previous.id, is_update: previous.status === "updated", is_late: previous.is_late }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // ── Check deadline ──
@@ -230,7 +218,8 @@ Deno.serve(async (req: Request) => {
     const { data: recipients } = await supabase
       .from("invitation_recipients")
       .select("guest_id, recipient_role, ceremony_included, reception_included, evening_included, welcome_event_included, day_after_event_included, plus_one_allowed")
-      .eq("invitation_id", invitationId);
+      .eq("invitation_id", invitationId)
+      .eq("wedding_id", weddingId);
 
     const recipientMap = new Map<string, Record<string, unknown>>();
     (recipients || []).forEach((r) => recipientMap.set(r.guest_id, r as unknown as Record<string, unknown>));
@@ -240,7 +229,8 @@ Deno.serve(async (req: Request) => {
     const { data: guests } = await supabase
       .from("guests")
       .select("id, full_name, plus_one_allowed, plus_one_status, named_plus_one_guest_id, approved_additional_children, age_band, household_id")
-      .in("id", guestIds);
+      .in("id", guestIds)
+      .eq("wedding_id", weddingId);
 
     const guestMap = new Map<string, Record<string, unknown>>();
     (guests || []).forEach((g) => guestMap.set(g.id, g as unknown as Record<string, unknown>));
@@ -360,7 +350,7 @@ Deno.serve(async (req: Request) => {
 
     let submissionId: string;
     let revisionNumber: number;
-    const isResubmission = existingSubmission?.status === "submitted" && !save_draft;
+    const isResubmission = ["submitted", "updated"].includes(existingSubmission?.status || "") && !save_draft;
 
     if (existingSubmission) {
       submissionId = existingSubmission.id;
@@ -373,6 +363,7 @@ Deno.serve(async (req: Request) => {
           is_late: isLate,
           submitted_at: save_draft ? existingSubmission.submitted_at : new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          idempotency_key_hash: idempotencyHash,
         })
         .eq("id", submissionId);
     } else {
@@ -385,6 +376,7 @@ Deno.serve(async (req: Request) => {
           status: save_draft ? "draft" : "submitted",
           revision: 1,
           is_late: isLate,
+          idempotency_key_hash: idempotencyHash,
           started_at: new Date().toISOString(),
           submitted_at: save_draft ? null : new Date().toISOString(),
         })
