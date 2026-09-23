@@ -188,6 +188,16 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Repeat only the exact same request key after validating the session and invitation.
+    const idempotencyHash = !save_draft && typeof idempotency_key === "string" && /^[0-9a-f-]{36}$/.test(idempotency_key)
+      ? await sha256Hex(`${weddingId}:${invitationId}:${idempotency_key}`) : null;
+    if (idempotencyHash) {
+      const { data: previous } = await supabase.from("rsvp_submissions")
+        .select("id, status, is_late").eq("wedding_id", weddingId)
+        .eq("invitation_id", invitationId).eq("idempotency_key_hash", idempotencyHash).maybeSingle();
+      if (previous) return new Response(JSON.stringify({ success: true, message: "Your RSVP has already been received.", submission_id: previous.id, is_update: previous.status === "updated", is_late: previous.is_late }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ── Check deadline ──
     let isLate = false;
     if (invitation?.rsvp_deadline && !save_draft) {
@@ -326,16 +336,6 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // Repeat only the exact same request key after validating the session and invitation.
-    const idempotencyHash = !save_draft && typeof idempotency_key === "string" && /^[0-9a-f-]{36}$/.test(idempotency_key)
-      ? await sha256Hex(`${weddingId}:${invitationId}:${idempotency_key}`) : null;
-    if (idempotencyHash) {
-      const { data: previous } = await supabase.from("rsvp_submissions")
-        .select("id, status, is_late").eq("wedding_id", weddingId)
-        .eq("invitation_id", invitationId).eq("idempotency_key_hash", idempotencyHash).maybeSingle();
-      if (previous) return new Response(JSON.stringify({ success: true, submission_id: previous.id, is_update: previous.status === "updated", is_late: previous.is_late }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
     // ── Find or create submission ──
     const submittingGuestId = guestIds[0];
 
@@ -350,7 +350,7 @@ Deno.serve(async (req: Request) => {
 
     let submissionId: string;
     let revisionNumber: number;
-    const isResubmission = existingSubmission?.status === "submitted" && !save_draft;
+    const isResubmission = ["submitted", "updated"].includes(existingSubmission?.status || "") && !save_draft;
 
     if (existingSubmission) {
       submissionId = existingSubmission.id;
