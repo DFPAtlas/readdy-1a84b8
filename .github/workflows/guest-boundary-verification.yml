@@ -18,7 +18,26 @@ jobs:
           node-version: '22'
       # Main has no package-lock.json yet. This scoped workflow does not replace the release CI.
       - run: npm install --no-package-lock --no-audit --no-fund
-      - run: npm run type-check
-      - run: npm run lint
-      - run: npx vitest run
-      - run: npm run build
+      - id: types
+        continue-on-error: true
+        run: npm run type-check
+      - id: lint
+        continue-on-error: true
+        run: npm run lint
+      - id: tests
+        continue-on-error: true
+        run: npx vitest run
+      - id: build
+        continue-on-error: true
+        run: npm run build
+      - name: Report validation results
+        if: always()
+        run: |
+          echo "type-check: ${{ steps.types.outcome }}"
+          echo "lint: ${{ steps.lint.outcome }}"
+          echo "tests: ${{ steps.tests.outcome }}"
+          echo "build: ${{ steps.build.outcome }}"
+          test "${{ steps.types.outcome }}" = success &&
+          test "${{ steps.lint.outcome }}" = success &&
+          test "${{ steps.tests.outcome }}" = success &&
+          test "${{ steps.build.outcome }}" = success
