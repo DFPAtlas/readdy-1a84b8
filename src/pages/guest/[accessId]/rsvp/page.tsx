@@ -280,6 +280,7 @@ function NormalRSVPPage() {
           },
         },
         save_draft: saveDraft,
+        idempotency_key: saveDraft ? undefined : crypto.randomUUID(),
       };
 
       const res = await fetch(SUBMIT_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
