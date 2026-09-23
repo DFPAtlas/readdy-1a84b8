@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { webcrypto } from 'node:crypto';
 import { guestCorsHeaders, newGuestSessionSecret, sha256Hex, validGuestSessionSecret } from '../../../supabase/functions/_shared/guestAccess';
 
 describe('guest credential boundary', () => {
+  vi.stubGlobal('crypto', webcrypto);
   it('issues a fresh 256-bit bearer secret and stores a different SHA-256 digest', async () => {
     const raw = newGuestSessionSecret();
     const next = newGuestSessionSecret();
