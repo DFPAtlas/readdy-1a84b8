@@ -8,6 +8,14 @@ const corsHeaders = {
   "Cache-Control": "private, no-store, no-cache, max-age=0",
 };
 
+// The browser holds the raw guest session credential; only its SHA-256 hash is
+// stored in guest_access_sessions.session_hash, so hash before every lookup.
+function sha256(text: string): string {
+  const data = new TextEncoder().encode(text);
+  const hash = crypto.subtle.digestSync("SHA-256", data);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 interface RequestBody {
   session_hash: string;
   action: "update_profile" | "update_notification_prefs" | "update_consent" | "request_data_download" | "request_deletion" | "request_data_correction" | "remove_optional_notes";
@@ -55,7 +63,7 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -70,7 +78,7 @@ Deno.serve(async (req: Request) => {
     const { data: session, error: sessionErr } = await supabase
       .from("guest_access_sessions")
       .select("id, wedding_id, invitation_id")
-      .eq("session_hash", session_hash)
+      .eq("session_hash", sha256(session_hash))
       .eq("status", "active")
       .maybeSingle();
 

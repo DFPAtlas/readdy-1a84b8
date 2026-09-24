@@ -20,9 +20,10 @@ import {
   ExtrasStep,
   ReviewStep,
 } from './components/RSVPForm';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 import type { RsvpCustomAnswer } from '@/types/access';
 
-const SUBMIT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/submit-rsvp';
+const SUBMIT_URL = edgeFunctionUrl('submit-rsvp');
 
 // ── Normal Mode ──
 

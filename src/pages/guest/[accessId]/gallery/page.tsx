@@ -4,6 +4,7 @@ import { useGuestPortal } from '@/hooks/useGuestPortal';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import type { GalleryAlbum, GalleryAsset, GalleryData } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 import {
   Lightbox,
   UploadModal,
@@ -14,7 +15,7 @@ import {
   ALBUM_TYPE_ICONS,
 } from './components/GalleryComponents';
 
-const INTERACT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-gallery-interact';
+const INTERACT_URL = edgeFunctionUrl('guest-gallery-interact');
 
 export default function GuestGalleryPage() {
   const { accessId } = useParams();

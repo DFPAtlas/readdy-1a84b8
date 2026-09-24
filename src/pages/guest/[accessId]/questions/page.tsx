@@ -12,8 +12,9 @@ import {
   QuestionsEmpty,
   QuestionsDisabled,
 } from './components/QuestionsComponents';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const INTERACT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-question-interact';
+const INTERACT_URL = edgeFunctionUrl('guest-question-interact');
 
 export default function GuestQuestionsPage() {
   const { accessId } = useParams();

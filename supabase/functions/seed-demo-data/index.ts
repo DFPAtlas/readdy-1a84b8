@@ -19,7 +19,7 @@ function sha256(text: string): string {
 const WEDDING_ID = "00000000-0000-0000-0000-000000000001";
 const INVITATION_ID = "3c744b56-c37b-44a9-b1a9-8cf73bdc41ad";
 const SEATING_PLAN_ID = "a8b43062-761d-43a2-8dec-decde6100df9";
-const DEMO_TOKEN = "DEMO-WEDORA-2026";
+const DEMO_TOKEN = "DEMO-VOWORA-2026";
 const VENUE_CHURCH = "2af954be-3170-4c2e-a49c-322bc5921c0e";
 const VENUE_ORANGERY = "d5ca9248-848d-47d9-b182-746d70c3183c";
 
@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -456,7 +456,7 @@ Deno.serve(async (req: Request) => {
         success: true,
         demo_url: `/invite/${DEMO_TOKEN}`,
         demo_token: DEMO_TOKEN,
-        message: "Demo account seeded! Visit /invite/DEMO-WEDORA-2026 to access the guest portal as the Patel family.",
+        message: "Demo account seeded! Visit /invite/DEMO-VOWORA-2026 to access the guest portal as the Patel family.",
         summary: {
           wedding: "Emma & James",
           guest_family: "The Patel Family (Priya, Raj, Anika, Rohan)",

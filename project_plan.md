@@ -843,3 +843,29 @@ Known limitations:
 - No `robots.txt` management (static)
 
 ## Next: Phase 8C — A/B Testing, Analytics & Dashboard Insights
+
+### Phase 20 — Guest Access Security Boundary Reconciliation ✅ COMPLETE (2026-09-23)
+
+**Goal:** Reconcile the current guest-access security boundary against the useful protections from the earlier PR, without merging it or inventing schema. See `docs/guest-access-contract.md` for the full contract.
+
+**Canonical contract (verified against the live schema):**
+- Invitation raw token → browser only; `SHA-256(rawToken)` stored in `invitation_access_tokens.token_hash`.
+- Guest session secret → raw secret (256-bit) returned to the browser **once** as `session_id`; only `SHA-256(secret)` stored in `guest_access_sessions.session_hash`.
+- Every guest Edge Function hashes the supplied raw credential before the session lookup.
+- Session expiry (7 days) + revocation checks retained; tenant/wedding isolation unchanged.
+- RSVP idempotency kept on the existing `rsvp_submissions` status/revision model.
+
+**Files changed:**
+- `supabase/functions/validate-invitation/index.ts` — issues a raw session secret, stores only its hash, drops incompatible session-reuse, CORS allowlist
+- `supabase/functions/guest-portal-loader/index.ts` — hashes credential before lookup, CORS allowlist
+- `supabase/functions/submit-rsvp/index.ts` — hashes credential before lookup, CORS allowlist
+- `supabase/functions/guest-settings-interact/index.ts`, `guest-question-interact`, `guest-update-interact`, `guest-gallery-interact`, `guest-gallery-upload`, `save-travel-plan`, `gift-fund-create-checkout` — hash credential before lookup
+
+**Files created:**
+- `src/lib/guestSessionContract.ts` — contract constants, allowlist parsing, credential hashing (mirrors the Edge Functions)
+- `src/lib/__tests__/guestSessionContract.test.ts` — targeted tests for the credential + CORS contract
+- `docs/guest-access-contract.md` — canonical contract & protections
+
+**CORS:** `GUEST_ALLOWED_ORIGINS` (comma-separated, replaces defaults) + `ALLOW_LOCAL_ORIGINS=true`; defaults are `https://vowora.uk`, `https://www.vowora.uk` plus local dev origins.
+
+**Build result:** ✅ Clean

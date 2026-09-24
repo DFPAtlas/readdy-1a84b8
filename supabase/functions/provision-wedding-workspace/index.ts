@@ -11,7 +11,7 @@ const corsHeaders = {
 // ── Reserved slugs ──
 const RESERVED_SLUGS = [
   "app", "admin", "api", "auth", "guest", "login", "signup",
-  "support", "wedora", "dashboard", "settings", "onboarding",
+  "support", "vowora", "wedora", "dashboard", "settings", "onboarding",
   "reset-password", "forgot-password", "callback", "demo", "demo-start",
   "contact", "features", "pricing", "privacy", "terms", "about",
 ];
@@ -140,9 +140,13 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+    const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+    // Separate anon client used only for verifying the caller's JWT; privileged
+    // database operations must remain on the service-role client above.
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
 
     // ── 1. Validate JWT ──
     const authHeader = req.headers.get("Authorization");
@@ -154,7 +158,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: verifyErr } = await supabase.auth.getUser(token);
+    const { data: { user }, error: verifyErr } = await supabaseAuth.auth.getUser(token);
 
     if (verifyErr || !user) {
       return new Response(

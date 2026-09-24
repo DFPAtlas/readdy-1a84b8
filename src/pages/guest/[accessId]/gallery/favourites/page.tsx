@@ -2,9 +2,10 @@ import { useState, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import type { GalleryAlbum, GalleryAsset, GalleryData } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 import { isDemoMode } from '@/demo/demoConfig';
 
-const INTERACT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-gallery-interact';
+const INTERACT_URL = edgeFunctionUrl('guest-gallery-interact');
 
 export default function GuestGalleryFavouritesPage() {
   const { accessId } = useParams();

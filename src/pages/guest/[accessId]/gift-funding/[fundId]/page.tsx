@@ -4,8 +4,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { formatMinor, toMinor } from '@/lib/budgetMoney';
 import type { CurrencyCode } from '@/lib/budgetMoney';
 import type { GiftFundLight, GiftFundContributionPublic } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const CHECKOUT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/gift-fund-create-checkout';
+const CHECKOUT_URL = edgeFunctionUrl('gift-fund-create-checkout');
 
 const SUGGESTED_AMOUNTS = [2500, 5000, 7500, 10000, 15000, 25000]; // £25, £50, £75, £100, £150, £250
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
 import type { GalleryAlbum, GalleryAsset } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
 // ── Album type config ──
 
@@ -322,7 +323,7 @@ export function UploadModal({ albumId, albumTitle, sessionHash, onClose, onSucce
       if (title.trim()) formData.append('title', title.trim());
 
       const res = await fetch(
-        'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-gallery-upload',
+        edgeFunctionUrl('guest-gallery-upload'),
         { method: 'POST', body: formData }
       );
 

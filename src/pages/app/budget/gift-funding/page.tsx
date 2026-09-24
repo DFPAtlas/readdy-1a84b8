@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { supabase } from '@/lib/supabase';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 import { formatMinor, toMinor, toMajor } from '@/lib/budgetMoney';
 import type { CurrencyCode } from '@/lib/budgetMoney';
 
-const CONNECT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/gift-fund-connect';
+const CONNECT_URL = edgeFunctionUrl('gift-fund-connect');
 
 type ConnectStatus = 'not_connected' | 'onboarding' | 'action_required' | 'ready' | 'payouts_paused' | 'error' | 'loading';
 

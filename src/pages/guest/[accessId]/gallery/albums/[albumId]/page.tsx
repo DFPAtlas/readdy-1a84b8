@@ -2,8 +2,9 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import type { GalleryAlbum, GalleryAsset, GalleryData } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const INTERACT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-gallery-interact';
+const INTERACT_URL = edgeFunctionUrl('guest-gallery-interact');
 
 const ALBUM_TYPE_ICONS: Record<string, string> = {
   couple: 'ri-hearts-line', engagement: 'ri-heart-2-line', venue: 'ri-building-4-line',

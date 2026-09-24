@@ -2,8 +2,9 @@ import { useState, useRef, useCallback, type FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import type { GalleryData, GalleryAlbum, GalleryUploadSettings } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const UPLOAD_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-gallery-upload';
+const UPLOAD_URL = edgeFunctionUrl('guest-gallery-upload');
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export default function GuestGalleryUploadPage() {

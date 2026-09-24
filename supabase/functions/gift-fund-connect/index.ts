@@ -13,8 +13,9 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
 
   if (!stripeKey || stripeKey === "sk_live_replace_me" || stripeKey === "sk_test_replace_me") {
@@ -25,6 +26,9 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
+  // Separate anon client used only for verifying the caller's JWT; privileged
+  // database operations must remain on the service-role client above.
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
   const stripe = new Stripe(stripeKey, { apiVersion: "2025-06-15.basil" });
 
   try {
@@ -34,7 +38,7 @@ Deno.serve(async (req: Request) => {
     // Verify auth
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authErr } = await supabaseAuth.auth.getUser(token);
     if (authErr || !user) {
       return new Response(JSON.stringify({ error: "Authentication required" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -220,7 +224,7 @@ Deno.serve(async (req: Request) => {
           business_type: "individual",
           metadata: {
             user_id: user.id,
-            platform: "wedora",
+            platform: "vowora",
           },
         });
 

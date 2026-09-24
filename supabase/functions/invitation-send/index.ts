@@ -267,9 +267,13 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
+  // Separate anon client used only to verify the caller's JWT; privileged
+  // database operations stay on the service-role client above.
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
 
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
   const resendFromDomain = Deno.env.get("RESEND_FROM_DOMAIN");
@@ -287,7 +291,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+    const { data: { user }, error: authErr } = await supabaseAuth.auth.getUser(token);
     if (authErr || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,

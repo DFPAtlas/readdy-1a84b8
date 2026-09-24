@@ -12,8 +12,9 @@ import {
   UpdatesDisabled,
   AlertBannerBar,
 } from './components/UpdateComponents';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const INTERACT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-update-interact';
+const INTERACT_URL = edgeFunctionUrl('guest-update-interact');
 
 export default function GuestUpdatesPage() {
   const { accessId } = useParams();

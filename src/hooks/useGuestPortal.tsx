@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { GuestAccessResponse, GuestPortalSettings, WeddingEvent, GuestRecipientInfo, RsvpResponse, GuestSeatingResponse, LocalPlace, AccommodationPlan, GuestTravelPlan, SavedTravelLocation, WeddingShuttle, GuestShuttleRequest, LocationEventLink, TravelUpdate, GiftFundData } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const LOADER_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-portal-loader';
+const LOADER_URL = edgeFunctionUrl('guest-portal-loader');
 const SESSION_KEY = 'vowora_guest_session';
 
 // ── Safe response model (what the context exposes) ──

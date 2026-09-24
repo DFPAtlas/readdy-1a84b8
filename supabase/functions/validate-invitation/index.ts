@@ -2,11 +2,45 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+// ── CORS allowlist (environment-driven) ──
+// Replaces the previous wildcard. Configure additional origins with the
+// GUEST_ALLOWED_ORIGINS env var (comma-separated); local development origins
+// are included by default (or alongside an explicit list with ALLOW_LOCAL_ORIGINS=true).
+const VOWORA_PRODUCTION_ORIGINS = ["https://vowora.uk", "https://www.vowora.uk"];
+const GUEST_LOCAL_ORIGINS = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:4173",
+  "http://127.0.0.1:4173",
+];
+
+function normalizeOrigin(origin: string): string {
+  return origin.trim().replace(/\/+$/, "");
+}
+
+function allowedGuestOrigins(): string[] {
+  const configured = (Deno.env.get("GUEST_ALLOWED_ORIGINS") ?? "")
+    .split(",")
+    .map(normalizeOrigin)
+    .filter(Boolean);
+  const base = configured.length > 0 ? configured : [...VOWORA_PRODUCTION_ORIGINS];
+  const includeLocal = configured.length === 0 || Deno.env.get("ALLOW_LOCAL_ORIGINS") === "true";
+  return Array.from(new Set(includeLocal ? [...base, ...GUEST_LOCAL_ORIGINS] : base));
+}
+
+function buildCorsHeaders(req: Request): Record<string, string> {
+  const requestOrigin = normalizeOrigin(req.headers.get("origin") ?? "");
+  const allowed = allowedGuestOrigins();
+  const allowOrigin = requestOrigin && allowed.includes(requestOrigin)
+    ? requestOrigin
+    : (allowed[0] ?? VOWORA_PRODUCTION_ORIGINS[0]);
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
 
 const securityHeaders = {
   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -20,6 +54,12 @@ const securityHeaders = {
 const RATE_WINDOW_MINUTES = 15;
 const MAX_FAILED_ATTEMPTS = 5;
 const SESSION_DURATION_DAYS = 7;
+
+function generateSessionSecret(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 function sha256(text: string): string {
   const data = new TextEncoder().encode(text);
@@ -42,16 +82,18 @@ function genericError(reason: string) {
   return { valid: false, reason };
 }
 
-function allHeaders(): Record<string, string> {
+function allHeaders(corsHeaders: Record<string, string>): Record<string, string> {
   return { ...corsHeaders, ...securityHeaders };
 }
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = buildCorsHeaders(req);
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: allHeaders() });
+    return new Response("ok", { headers: allHeaders(corsHeaders) });
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -65,7 +107,7 @@ Deno.serve(async (req: Request) => {
       await logAnonActivity(supabase, fingerprint, "invalid_token_format", "Token missing or too short");
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
@@ -83,7 +125,7 @@ Deno.serve(async (req: Request) => {
       await logAnonActivity(supabase, fingerprint, "rate_limited", "Too many failed attempts");
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
@@ -110,7 +152,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
@@ -125,7 +167,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(JSON.stringify(genericError("expired")), {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
@@ -140,7 +182,7 @@ Deno.serve(async (req: Request) => {
       await logWeddingActivity(supabase, accessToken.wedding_id, accessToken.invitation_id, accessToken.id, "validation_failed", "Invitation not found", fingerprint);
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
@@ -148,7 +190,7 @@ Deno.serve(async (req: Request) => {
       await logWeddingActivity(supabase, accessToken.wedding_id, accessToken.invitation_id, accessToken.id, "access_denied_cancelled", "Invitation cancelled or archived", fingerprint);
       return new Response(JSON.stringify(genericError("cancelled")), {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
@@ -162,7 +204,7 @@ Deno.serve(async (req: Request) => {
     if (wedErr || !wedding) {
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
@@ -176,7 +218,7 @@ Deno.serve(async (req: Request) => {
     if (portalSettings && !portalSettings.portal_enabled) {
       return new Response(JSON.stringify(genericError("portal_disabled")), {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
 
@@ -185,69 +227,51 @@ Deno.serve(async (req: Request) => {
       if (new Date() >= closeDate) {
         return new Response(JSON.stringify(genericError("portal_closed")), {
           status: 200,
-          headers: { ...allHeaders(), "Content-Type": "application/json" },
+          headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
         });
       }
     }
 
-    // Check for existing active session (idempotency — reuse if exists)
-    const { data: existingSession } = await supabase
+    // Issue a fresh guest session. The raw credential is returned to the
+    // browser exactly ONCE (as session_id); only its one-way SHA-256 hash is
+    // ever persisted. An existing active session cannot be reused here because
+    // the server no longer holds the raw secret, so each validation issues a new
+    // session and stale ones simply expire.
+    const rawSession = generateSessionSecret();
+    const sessionHash = sha256(rawSession);
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const now = new Date().toISOString();
+
+    const { error: sessionErr } = await supabase
       .from("guest_access_sessions")
-      .select("id, session_hash, created_at, last_seen_at")
-      .eq("access_token_id", accessToken.id)
-      .eq("status", "active")
-      .gt("expires_at", new Date().toISOString())
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    let sessionHash: string;
-
-    if (existingSession) {
-      // Reuse existing session — touch last_seen_at
-      sessionHash = existingSession.session_hash;
-      await supabase
-        .from("guest_access_sessions")
-        .update({ last_seen_at: new Date().toISOString() })
-        .eq("id", existingSession.id);
-    } else {
-      // Create new session
-      const rawSessionId = crypto.randomUUID();
-      sessionHash = sha256(rawSessionId);
-      const expiresAt = new Date(Date.now() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
-      const now = new Date().toISOString();
-
-      const { error: sessionErr } = await supabase
-        .from("guest_access_sessions")
-        .insert({
-          wedding_id: accessToken.wedding_id,
-          invitation_id: accessToken.invitation_id,
-          access_token_id: accessToken.id,
-          session_hash: sessionHash,
-          status: "active",
-          expires_at: expiresAt,
-          created_at: now,
-          last_seen_at: now,
-        });
-
-      if (sessionErr) {
-        console.error("Session creation failed:", sessionErr);
-        return new Response(JSON.stringify(genericError("unavailable")), {
-          status: 200,
-          headers: { ...allHeaders(), "Content-Type": "application/json" },
-        });
-      }
-
-      await supabase.from("guest_portal_activity").insert({
+      .insert({
         wedding_id: accessToken.wedding_id,
         invitation_id: accessToken.invitation_id,
         access_token_id: accessToken.id,
-        actor_type: "guest",
-        event_type: "session_created",
-        summary: "Guest portal session created",
-        security_metadata: { fingerprint },
+        session_hash: sessionHash,
+        status: "active",
+        expires_at: expiresAt,
+        created_at: now,
+        last_seen_at: now,
+      });
+
+    if (sessionErr) {
+      console.error("Session creation failed:", sessionErr);
+      return new Response(JSON.stringify(genericError("unavailable")), {
+        status: 200,
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       });
     }
+
+    await supabase.from("guest_portal_activity").insert({
+      wedding_id: accessToken.wedding_id,
+      invitation_id: accessToken.invitation_id,
+      access_token_id: accessToken.id,
+      actor_type: "guest",
+      event_type: "session_created",
+      summary: "Guest portal session created",
+      security_metadata: { fingerprint },
+    });
 
     // Update token last_used_at
     await supabase
@@ -349,11 +373,12 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         valid: true,
         data,
-        session_id: sessionHash,
+        // Raw credential — returned once only. Never the stored hash.
+        session_id: rawSession,
       }),
       {
         status: 200,
-        headers: { ...allHeaders(), "Content-Type": "application/json" },
+        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
       },
     );
   } catch (err) {
@@ -370,7 +395,7 @@ Deno.serve(async (req: Request) => {
     } catch { /* best effort */ }
     return new Response(JSON.stringify(genericError("unavailable")), {
       status: 200,
-      headers: { ...allHeaders(), "Content-Type": "application/json" },
+      headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
     });
   }
 });

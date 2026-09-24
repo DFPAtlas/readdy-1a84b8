@@ -2,9 +2,10 @@ import { useState, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import type { GalleryAlbum, GalleryAsset, GalleryData } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 import { isDemoMode } from '@/demo/demoConfig';
 
-const INTERACT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-gallery-interact';
+const INTERACT_URL = edgeFunctionUrl('guest-gallery-interact');
 
 const STATUS_BADGES: Record<string, { icon: string; label: string; color: string }> = {
   pending: { icon: 'ri-time-line', label: 'Pending review', color: 'bg-amber-50 border-amber-200 text-amber-700' },

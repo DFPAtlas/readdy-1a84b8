@@ -20,6 +20,12 @@ async function sha256(buffer: Uint8Array): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// The browser holds the raw guest session credential; only its SHA-256 hash is
+// stored in guest_access_sessions.session_hash, so hash before every lookup.
+function sha256String(text: string): Promise<string> {
+  return sha256(new TextEncoder().encode(text));
+}
+
 // ── Rate limiting store ──
 
 const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
@@ -53,7 +59,7 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -75,7 +81,7 @@ Deno.serve(async (req: Request) => {
     const { data: session } = await supabase
       .from("guest_access_sessions")
       .select("id, wedding_id, invitation_id")
-      .eq("session_hash", sessionHash)
+      .eq("session_hash", await sha256String(sessionHash))
       .eq("status", "active")
       .maybeSingle();
 

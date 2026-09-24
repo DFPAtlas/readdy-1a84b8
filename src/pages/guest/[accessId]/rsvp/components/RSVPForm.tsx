@@ -2,8 +2,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import type { RsvpEventResponse, RsvpCustomAnswer } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const SUBMIT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/submit-rsvp';
+const SUBMIT_URL = edgeFunctionUrl('submit-rsvp');
 
 export const ATTENDANCE_OPTIONS = [
   { value: 'attending' as const, label: 'Joyfully accept', icon: 'ri-check-line', desc: 'I would love to attend' },

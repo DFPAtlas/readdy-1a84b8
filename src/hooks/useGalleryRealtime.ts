@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
 export interface WallAsset {
   id: string;
@@ -42,7 +43,7 @@ export function useGalleryRealtime(weddingId: string | null, accessId?: string):
       // Use the loader for guest portal, or direct query for public wall
       if (accessId) {
         const res = await fetch(
-          'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-portal-loader',
+          edgeFunctionUrl('guest-portal-loader'),
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const LOADER_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-portal-loader';
+const LOADER_URL = edgeFunctionUrl('guest-portal-loader');
 
 export default function ContributionSuccessPage() {
   const [searchParams] = useSearchParams();

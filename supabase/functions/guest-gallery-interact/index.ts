@@ -7,6 +7,14 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// The browser holds the raw guest session credential; only its SHA-256 hash is
+// stored in guest_access_sessions.session_hash, so hash before every lookup.
+function sha256(text: string): string {
+  const data = new TextEncoder().encode(text);
+  const hash = crypto.subtle.digestSync("SHA-256", data);
+  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 // ── Rate limiting ──
 
 const rateLimitStore = new Map<string, { count: number; windowStart: number }>();
@@ -35,9 +43,13 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
+  // Separate anon client used only to verify a caller's JWT for couple-only
+  // actions; privileged database work stays on the service-role client.
+  const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
 
   try {
     const body = await req.json();
@@ -53,7 +65,7 @@ Deno.serve(async (req: Request) => {
     const { data: session } = await supabase
       .from("guest_access_sessions")
       .select("id, wedding_id, invitation_id")
-      .eq("session_hash", session_hash)
+      .eq("session_hash", sha256(session_hash))
       .eq("status", "active")
       .maybeSingle();
 
@@ -268,7 +280,7 @@ Deno.serve(async (req: Request) => {
       }
 
       const token = authHeader.replace("Bearer ", "");
-      const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+      const { data: { user }, error: authErr } = await supabaseAuth.auth.getUser(token);
 
       if (authErr || !user) {
         return new Response(JSON.stringify({ success: false, error: "Invalid authentication" }), {

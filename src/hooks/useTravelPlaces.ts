@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import type { TravelPlace, TravelPlaceFormData, DiscoveryResult, TravelStats } from '@/types/travel';
 import { CATEGORY_GROUPS } from '@/types/travel';
 
-const EDGE_FUNCTION_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/travel-places-discover';
+const EDGE_FUNCTION_URL = edgeFunctionUrl('travel-places-discover');
 
 export function useTravelPlaces() {
   const { weddingId, wedding } = useActiveWedding();

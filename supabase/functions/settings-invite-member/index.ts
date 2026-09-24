@@ -18,6 +18,13 @@ serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
+    // Separate anon client used only to verify the caller's JWT; privileged
+    // database operations stay on the service-role client above.
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
     const authHeader = req.headers.get("Authorization") ?? "";
     const token = authHeader.replace("Bearer ", "");
 
@@ -31,7 +38,7 @@ serve(async (req: Request) => {
     const {
       data: { user },
       error: authError,
-    } = await supabaseClient.auth.getUser(token);
+    } = await supabaseAuth.auth.getUser(token);
 
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Invalid auth token" }), {

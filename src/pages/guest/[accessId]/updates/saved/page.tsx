@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { useState, useCallback } from 'react';
 import type { GuestUpdate } from '@/types/access';
 import { isDemoMode } from '@/demo/demoConfig';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const INTERACT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-update-interact';
+const INTERACT_URL = edgeFunctionUrl('guest-update-interact');
 
 function formatRelative(dateStr: string): string {
   const now = new Date();

@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import type { LocalPlace, GuestTravelPlan } from '@/types/access';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
 function formatDateGB(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -11,7 +12,7 @@ function formatDateShort(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
-const SAVE_PLAN_URL_PATTERN = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/save-travel-plan';
+const SAVE_PLAN_URL_PATTERN = edgeFunctionUrl('save-travel-plan');
 
 export default function GuestSavedTravelPage() {
   const { accessId } = useParams();

@@ -14,8 +14,9 @@ import {
   SettingsDisabled,
   ToastMessage,
 } from './components/SettingsComponents';
+import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 
-const INTERACT_URL = 'https://msisc09taib8ral0g0f1.helloreaddy.com/functions/v1/guest-settings-interact';
+const INTERACT_URL = edgeFunctionUrl('guest-settings-interact');
 
 export default function GuestSettingsPage() {
   const { accessId } = useParams();

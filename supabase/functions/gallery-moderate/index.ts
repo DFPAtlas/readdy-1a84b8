@@ -79,7 +79,7 @@ async function simulateContentScan(
       reason_category: "file_integrity",
       reason_detail: "File appears corrupted or too small to contain valid image data",
       confidence: 0.95,
-      provider: "wedora-simulated-scanner",
+      provider: "vowora-simulated-scanner",
     };
   }
 
@@ -90,7 +90,7 @@ async function simulateContentScan(
       reason_category: "size_threshold",
       reason_detail: "File exceeds automated scan size threshold, requires manual review",
       confidence: 0.99,
-      provider: "wedora-simulated-scanner",
+      provider: "vowora-simulated-scanner",
     };
   }
 
@@ -102,7 +102,7 @@ async function simulateContentScan(
       reason_category: undefined,
       reason_detail: undefined,
       confidence: 0.92,
-      provider: "wedora-simulated-scanner",
+      provider: "vowora-simulated-scanner",
     };
   }
 
@@ -112,7 +112,7 @@ async function simulateContentScan(
     reason_category: undefined,
     reason_detail: undefined,
     confidence: 0.94,
-    provider: "wedora-simulated-scanner",
+    provider: "vowora-simulated-scanner",
   };
 }
 
@@ -123,7 +123,7 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  const supabaseUrl = Deno.env.get("VITE_PUBLIC_SUPABASE_URL")!;
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -201,7 +201,7 @@ Deno.serve(async (req: Request) => {
         moderation_status: "rejected",
         moderation_reason: fileCheck.reason || "File failed safety validation",
         moderation_scanned_at: new Date().toISOString(),
-        scanned_by: "wedora-file-validator",
+        scanned_by: "vowora-file-validator",
         moderation_updated_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }).eq("id", asset_id);
@@ -210,7 +210,7 @@ Deno.serve(async (req: Request) => {
         success: true,
         moderation_status: "rejected",
         reason: fileCheck.reason,
-        provider: "wedora-file-validator",
+        provider: "vowora-file-validator",
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
