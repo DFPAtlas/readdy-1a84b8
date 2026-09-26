@@ -133,7 +133,7 @@ jobs:
     name: Production Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [type-check, lint, test]
+    needs: [repo-check, install]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
