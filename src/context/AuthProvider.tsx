@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode } from '@/demo/demoConfig';
+import { accountDestination } from '@/lib/signupIntent';
 import { mapAuthError, safeAuthLog } from '@/lib/authErrors';
 import type { User, Session } from '@supabase/supabase-js';
 
@@ -29,7 +30,7 @@ export interface AuthContextValue {
   authError: string | null;
   isAuthenticated: boolean;
   isDemoSession: boolean;
-  signUp: (email: string, password: string, metadata?: { first_name?: string; last_name?: string }) => Promise<{ success: boolean; needsVerification: boolean }>;
+  signUp: (email: string, password: string, metadata?: { first_name?: string; last_name?: string; selected_plan?: string; signup_return_to?: string; marketing_consent?: boolean }) => Promise<{ success: boolean; needsVerification: boolean }>;
   signIn: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<boolean>;
@@ -141,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = useCallback(async (
     email: string,
     password: string,
-    metadata?: { first_name?: string; last_name?: string }
+    metadata?: { first_name?: string; last_name?: string; selected_plan?: string; signup_return_to?: string; marketing_consent?: boolean }
   ): Promise<{ success: boolean; needsVerification: boolean }> => {
     setAuthError(null);
 
@@ -158,8 +159,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             first_name: metadata?.first_name || '',
             last_name: metadata?.last_name || '',
             display_name: displayName || '',
+            selected_plan: metadata?.selected_plan || 'free',
+            signup_return_to: metadata?.signup_return_to || '',
+            marketing_consent: metadata?.marketing_consent === true,
+            marketing_consent_at: new Date().toISOString(),
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(accountDestination(metadata))}`,
         },
       });
 

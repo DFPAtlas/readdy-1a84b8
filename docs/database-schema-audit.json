@@ -1,0 +1,6797 @@
+[
+  {
+    "name": "public.profiles",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "email",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "first_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "last_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "display_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "avatar_url",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ]
+  },
+  {
+    "name": "public.weddings",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "slug",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable",
+          "unique"
+        ]
+      },
+      {
+        "name": "title",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "partner_one_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "partner_two_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "wedding_date",
+        "data_type": "date",
+        "format": "date",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "timezone",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'Europe/London'::text"
+      },
+      {
+        "name": "hashtag",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "dress_code",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "welcome_message",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "contact_information",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "parking_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "accessibility_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "children_policy",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "plus_one_policy",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "location",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'active'::text"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "invitation_recipients_wedding_id_fkey",
+        "source_table": "public.invitation_recipients",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_access_tokens_wedding_id_fkey",
+        "source_table": "public.invitation_access_tokens",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_access_activity_wedding_id_fkey",
+        "source_table": "public.invitation_access_activity",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_activity_log_wedding_id_fkey",
+        "source_table": "public.invitation_activity_log",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_designs_wedding_id_fkey",
+        "source_table": "public.invitation_designs",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "asset_library_wedding_id_fkey",
+        "source_table": "public.asset_library",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "verified_senders_wedding_id_fkey",
+        "source_table": "public.verified_senders",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_portal_settings_wedding_id_fkey",
+        "source_table": "public.guest_portal_settings",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_access_sessions_wedding_id_fkey",
+        "source_table": "public.guest_access_sessions",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_portal_activity_wedding_id_fkey",
+        "source_table": "public.guest_portal_activity",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_updates_wedding_id_fkey",
+        "source_table": "public.wedding_updates",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_update_state_wedding_id_fkey",
+        "source_table": "public.guest_update_state",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_faqs_wedding_id_fkey",
+        "source_table": "public.wedding_faqs",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_questions_wedding_id_fkey",
+        "source_table": "public.guest_questions",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "question_activity_wedding_id_fkey",
+        "source_table": "public.question_activity",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_members_wedding_id_fkey",
+        "source_table": "public.wedding_members",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_member_invitations_wedding_id_fkey",
+        "source_table": "public.wedding_member_invitations",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_settings_wedding_id_fkey",
+        "source_table": "public.wedding_settings",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_notification_preferences_wedding_id_fkey",
+        "source_table": "public.wedding_notification_preferences",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_venues_wedding_id_fkey",
+        "source_table": "public.wedding_venues",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_events_wedding_id_fkey",
+        "source_table": "public.wedding_events",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_event_audiences_wedding_id_fkey",
+        "source_table": "public.wedding_event_audiences",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_households_wedding_id_fkey",
+        "source_table": "public.guest_households",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guests_wedding_id_fkey",
+        "source_table": "public.guests",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_tags_wedding_id_fkey",
+        "source_table": "public.guest_tags",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_tag_assignments_wedding_id_fkey",
+        "source_table": "public.guest_tag_assignments",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_activity_log_wedding_id_fkey",
+        "source_table": "public.guest_activity_log",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_import_jobs_wedding_id_fkey",
+        "source_table": "public.guest_import_jobs",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_templates_wedding_id_fkey",
+        "source_table": "public.invitation_templates",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitations_wedding_id_fkey",
+        "source_table": "public.invitations",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "rsvp_response_revisions_wedding_id_fkey",
+        "source_table": "public.rsvp_response_revisions",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "rsvp_custom_answers_wedding_id_fkey",
+        "source_table": "public.rsvp_custom_answers",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "rsvp_event_responses_wedding_id_fkey",
+        "source_table": "public.rsvp_event_responses",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_contacts_wedding_id_fkey",
+        "source_table": "public.wedding_contacts",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_local_places_wedding_id_fkey",
+        "source_table": "public.wedding_local_places",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_travel_plans_wedding_id_fkey",
+        "source_table": "public.guest_travel_plans",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_notification_preferences_wedding_id_fkey",
+        "source_table": "public.guest_notification_preferences",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_consent_records_wedding_id_fkey",
+        "source_table": "public.guest_consent_records",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "profile_change_records_wedding_id_fkey",
+        "source_table": "public.profile_change_records",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "privacy_requests_wedding_id_fkey",
+        "source_table": "public.privacy_requests",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "rsvp_submissions_wedding_id_fkey",
+        "source_table": "public.rsvp_submissions",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "rsvp_responses_wedding_id_fkey",
+        "source_table": "public.rsvp_responses",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_members",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "user_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "profile_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "email",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "role",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'owner'::text"
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'active'::text"
+      },
+      {
+        "name": "permissions",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_members_wedding_id_fkey",
+        "source_table": "public.wedding_members",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_member_invitations",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "email",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "role",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'collaborator'::text"
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'pending'::text"
+      },
+      {
+        "name": "token_hash",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invited_by",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "expires_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "accepted_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_member_invitations_wedding_id_fkey",
+        "source_table": "public.wedding_member_invitations",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_settings",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable",
+          "unique"
+        ]
+      },
+      {
+        "name": "settings",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_settings_wedding_id_fkey",
+        "source_table": "public.wedding_settings",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_notification_preferences",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "profile_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "prefs",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_notification_preferences_wedding_id_fkey",
+        "source_table": "public.wedding_notification_preferences",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_venues",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "venue_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "address_line_1",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "address_line_2",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "city",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "county_or_region",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "postcode",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "country",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "latitude",
+        "data_type": "numeric",
+        "format": "numeric",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "longitude",
+        "data_type": "numeric",
+        "format": "numeric",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_events_venue_id_fkey",
+        "source_table": "public.wedding_events",
+        "source_columns": [
+          "venue_id"
+        ],
+        "target_table": "public.wedding_venues",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_venues_wedding_id_fkey",
+        "source_table": "public.wedding_venues",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_events",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "venue_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "event_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_description",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "start_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "end_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "visibility",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'invitation_holders'::text"
+      },
+      {
+        "name": "reveal_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "dress_code",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "arrival_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "arrival_offset_minutes",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "parking_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "transport_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "accessibility_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "children_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'active'::text"
+      },
+      {
+        "name": "published_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_events_wedding_id_fkey",
+        "source_table": "public.wedding_events",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_events_venue_id_fkey",
+        "source_table": "public.wedding_events",
+        "source_columns": [
+          "venue_id"
+        ],
+        "target_table": "public.wedding_venues",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_event_audiences_event_id_fkey",
+        "source_table": "public.wedding_event_audiences",
+        "source_columns": [
+          "event_id"
+        ],
+        "target_table": "public.wedding_events",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_event_audiences",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "event_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "audience_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'invitation'::text"
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "household_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_group",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_event_audiences_wedding_id_fkey",
+        "source_table": "public.wedding_event_audiences",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "wedding_event_audiences_event_id_fkey",
+        "source_table": "public.wedding_event_audiences",
+        "source_columns": [
+          "event_id"
+        ],
+        "target_table": "public.wedding_events",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_households",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "display_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "address_line_1",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "address_line_2",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "city",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "postcode",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "country",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'active'::text"
+      },
+      {
+        "name": "notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guests_household_id_fkey",
+        "source_table": "public.guests",
+        "source_columns": [
+          "household_id"
+        ],
+        "target_table": "public.guest_households",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_households_wedding_id_fkey",
+        "source_table": "public.guest_households",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitations_household_id_fkey",
+        "source_table": "public.invitations",
+        "source_columns": [
+          "household_id"
+        ],
+        "target_table": "public.guest_households",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guests",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "household_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "full_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "last_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "preferred_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "relationship_label",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_group",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "wedding_party_role",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "email",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "mobile_phone",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "alternative_phone",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "preferred_contact_method",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "dietary_requirements",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "allergy_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "accessibility_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "accessibility_needs",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "age_band",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "child_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "meal_choice",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "rsvp_status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'pending'::text"
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'active'::text"
+      },
+      {
+        "name": "archived_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "plus_one_allowed",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "plus_one_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "plus_one_status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "named_plus_one_guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "approved_additional_children",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "0"
+      },
+      {
+        "name": "ceremony_invited",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "reception_invited",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "evening_invited",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_tag_assignments_guest_id_fkey",
+        "source_table": "public.guest_tag_assignments",
+        "source_columns": [
+          "guest_id"
+        ],
+        "target_table": "public.guests",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guests_wedding_id_fkey",
+        "source_table": "public.guests",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guests_household_id_fkey",
+        "source_table": "public.guests",
+        "source_columns": [
+          "household_id"
+        ],
+        "target_table": "public.guest_households",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_recipients_guest_id_fkey",
+        "source_table": "public.invitation_recipients",
+        "source_columns": [
+          "guest_id"
+        ],
+        "target_table": "public.guests",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_tags",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "colour",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_tags_wedding_id_fkey",
+        "source_table": "public.guest_tags",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_tag_assignments_tag_id_fkey",
+        "source_table": "public.guest_tag_assignments",
+        "source_columns": [
+          "tag_id"
+        ],
+        "target_table": "public.guest_tags",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_tag_assignments",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "tag_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_tag_assignments_guest_id_fkey",
+        "source_table": "public.guest_tag_assignments",
+        "source_columns": [
+          "guest_id"
+        ],
+        "target_table": "public.guests",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_tag_assignments_wedding_id_fkey",
+        "source_table": "public.guest_tag_assignments",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_tag_assignments_tag_id_fkey",
+        "source_table": "public.guest_tag_assignments",
+        "source_columns": [
+          "tag_id"
+        ],
+        "target_table": "public.guest_tags",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_activity_log",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "action",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "summary",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "metadata",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_activity_log_wedding_id_fkey",
+        "source_table": "public.guest_activity_log",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_import_jobs",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'pending'::text"
+      },
+      {
+        "name": "total_rows",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "imported_rows",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "error_message",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_import_jobs_wedding_id_fkey",
+        "source_table": "public.guest_import_jobs",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.invitation_templates",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "style_preset",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'minimal'::text"
+      },
+      {
+        "name": "header_text",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "body_text",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "closing_text",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "footer_text",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "rsvp_button_label",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "image_url",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "theme_config",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'active'::text"
+      },
+      {
+        "name": "is_default",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "locked",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "archived_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "invitation_templates_wedding_id_fkey",
+        "source_table": "public.invitation_templates",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitations_template_id_fkey",
+        "source_table": "public.invitations",
+        "source_columns": [
+          "template_id"
+        ],
+        "target_table": "public.invitation_templates",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.invitations",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "household_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "template_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "internal_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "formal_recipient_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "informal_greeting",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'household'::text"
+      },
+      {
+        "name": "rsvp_deadline",
+        "data_type": "date",
+        "format": "date",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'draft'::text"
+      },
+      {
+        "name": "delivery_method",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "delivery_status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "design_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "archived_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "invitation_recipients_invitation_id_fkey",
+        "source_table": "public.invitation_recipients",
+        "source_columns": [
+          "invitation_id"
+        ],
+        "target_table": "public.invitations",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitations_wedding_id_fkey",
+        "source_table": "public.invitations",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitations_household_id_fkey",
+        "source_table": "public.invitations",
+        "source_columns": [
+          "household_id"
+        ],
+        "target_table": "public.guest_households",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitations_template_id_fkey",
+        "source_table": "public.invitations",
+        "source_columns": [
+          "template_id"
+        ],
+        "target_table": "public.invitation_templates",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_access_tokens_invitation_id_fkey",
+        "source_table": "public.invitation_access_tokens",
+        "source_columns": [
+          "invitation_id"
+        ],
+        "target_table": "public.invitations",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.invitation_recipients",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "recipient_role",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'primary'::text"
+      },
+      {
+        "name": "ceremony_included",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "reception_included",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "evening_included",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "welcome_event_included",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "day_after_event_included",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "plus_one_allowed",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "invitation_group",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "invitation_recipients_guest_id_fkey",
+        "source_table": "public.invitation_recipients",
+        "source_columns": [
+          "guest_id"
+        ],
+        "target_table": "public.guests",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_recipients_wedding_id_fkey",
+        "source_table": "public.invitation_recipients",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_recipients_invitation_id_fkey",
+        "source_table": "public.invitation_recipients",
+        "source_columns": [
+          "invitation_id"
+        ],
+        "target_table": "public.invitations",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.invitation_access_tokens",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "token_hash",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable",
+          "unique"
+        ]
+      },
+      {
+        "name": "token_version",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "1"
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'active'::text"
+      },
+      {
+        "name": "expires_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "revoked_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "last_used_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "invitation_access_tokens_invitation_id_fkey",
+        "source_table": "public.invitation_access_tokens",
+        "source_columns": [
+          "invitation_id"
+        ],
+        "target_table": "public.invitations",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "invitation_access_tokens_wedding_id_fkey",
+        "source_table": "public.invitation_access_tokens",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.invitation_access_activity",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "access_token_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "actor_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "event_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "summary",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "security_metadata",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "invitation_access_activity_wedding_id_fkey",
+        "source_table": "public.invitation_access_activity",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.invitation_activity_log",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "action",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "summary",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "metadata",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "invitation_activity_log_wedding_id_fkey",
+        "source_table": "public.invitation_activity_log",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.invitation_designs",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "template_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "document",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "thumbnail_url",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'draft'::text"
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "invitation_designs_wedding_id_fkey",
+        "source_table": "public.invitation_designs",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.asset_library",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "category",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "asset_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "storage_path",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "url",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "metadata",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "asset_library_wedding_id_fkey",
+        "source_table": "public.asset_library",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.verified_senders",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "email",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "display_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'pending'::text"
+      },
+      {
+        "name": "verified_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "verified_senders_wedding_id_fkey",
+        "source_table": "public.verified_senders",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_portal_settings",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable",
+          "unique"
+        ]
+      },
+      {
+        "name": "portal_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_countdown",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_travel",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_updates",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_contact_details",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "custom_guest_message",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "portal_closes_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "rsvp_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "household_rsvp_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "require_meal_choices",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "meal_options",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "custom_questions",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "allow_song_requests",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "allow_messages",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_transport",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_accommodation",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_registry",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "registry_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_gallery",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_questions",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "allow_guest_questions",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_contacts",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "itinerary_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "seating_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "settings_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_settings",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_location",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "theme_key",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "seating_reveal_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "seating_emergency_disabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "show_seat_number",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_room_map",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "show_table_companions",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "companion_name_format",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'full_names'::text"
+      },
+      {
+        "name": "show_companion_seat_labels",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "show_floor_plan_background",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "show_entrance_route",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "seating_guest_message",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "gallery_guest_message",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "allow_late_rsvp",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "allow_rsvp_updates",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "sms_configured",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "privacy_notice_url",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_portal_settings_wedding_id_fkey",
+        "source_table": "public.guest_portal_settings",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_access_sessions",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "access_token_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "session_hash",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable",
+          "unique"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'active'::text"
+      },
+      {
+        "name": "expires_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "last_seen_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "ended_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_access_sessions_wedding_id_fkey",
+        "source_table": "public.guest_access_sessions",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_portal_activity",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "access_token_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "actor_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "event_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "summary",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "security_metadata",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_portal_activity_wedding_id_fkey",
+        "source_table": "public.guest_portal_activity",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_updates",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "title",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "summary",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "content",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "content_data",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "category",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "priority",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'standard'::text"
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'draft'::text"
+      },
+      {
+        "name": "is_important",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "dismissible",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "publish_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "published_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "update_date",
+        "data_type": "date",
+        "format": "date",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "linked_event_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "related_itinerary_event_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "related_travel_item_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "related_route",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_by",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_updates_wedding_id_fkey",
+        "source_table": "public.wedding_updates",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_update_state_update_id_fkey",
+        "source_table": "public.guest_update_state",
+        "source_columns": [
+          "update_id"
+        ],
+        "target_table": "public.wedding_updates",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_update_state",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "update_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "is_read",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "read_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "is_saved",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_update_state_wedding_id_fkey",
+        "source_table": "public.guest_update_state",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "guest_update_state_update_id_fkey",
+        "source_table": "public.guest_update_state",
+        "source_columns": [
+          "update_id"
+        ],
+        "target_table": "public.wedding_updates",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_faqs",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "category",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'general'::text"
+      },
+      {
+        "name": "question",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "answer",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "sort_order",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "0"
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'published'::text"
+      },
+      {
+        "name": "is_published",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "helpful_count",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "0"
+      },
+      {
+        "name": "not_helpful_count",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "0"
+      },
+      {
+        "name": "related_links",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_faqs_wedding_id_fkey",
+        "source_table": "public.wedding_faqs",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_questions",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "category",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'general'::text"
+      },
+      {
+        "name": "subject",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "message",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "preferred_response_method",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'portal'::text"
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'pending'::text"
+      },
+      {
+        "name": "response",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "responded_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "responded_by",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_questions_wedding_id_fkey",
+        "source_table": "public.guest_questions",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.question_activity",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "faq_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "question_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "activity_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "question_activity_wedding_id_fkey",
+        "source_table": "public.question_activity",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_contacts",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "role",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "phone",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "email",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "availability",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "is_emergency",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "is_published",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "sort_order",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "0"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_contacts_wedding_id_fkey",
+        "source_table": "public.wedding_contacts",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.wedding_local_places",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ]
+      },
+      {
+        "name": "place_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "address_line_1",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "city",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "postcode",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "country",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "description",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "image_url",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "website",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "telephone",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "latitude",
+        "data_type": "numeric",
+        "format": "numeric",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "longitude",
+        "data_type": "numeric",
+        "format": "numeric",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "is_approved",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "approval_status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'pending'::text"
+      },
+      {
+        "name": "visibility",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'all_guests'::text"
+      },
+      {
+        "name": "sort_order",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "0"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "wedding_local_places_wedding_id_fkey",
+        "source_table": "public.wedding_local_places",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_travel_plans",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "plan_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "place_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "check_in_date",
+        "data_type": "date",
+        "format": "date",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "check_out_date",
+        "data_type": "date",
+        "format": "date",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "booking_reference",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "transport_needs",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "transport_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "custom_accommodation_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "travel_method",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "arrival_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "departure_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "parking_required",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "shuttle_required",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "accommodation_location_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "room_count",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_count",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_travel_plans_wedding_id_fkey",
+        "source_table": "public.guest_travel_plans",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_notification_preferences",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "updates_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "email_notifications",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "sms_enabled",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "important_only_updates",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "travel_updates",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "rsvp_reminders",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "gallery_notifications",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "true"
+      },
+      {
+        "name": "language",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'en-GB'::text"
+      },
+      {
+        "name": "timezone",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'Europe/London'::text"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_notification_preferences_wedding_id_fkey",
+        "source_table": "public.guest_notification_preferences",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.guest_consent_records",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "consent_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "granted",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "guest_consent_records_wedding_id_fkey",
+        "source_table": "public.guest_consent_records",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.profile_change_records",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "changed_by",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "changes",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "profile_change_records_wedding_id_fkey",
+        "source_table": "public.profile_change_records",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.privacy_requests",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "profile_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "request_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "subject_email",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "'pending'::text"
+      },
+      {
+        "name": "details",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "submitted_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "privacy_requests_wedding_id_fkey",
+        "source_table": "public.privacy_requests",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.rsvp_submissions",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "submitted_by_guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "'submitted'::text"
+      },
+      {
+        "name": "is_draft",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "submitted_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "rsvp_submissions_wedding_id_fkey",
+        "source_table": "public.rsvp_submissions",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.rsvp_responses",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "submission_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "response_status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "ceremony_attending",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "reception_attending",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "evening_attending",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "welcome_attending",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "day_after_attending",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "plus_one_confirmed",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "plus_one_name",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "children_attending_count",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "0"
+      },
+      {
+        "name": "children_names",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "meal_choice",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "dietary_requirements",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "allergy_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "accessibility_notes",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "transport_status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "accommodation_status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "song_request",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "message_to_couple",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "submitted_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "is_draft",
+        "data_type": "boolean",
+        "format": "bool",
+        "options": [
+          "nullable",
+          "updatable"
+        ],
+        "default_value": "false"
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "rsvp_responses_wedding_id_fkey",
+        "source_table": "public.rsvp_responses",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "rsvp_custom_answers_response_id_fkey",
+        "source_table": "public.rsvp_custom_answers",
+        "source_columns": [
+          "response_id"
+        ],
+        "target_table": "public.rsvp_responses",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.rsvp_response_revisions",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "submission_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "response_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "revision_number",
+        "data_type": "integer",
+        "format": "int4",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "change_summary",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "snapshot",
+        "data_type": "jsonb",
+        "format": "jsonb",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "rsvp_response_revisions_wedding_id_fkey",
+        "source_table": "public.rsvp_response_revisions",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.rsvp_custom_answers",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "response_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "question_key",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "question_label",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "answer",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "answer_type",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "rsvp_custom_answers_wedding_id_fkey",
+        "source_table": "public.rsvp_custom_answers",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      },
+      {
+        "name": "rsvp_custom_answers_response_id_fkey",
+        "source_table": "public.rsvp_custom_answers",
+        "source_columns": [
+          "response_id"
+        ],
+        "target_table": "public.rsvp_responses",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "public.rsvp_event_responses",
+    "rls_enabled": true,
+    "columns": [
+      {
+        "name": "id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "gen_random_uuid()"
+      },
+      {
+        "name": "wedding_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "invitation_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "guest_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "event_id",
+        "data_type": "uuid",
+        "format": "uuid",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "attendance_status",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "meal_option_id",
+        "data_type": "text",
+        "format": "text",
+        "options": [
+          "nullable",
+          "updatable"
+        ]
+      },
+      {
+        "name": "created_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      },
+      {
+        "name": "updated_at",
+        "data_type": "timestamp with time zone",
+        "format": "timestamptz",
+        "options": [
+          "updatable"
+        ],
+        "default_value": "now()"
+      }
+    ],
+    "primary_keys": [
+      "id"
+    ],
+    "foreign_key_constraints": [
+      {
+        "name": "rsvp_event_responses_wedding_id_fkey",
+        "source_table": "public.rsvp_event_responses",
+        "source_columns": [
+          "wedding_id"
+        ],
+        "target_table": "public.weddings",
+        "target_columns": [
+          "id"
+        ]
+      }
+    ]
+  }
+]

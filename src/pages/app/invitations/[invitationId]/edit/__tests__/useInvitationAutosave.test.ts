@@ -20,6 +20,7 @@ function makeDoc(layers = 0): InvitationDocument {
       width: 100,
       height: 30,
       rotation: 0,
+      opacity: 1,
       zIndex: i,
       props: {
         content: `Layer ${i}`,
@@ -40,20 +41,20 @@ function makeRefs(doc: InvitationDocument, title = 'Test Invitation') {
   return { docRef, titleRef };
 }
 
-function makeSuccessfulSave(delayMs = 0): ReturnType<typeof vi.fn> {
+function makeSuccessfulSave(delayMs = 0) {
   return vi.fn(
     (_id: string, _doc: InvitationDocument, _title: string): Promise<SaveResult> =>
       new Promise((resolve) =>
-        setTimeout(() => resolve({ success: true }), delayMs),
+        delayMs ? setTimeout(() => resolve({ success: true }), delayMs) : resolve({ success: true }),
       ),
   );
 }
 
-function makeFailingSave(delayMs = 0): ReturnType<typeof vi.fn> {
+function makeFailingSave(delayMs = 0) {
   return vi.fn(
     (_id: string, _doc: InvitationDocument, _title: string): Promise<SaveResult> =>
       new Promise((resolve) =>
-        setTimeout(() => resolve({ success: false, error: 'Network error' }), delayMs),
+        delayMs ? setTimeout(() => resolve({ success: false, error: 'Network error' }), delayMs) : resolve({ success: false, error: 'Network error' }),
       ),
   );
 }
@@ -105,7 +106,7 @@ describe('useInvitationAutosave', () => {
     // Advance past 600ms
     vi.advanceTimersByTime(301);
     // Flush microtasks
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledTimes(1);
   });
@@ -148,7 +149,7 @@ describe('useInvitationAutosave', () => {
 
     // Now 600ms since the second change
     vi.advanceTimersByTime(200);
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledTimes(1);
   });
@@ -182,7 +183,7 @@ describe('useInvitationAutosave', () => {
 
     // 600ms after the last edit
     vi.advanceTimersByTime(600);
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledTimes(1);
   });
@@ -307,7 +308,7 @@ describe('useInvitationAutosave', () => {
       result.current.markDirty();
     });
     vi.advanceTimersByTime(600);
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledTimes(1);
     expect(result.current.saveState).toBe('error');
@@ -343,7 +344,7 @@ describe('useInvitationAutosave', () => {
       result.current.markDirty();
     });
     vi.advanceTimersByTime(600);
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledTimes(1);
 
@@ -351,7 +352,7 @@ describe('useInvitationAutosave', () => {
     act(() => {
       result.current.retry();
     });
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledTimes(2);
   });
@@ -462,7 +463,7 @@ describe('useInvitationAutosave', () => {
     await act(async () => {
       await result.current.manualSave();
     });
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledTimes(1);
   });
@@ -543,7 +544,7 @@ describe('useInvitationAutosave', () => {
       result.current.markDirty();
     });
     vi.advanceTimersByTime(600);
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(result.current.saveState).toBe('error');
 
@@ -582,7 +583,7 @@ describe('useInvitationAutosave', () => {
     expect(result.current.saveState).toBe('unsaved');
 
     vi.advanceTimersByTime(600);
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledTimes(1);
     // Verify title was captured
@@ -644,7 +645,7 @@ describe('useInvitationAutosave', () => {
       result.current.markDirty();
     });
     vi.advanceTimersByTime(600);
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     expect(saveFn).toHaveBeenCalledWith(
       'inv-1',
@@ -670,6 +671,7 @@ describe('useInvitationAutosave', () => {
           width: 100,
           height: 30,
           rotation: 0,
+      opacity: 1,
           zIndex: 5,
           props: { content: 'A', fontSize: 16, weight: 400, color: '#000', align: 'center', letterSpacing: 0 },
         },
@@ -681,6 +683,7 @@ describe('useInvitationAutosave', () => {
           width: 100,
           height: 30,
           rotation: 0,
+      opacity: 1,
           zIndex: 2,
           props: { content: 'B', fontSize: 16, weight: 400, color: '#000', align: 'center', letterSpacing: 0 },
         },
@@ -703,7 +706,7 @@ describe('useInvitationAutosave', () => {
       result.current.markDirty();
     });
     vi.advanceTimersByTime(600);
-    await vi.runAllTimersAsync();
+    await act(async () => { await vi.runAllTimersAsync(); });
 
     const savedDoc = saveFn.mock.calls[0][1] as InvitationDocument;
     // After normalization, z-indices should be 0 and 1 (sorted)

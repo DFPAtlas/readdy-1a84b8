@@ -1,10 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { safeReturnPath, accountDestination } from '@/lib/signupIntent';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode } from '@/demo/demoConfig';
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = safeReturnPath(params.get("next"));
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMsg, setErrorMsg] = useState('');
   const ranRef = useRef(false);
@@ -36,7 +39,7 @@ export default function AuthCallbackPage() {
             if (hashErr) throw hashErr;
             if (hashSession) {
               setStatus('success');
-              setTimeout(() => navigate('/app/dashboard', { replace: true }), 1200);
+              setTimeout(() => navigate(next || accountDestination(session?.user?.user_metadata), { replace: true }), 1200);
               return;
             }
           }
@@ -44,7 +47,7 @@ export default function AuthCallbackPage() {
         }
 
         setStatus('success');
-        setTimeout(() => navigate('/app/dashboard', { replace: true }), 1200);
+        setTimeout(() => navigate(next || accountDestination(session?.user?.user_metadata), { replace: true }), 1200);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Verification failed';
         setErrorMsg(message);
@@ -53,7 +56,7 @@ export default function AuthCallbackPage() {
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [navigate, next]);
 
   return (
     <div className="min-h-screen bg-background-50 flex items-center justify-center px-4">

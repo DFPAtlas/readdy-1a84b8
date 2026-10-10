@@ -209,7 +209,7 @@ function NormalBudgetReportsPage() {
   const totalPaid = payments.filter((p) => p.status === 'paid').reduce((s, p) => s + p.amount, 0);
   const totalOutstanding = totalCommitted - totalPaid;
 
-  const guestCount = (budget?.setup_profile as Record<string, unknown>)?.guest_count as number || 100;
+  const guestCount = (budget?.setup_profile as unknown as Record<string, unknown>)?.guest_count as number || 100;
   const perGuest = guestCount > 0 ? totalCommitted / guestCount : 0;
 
   const pct = (v: number) => totalPlanned > 0 ? Math.round((v / totalPlanned) * 100) : 0;

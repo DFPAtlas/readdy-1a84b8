@@ -90,7 +90,7 @@ export default function WebsiteDomainPage() {
   const [slugSaveStatus, setSlugSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [slugChangeConfirm, setSlugChangeConfirm] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout>>();
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   const currentSlug = draftConfig?.slug || '';
@@ -177,20 +177,7 @@ export default function WebsiteDomainPage() {
       setDomainError(null);
       return;
     }
-    // Production: would call Edge Function here
-    setDomain({
-      type: 'custom',
-      hostname: customDomainInput.trim(),
-      normalizedHostname: normalized,
-      status: 'awaiting_dns',
-      primary: false,
-      dnsRecords: demoDnsRecords(normalized),
-      verifiedAt: null,
-      activatedAt: null,
-      failureCode: null,
-    });
-    setConnectStep('dns');
-    setDomainError(null);
+    setDomainError('Custom wedding domains require hosting configuration. Open Support to request setup; no DNS records have been generated.');
   };
 
   const checkVerification = async () => {
@@ -202,12 +189,7 @@ export default function WebsiteDomainPage() {
       showToast('success', 'Domain verified and active!');
       return;
     }
-    setConnectStep('checking');
-    // Production: call check-domain-status Edge Function
-    await new Promise((r) => setTimeout(r, 1500));
-    setDomain((prev) => ({ ...prev, status: 'misconfigured' }));
-    setConnectStep('dns');
-    showToast('error', 'DNS records not found. Please check your DNS settings.');
+    showToast('error', 'Domain verification requires hosting setup. Please contact Support.');
   };
 
   const removeDomain = async () => {

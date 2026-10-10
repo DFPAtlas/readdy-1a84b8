@@ -1,6 +1,5 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import Stripe from 'https://esm.sh/stripe@14.21.0';
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import Stripe from "npm:stripe@22.6.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -9,7 +8,7 @@ const corsHeaders = {
 
 const VALID_PLAN_KEYS = ['free', 'essential', 'complete', 'luxury'];
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -45,7 +44,7 @@ serve(async (req: Request) => {
       });
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
     const body = await req.json();
     const { planKey, weddingId, billingInterval = 'month' } = body;
 
@@ -62,14 +61,18 @@ serve(async (req: Request) => {
       .select('id, role')
       .eq('wedding_id', weddingId)
       .eq('user_id', user.id)
+      .eq('status', 'active')
       .maybeSingle();
 
-    if (memErr || !membership) {
+    if (memErr || membership?.role !== 'owner') {
       return new Response(JSON.stringify({ error: 'Not a member of this wedding' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const { data: existingSubscription } = await supabase.from('wedora_subscriptions').select('status').eq('wedding_id', weddingId).maybeSingle();
+    if (existingSubscription && ['active','trialing','past_due','unpaid'].includes(existingSubscription.status)) return new Response(JSON.stringify({ error: 'Manage your existing subscription in the billing portal to change plans.' }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     // Resolve plan from DB (server-side, never trust client price IDs)
     const { data: plan, error: planErr } = await supabase
@@ -86,7 +89,8 @@ serve(async (req: Request) => {
       });
     }
 
-    const stripePriceId = plan.stripe_price_id;
+    if (!['month','year'].includes(billingInterval)) return new Response(JSON.stringify({error:'Invalid billing interval'}), {status:400,headers:{...corsHeaders,'Content-Type':'application/json'}});
+    const stripePriceId = billingInterval === 'year' ? plan.stripe_yearly_price_id : plan.stripe_price_id;
     if (!stripePriceId) {
       return new Response(JSON.stringify({ error: 'Plan not available for purchase' }), {
         status: 400,
@@ -120,8 +124,8 @@ serve(async (req: Request) => {
     }
 
     // Build success/cancel URLs
-    const basePath = req.headers.get('x-client-base-path') || '';
-    const origin = req.headers.get('origin') || 'https://vowora.uk';
+    const basePath = '';
+    const origin = new URL(Deno.env.get('PUBLIC_SITE_URL') || 'https://vowora.uk').origin;
     const pathPrefix = basePath ? `/${basePath}` : '';
 
     const successUrl = `${origin}${pathPrefix}/app/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
@@ -129,6 +133,7 @@ serve(async (req: Request) => {
 
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
+      integration_identifier: "vowora_checkout_" + Array.from(crypto.getRandomValues(new Uint8Array(8)), byte => String.fromCharCode(97 + byte % 26)).join(""),
       customer: stripeCustomerId,
       mode: 'subscription',
       line_items: [{ price: stripePriceId, quantity: 1 }],
@@ -160,7 +165,7 @@ serve(async (req: Request) => {
       stripe_checkout_session_id: session.id,
       status: 'incomplete',
       quantity: 1,
-    }, { onConflict: 'user_id' });
+    }, { onConflict: 'wedding_id' });
 
     return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
       status: 200,

@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import InvitationRenderer from './InvitationRenderer';
 import FloatingToolbar from './FloatingToolbar';
@@ -781,7 +782,6 @@ export default function CanvasWorkspace({
 
     ws.addEventListener('wheel', handleWheel, { passive: false });
     return () => ws.removeEventListener('wheel', handleWheel);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Ctrl/Cmd + = / - keyboard shortcuts ──

@@ -1,4 +1,9 @@
-import type { InvitationDocument, InvitationLayer, TextLayerProps, AssetLayerProps } from '../types';
+import type {
+  InvitationDocument,
+  InvitationLayer,
+  TextLayerProps,
+  AssetLayerProps,
+} from "./types";
 
 // ── Validation result ──
 
@@ -12,19 +17,23 @@ export interface ValidationResult {
 
 export function parseInvitationDocument(value: unknown): ValidationResult {
   if (value === null || value === undefined) {
-    return { valid: false, document: null, error: 'Document is null or undefined' };
+    return {
+      valid: false,
+      document: null,
+      error: "Document is null or undefined",
+    };
   }
 
-  if (typeof value !== 'object') {
-    return { valid: false, document: null, error: 'Document is not an object' };
+  if (typeof value !== "object") {
+    return { valid: false, document: null, error: "Document is not an object" };
   }
 
   const raw = value as Record<string, unknown>;
 
   // Validate canvas
   const canvas = raw.canvas;
-  if (!canvas || typeof canvas !== 'object') {
-    return { valid: false, document: null, error: 'Missing or invalid canvas' };
+  if (!canvas || typeof canvas !== "object") {
+    return { valid: false, document: null, error: "Missing or invalid canvas" };
   }
 
   const canvasObj = canvas as Record<string, unknown>;
@@ -32,17 +41,17 @@ export function parseInvitationDocument(value: unknown): ValidationResult {
   const canvasHeight = Number(canvasObj.height);
 
   if (!Number.isFinite(canvasWidth) || canvasWidth <= 0) {
-    return { valid: false, document: null, error: 'Invalid canvas width' };
+    return { valid: false, document: null, error: "Invalid canvas width" };
   }
 
   if (!Number.isFinite(canvasHeight) || canvasHeight <= 0) {
-    return { valid: false, document: null, error: 'Invalid canvas height' };
+    return { valid: false, document: null, error: "Invalid canvas height" };
   }
 
   // Validate layers
   const layers = raw.layers;
   if (!Array.isArray(layers)) {
-    return { valid: false, document: null, error: 'Layers is not an array' };
+    return { valid: false, document: null, error: "Layers is not an array" };
   }
 
   const validatedLayers: InvitationLayer[] = [];
@@ -50,14 +59,14 @@ export function parseInvitationDocument(value: unknown): ValidationResult {
 
   for (let i = 0; i < layers.length; i++) {
     const layer = layers[i];
-    if (!layer || typeof layer !== 'object') {
+    if (!layer || typeof layer !== "object") {
       continue; // Skip invalid entries
     }
 
     const l = layer as Record<string, unknown>;
 
     // Validate id
-    const id = String(l.id || '');
+    const id = String(l.id || "");
     if (!id) continue;
 
     // Skip duplicate IDs
@@ -66,7 +75,7 @@ export function parseInvitationDocument(value: unknown): ValidationResult {
 
     // Validate type
     const type = l.type;
-    if (type !== 'text' && type !== 'asset') continue;
+    if (type !== "text" && type !== "asset") continue;
 
     // Validate geometry
     const x = Number(l.x);
@@ -83,8 +92,10 @@ export function parseInvitationDocument(value: unknown): ValidationResult {
     if (
       !Number.isFinite(x) ||
       !Number.isFinite(y) ||
-      !Number.isFinite(w) || w <= 0 ||
-      !Number.isFinite(h) || h <= 0 ||
+      !Number.isFinite(w) ||
+      w <= 0 ||
+      !Number.isFinite(h) ||
+      h <= 0 ||
       !Number.isFinite(rotation) ||
       !Number.isFinite(zIndex)
     ) {
@@ -93,31 +104,65 @@ export function parseInvitationDocument(value: unknown): ValidationResult {
 
     // Validate props based on type
     const props = l.props;
-    if (!props || typeof props !== 'object') continue;
+    if (!props || typeof props !== "object") continue;
 
-    if (type === 'text') {
+    if (type === "text") {
       const tp = props as Record<string, unknown>;
       const validProps: TextLayerProps = {
-        content: String(tp.content ?? ''),
+        content: String(tp.content ?? ""),
         fontSize: clamp(Number(tp.fontSize) || 16, 8, 120),
         weight: Number.isFinite(Number(tp.weight)) ? Number(tp.weight) : 400,
-        color: typeof tp.color === 'string' ? tp.color : '#3a3430',
-        align: (tp.align === 'left' || tp.align === 'center' || tp.align === 'right') ? tp.align : 'center',
-        letterSpacing: Number.isFinite(Number(tp.letterSpacing)) ? Number(tp.letterSpacing) : 0,
-        fontFamily: typeof tp.fontFamily === 'string' ? tp.fontFamily : undefined,
-        lineHeight: Number.isFinite(Number(tp.lineHeight)) ? Number(tp.lineHeight) : undefined,
-        textTransform: (tp.textTransform === 'none' || tp.textTransform === 'uppercase' || tp.textTransform === 'lowercase' || tp.textTransform === 'capitalize')
-          ? tp.textTransform as TextLayerProps['textTransform']
+        color: typeof tp.color === "string" ? tp.color : "#3a3430",
+        align:
+          tp.align === "left" || tp.align === "center" || tp.align === "right"
+            ? tp.align
+            : "center",
+        letterSpacing: Number.isFinite(Number(tp.letterSpacing))
+          ? Number(tp.letterSpacing)
+          : 0,
+        fontFamily:
+          typeof tp.fontFamily === "string" ? tp.fontFamily : undefined,
+        lineHeight: Number.isFinite(Number(tp.lineHeight))
+          ? Number(tp.lineHeight)
           : undefined,
+        textTransform:
+          tp.textTransform === "none" ||
+          tp.textTransform === "uppercase" ||
+          tp.textTransform === "lowercase" ||
+          tp.textTransform === "capitalize"
+            ? (tp.textTransform as TextLayerProps["textTransform"])
+            : undefined,
       };
-      validatedLayers.push({ id, type, x, y, width: w, height: h, rotation, zIndex, opacity, props: validProps });
+      validatedLayers.push({
+        id,
+        type,
+        x,
+        y,
+        width: w,
+        height: h,
+        rotation,
+        zIndex,
+        opacity,
+        props: validProps,
+      });
     } else {
       const ap = props as Record<string, unknown>;
       const validProps: AssetLayerProps = {
-        assetId: String(ap.assetId ?? ''),
+        assetId: String(ap.assetId ?? ""),
         flipX: Boolean(ap.flipX),
       };
-      validatedLayers.push({ id, type, x, y, width: w, height: h, rotation, zIndex, opacity, props: validProps });
+      validatedLayers.push({
+        id,
+        type,
+        x,
+        y,
+        width: w,
+        height: h,
+        rotation,
+        zIndex,
+        opacity,
+        props: validProps,
+      });
     }
   }
 
@@ -127,7 +172,27 @@ export function parseInvitationDocument(value: unknown): ValidationResult {
   return {
     valid: true,
     document: {
-      canvas: { width: canvasWidth, height: canvasHeight },
+      canvas: {
+        width: canvasWidth,
+        height: canvasHeight,
+        ...(canvasObj.background &&
+        typeof canvasObj.background === "object" &&
+        typeof (canvasObj.background as Record<string, unknown>).color ===
+          "string"
+          ? {
+              background: {
+                color: (canvasObj.background as { color: string }).color,
+                pattern: ["none", "dots", "lines", "grid", "chevron"].includes(
+                  String(
+                    (canvasObj.background as Record<string, unknown>).pattern,
+                  ),
+                )
+                  ? (canvasObj.background as { pattern: "none" }).pattern
+                  : "none",
+              },
+            }
+          : {}),
+      },
       layers: normalized,
     },
     error: null,

@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useRef } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';

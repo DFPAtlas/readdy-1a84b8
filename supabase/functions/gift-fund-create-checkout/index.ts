@@ -1,6 +1,6 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
-import Stripe from "npm:stripe@17";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
+import Stripe from "npm:stripe@22.6.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,11 +10,7 @@ const corsHeaders = {
 
 // The browser holds the raw guest session credential; only its SHA-256 hash is
 // stored in guest_access_sessions.session_hash, so hash before every lookup.
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+
 
 // ── Validation ──
 
@@ -48,7 +44,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const stripe = new Stripe(stripeKey, { apiVersion: "2025-06-15.basil" });
+  const stripe = new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
 
   try {
     const body = await req.json();
@@ -118,15 +114,15 @@ Deno.serve(async (req: Request) => {
     let guestId: string | null = null;
     let weddingId: string | null = null;
 
-    if (session_hash) {
+    if (session_hash && validGuestSessionSecret(session_hash)) {
       const { data: session } = await supabase
         .from("guest_access_sessions")
-        .select("wedding_id, invitation_id")
-        .eq("session_hash", sha256(session_hash))
+        .select("wedding_id, invitation_id, expires_at")
+        .eq("session_hash", await sha256Hex(session_hash))
         .eq("status", "active")
         .maybeSingle();
 
-      if (session) {
+      if (session && session.expires_at && new Date(session.expires_at) > new Date()) {
         weddingId = session.wedding_id;
         // Get guest from invitation
         const { data: recipients } = await supabase
@@ -151,6 +147,10 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Fund not found." }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (!weddingId || weddingId !== fund.wedding_id) {
+      return new Response(JSON.stringify({ error: "Open the gift fund through your active wedding invitation." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     if (!fund.is_active) {
@@ -226,8 +226,8 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── Build origin URLs ──
-    const origin = req.headers.get("origin") || "https://vowora.uk";
-    const basePathHeader = req.headers.get("x-base-path") || "";
+    const origin = new URL(Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk").origin;
+    const basePathHeader = "";
     const pathPrefix = basePathHeader ? `/${basePathHeader}` : "";
 
     const successUrl = `${origin}${pathPrefix}/guest/fund/contribution/success?contribution_id=${contributionId}`;
@@ -240,8 +240,8 @@ Deno.serve(async (req: Request) => {
     // Using destination charges: payment goes to platform, then transferred to connected account.
     // With application_fee_amount = 0 and transfer_data, the full amount goes to the couple.
     const session = await stripe.checkout.sessions.create({
+      integration_identifier: "vowora_checkout_" + Array.from(crypto.getRandomValues(new Uint8Array(8)), byte => String.fromCharCode(97 + byte % 26)).join(""),
       mode: "payment",
-      payment_method_types: ["card"],
       line_items: [{
         price_data: {
           currency: "gbp",

@@ -1,6 +1,6 @@
+import { sha256Hex } from "../_shared/guestAccess.ts";
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,13 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
+
 
 const WEDDING_ID = "00000000-0000-0000-0000-000000000001";
 const INVITATION_ID = "3c744b56-c37b-44a9-b1a9-8cf73bdc41ad";
@@ -41,12 +35,17 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  if (Deno.env.get("ENABLE_DEMO_SEEDING") !== "true") return new Response(JSON.stringify({ error: "Demo seeding is disabled." }), { status: 403, headers: corsHeaders });
   const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   try {
-    const tokenHash = sha256(DEMO_TOKEN);
+    const { data: { user } } = await supabase.auth.getUser((req.headers.get("Authorization") || "").replace(/^Bearer /i, ""));
+    if (!user) return new Response("Unauthorized", { status: 401, headers: corsHeaders });
+    const { data: admin } = await supabase.from("platform_admins").select("user_id").eq("user_id", user.id).eq("active", true).maybeSingle();
+    if (!admin) return new Response("Forbidden", { status: 403, headers: corsHeaders });
+    const tokenHash = await sha256Hex(DEMO_TOKEN);
     const now = new Date().toISOString();
 
     // ──────────────────────────────────────

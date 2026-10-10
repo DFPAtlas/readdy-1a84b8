@@ -1,3 +1,5 @@
+import PlatformAdminGuard from './PlatformAdminGuard';
+import type * as React from "react";
 import { useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthProvider';
 import { isDemoMode } from '@/demo/demoConfig';
@@ -54,8 +56,12 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
+  if (location.pathname.startsWith('/app/admin/')) return <PlatformAdminGuard>{children}</PlatformAdminGuard>;
+
+  if (['/app/support','/app/account/privacy'].includes(location.pathname)) return <>{children}</>;
+
   // ── Onboarding incomplete → redirect ──
-  if (profile && !profile.onboarding_completed) {
+  if (!profile?.onboarding_completed) {
     // Don't redirect if already on onboarding
     if (location.pathname === '/app/onboarding') {
       return <>{children}</>;

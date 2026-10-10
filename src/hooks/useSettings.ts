@@ -202,7 +202,7 @@ export function useGuestPortalSettings(weddingId: string | null) {
     setLoading(true);
     try {
       const { data, error: qe } = await supabase
-        .from('wedding_settings')
+        .from('guest_portal_settings')
         .select('*')
         .eq('wedding_id', weddingId)
         .maybeSingle();
@@ -212,13 +212,13 @@ export function useGuestPortalSettings(weddingId: string | null) {
 
       if (data) {
         setSettings({
-          guestPortalEnabled: data.guest_portal_enabled ?? true,
-          galleryEnabled: data.gallery_enabled ?? true,
+          guestPortalEnabled: data.portal_enabled ?? true,
+          galleryEnabled: data.show_gallery ?? true,
           itineraryEnabled: data.itinerary_enabled ?? true,
-          registryEnabled: data.registry_enabled ?? true,
+          registryEnabled: data.show_registry ?? true,
           seatingEnabled: data.seating_enabled ?? false,
-          travelEnabled: data.travel_enabled ?? true,
-          updatesEnabled: data.updates_enabled ?? true,
+          travelEnabled: data.show_travel ?? true,
+          updatesEnabled: data.show_updates ?? true,
           allowGuestUploads: data.allow_guest_uploads ?? true,
           requireUploadApproval: data.require_upload_approval ?? true,
           publishMode: data.publish_mode ?? 'draft',
@@ -240,13 +240,13 @@ export function useGuestPortalSettings(weddingId: string | null) {
     setSaving(true);
     try {
       const payload: Record<string, unknown> = {};
-      if (updates.guestPortalEnabled !== undefined) payload.guest_portal_enabled = updates.guestPortalEnabled;
-      if (updates.galleryEnabled !== undefined) payload.gallery_enabled = updates.galleryEnabled;
+      if (updates.guestPortalEnabled !== undefined) payload.portal_enabled = updates.guestPortalEnabled;
+      if (updates.galleryEnabled !== undefined) payload.show_gallery = updates.galleryEnabled;
       if (updates.itineraryEnabled !== undefined) payload.itinerary_enabled = updates.itineraryEnabled;
-      if (updates.registryEnabled !== undefined) payload.registry_enabled = updates.registryEnabled;
+      if (updates.registryEnabled !== undefined) payload.show_registry = updates.registryEnabled;
       if (updates.seatingEnabled !== undefined) payload.seating_enabled = updates.seatingEnabled;
-      if (updates.travelEnabled !== undefined) payload.travel_enabled = updates.travelEnabled;
-      if (updates.updatesEnabled !== undefined) payload.updates_enabled = updates.updatesEnabled;
+      if (updates.travelEnabled !== undefined) payload.show_travel = updates.travelEnabled;
+      if (updates.updatesEnabled !== undefined) payload.show_updates = updates.updatesEnabled;
       if (updates.allowGuestUploads !== undefined) payload.allow_guest_uploads = updates.allowGuestUploads;
       if (updates.requireUploadApproval !== undefined) payload.require_upload_approval = updates.requireUploadApproval;
       if (updates.publishMode !== undefined) payload.publish_mode = updates.publishMode;
@@ -254,20 +254,20 @@ export function useGuestPortalSettings(weddingId: string | null) {
       if (updates.showGuestCount !== undefined) payload.show_guest_count = updates.showGuestCount;
 
       const { data: existing } = await supabase
-        .from('wedding_settings')
+        .from('guest_portal_settings')
         .select('id')
         .eq('wedding_id', weddingId)
         .maybeSingle();
 
       if (existing) {
         const { error: ue } = await supabase
-          .from('wedding_settings')
+          .from('guest_portal_settings')
           .update(payload)
           .eq('wedding_id', weddingId);
         if (ue) throw ue;
       } else {
         const { error: ie } = await supabase
-          .from('wedding_settings')
+          .from('guest_portal_settings')
           .insert({ wedding_id: weddingId, ...payload });
         if (ie) throw ie;
       }
@@ -513,29 +513,13 @@ export function useCollaborators(weddingId: string | null) {
 
     if (existingInvite) throw new Error('An invitation is already pending for this email');
 
-    // Generate a random token
-    const token = crypto.randomUUID();
-
-    const { error: ie } = await supabase
-      .from('wedding_member_invitations')
-      .insert({
-        wedding_id: weddingId,
-        invited_email: email,
-        invited_by: (await supabase.auth.getSession()).data.session?.user?.id || '',
-        role,
-        token,
-        status: 'pending',
-      });
-
-    if (ie) throw ie;
-
-    // Try to send invitation email via Edge Function
-    try {
-      await supabase.functions.invoke('settings-invite-member', {
-        body: { action: 'invite', weddingId, email, role, token },
-      });
-    } catch {
-      // Email sending is best-effort; the invitation is still in the database
+    const { data, error: inviteError } = await supabase.functions.invoke('settings-invite-member', {
+      body: { action: 'invite', weddingId, email, role },
+    });
+    if (inviteError || data?.error) throw new Error(data?.error || 'The invitation could not be sent. Please retry.');
+    if (!data?.delivered) {
+      await fetch();
+      throw new Error('Invitation created, but the email could not be delivered. Contact Vowora support to check email delivery.');
     }
 
     await fetch();

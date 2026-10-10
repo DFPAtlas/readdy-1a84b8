@@ -1,3 +1,4 @@
+import { usePlatformAdminAccess } from '@/context/PlatformAdminContext';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -257,6 +258,7 @@ function SystemReadinessContent() {
         const saved = stored?.items[item.id];
         return {
           ...item,
+          group: g.id,
           checked: saved?.checked ?? false,
           checkedBy: saved?.checkedBy ?? '',
           checkedAt: saved?.checkedAt ?? null,
@@ -483,6 +485,7 @@ function SystemReadinessContent() {
         label: g.label,
         items: g.items.map((item) => ({
           ...item,
+          group: g.id,
           checked: false,
           checkedBy: '',
           checkedAt: null,
@@ -783,7 +786,7 @@ function SystemReadinessContent() {
 export default function SystemReadinessPage() {
   const { membership } = useActiveWedding();
   const isDemo = isDemoMode;
-  const isAuthorised = membership?.role === 'owner' || membership?.role === 'partner';
+  const isAuthorised = usePlatformAdminAccess();
 
   if (isDemo) {
     return (

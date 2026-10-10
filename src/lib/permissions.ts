@@ -16,7 +16,7 @@ function atLeast(role: WeddingRole | null, minimum: WeddingRole): boolean {
 export function getPermissions(role: WeddingRole | null): WeddingPermissions {
   return {
     canViewWedding: atLeast(role, 'viewer'),
-    canEditWedding: atLeast(role, 'collaborator'),
+    canEditWedding: atLeast(role, 'planner'),
     canManageGuests: atLeast(role, 'planner'),
     canManageInvitations: atLeast(role, 'planner'),
     canManageBudget: atLeast(role, 'planner'),
@@ -38,7 +38,7 @@ export function getPermissions(role: WeddingRole | null): WeddingPermissions {
     canManageTimeline: atLeast(role, 'planner'),
     canManageTasks: atLeast(role, 'collaborator'),
     canViewGuestContactDetails: atLeast(role, 'planner'),
-    canSendUpdates: atLeast(role, 'collaborator'),
+    canSendUpdates: atLeast(role, 'planner'),
   };
 }
 
@@ -138,7 +138,7 @@ export const PERMISSION_MATRIX: Record<WeddingRole, Record<keyof WeddingPermissi
     canViewGuestContactDetails: 'full', canSendUpdates: 'full',
   },
   collaborator: {
-    canViewWedding: 'full', canEditWedding: 'limited', canManageGuests: 'limited', canManageInvitations: 'none',
+    canViewWedding: 'full', canEditWedding: 'none', canManageGuests: 'limited', canManageInvitations: 'none',
     canManageBudget: 'none', canManageSeating: 'limited', canManageTravel: 'limited', canManageGallery: 'limited',
     canManageMembers: 'none', canDeleteWedding: 'none', canViewBilling: 'limited', canChangeSubscription: 'none',
     canManageSuppliers: 'limited', canManageRegistry: 'none', canPublishWebsite: 'none', canModerateGallery: 'none',

@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
 import type { GuestAccessResponse } from '@/types/access';
@@ -5,7 +6,7 @@ import type { GuestAccessResponse } from '@/types/access';
 const STORAGE_PREFIX = 'vowora_guest_';
 
 export function useGuestData(accessId: string | undefined) {
-  const [data, setData] = useState<(GuestAccessResponse['data'] & { session_id: string }) | null>(null);
+  const [data, setData] = useState<(GuestAccessResponse & { session_id: string }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 

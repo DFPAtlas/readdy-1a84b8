@@ -1,13 +1,12 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import Stripe from 'https://esm.sh/stripe@14.21.0';
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import Stripe from "npm:stripe@22.6.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -43,7 +42,7 @@ serve(async (req: Request) => {
       });
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
 
     // Get customer ID from DB (server-side, never from client)
     const { data: customer } = await supabase
@@ -60,8 +59,8 @@ serve(async (req: Request) => {
     }
 
     // Build return URL
-    const basePath = req.headers.get('x-client-base-path') || '';
-    const origin = req.headers.get('origin') || 'https://vowora.uk';
+    const basePath = '';
+    const origin = new URL(Deno.env.get('PUBLIC_SITE_URL') || 'https://vowora.uk').origin;
     const pathPrefix = basePath ? `/${basePath}` : '';
     const returnUrl = `${origin}${pathPrefix}/app/billing`;
 

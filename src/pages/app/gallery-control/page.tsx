@@ -219,11 +219,11 @@ function RealGalleryControl({ weddingId }: { weddingId: string }) {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filteredAssets.map((asset) => {
-              const a = asset as Record<string, unknown>;
+              const a = asset as unknown as Record<string, unknown>;
               const status = (a.moderation_status as string) || 'pending';
               const isWall = a.wall_visible === true;
               const isVideo = (a.mime_type as string || '').startsWith('video/');
-              const albumTitle = (albums.find((al: Record<string, unknown>) => al.id === a.album_id) as Record<string, unknown>)?.title || 'Unknown';
+              const albumTitle = (albums.find((al: Record<string, unknown>) => al.id === a.album_id) as unknown as Record<string, unknown>)?.title || 'Unknown';
               return (
                 <div key={a.id as string} className="bg-white border border-secondary-100 rounded-xl overflow-hidden group">
                   <div className="relative aspect-[4/3] bg-background-50 overflow-hidden">
@@ -238,7 +238,7 @@ function RealGalleryControl({ weddingId }: { weddingId: string }) {
                     <p className="text-xs text-foreground-800 line-clamp-2 mb-1.5">{(a.title || a.caption || 'Untitled') as string}</p>
                     {a.moderation_ai_label && <p className="text-[9px] text-foreground-400 mb-1">AI: {(a.moderation_ai_label as string)}</p>}
                     <div className="flex items-center justify-between mt-1.5">
-                      <span className="text-[9px] text-foreground-350">{albumTitle}</span>
+                      <span className="text-[9px] text-foreground-350">{String(albumTitle)}</span>
                       <span className="text-[9px] text-foreground-400">{new Date(a.created_at as string).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
                     </div>
                     <div className="flex items-center gap-1 mt-2 pt-2 border-t border-secondary-100">
@@ -409,7 +409,7 @@ function DemoGalleryControl() {
         {showSettings && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowSettings(false)}><div className="bg-white rounded-xl w-full max-w-md mx-4 p-6 shadow-xl" onClick={(e) => e.stopPropagation()}><div className="flex items-center justify-between mb-5"><h3 className="font-heading text-lg text-foreground-900">Demo Settings</h3><button onClick={() => setShowSettings(false)} className="w-8 h-8 flex items-center justify-center rounded-md text-foreground-400 hover:bg-background-100 cursor-pointer"><i className="ri-close-line" /></button></div>
             <div className="space-y-3">{[{ key: 'guest_uploads_enabled', label: 'Guest uploads' },{ key: 'couple_approval_required', label: 'Require approval' },{ key: 'auto_add_to_wall', label: 'Auto-add to wall' },{ key: 'show_uploader_names', label: 'Show names' },{ key: 'allow_guest_downloads', label: 'Guest downloads' },{ key: 'allow_favourites', label: 'Favourites' },{ key: 'show_captions', label: 'Show captions' }].map(({ key, label }) => (
-              <label key={key} className="flex items-center justify-between py-1.5 cursor-pointer"><span className="text-xs text-foreground-700">{label}</span><button onClick={() => demo.updateGallerySettings({ [key]: !(settings as Record<string, unknown>)[key] })} className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${(settings as Record<string, unknown>)[key] ? 'bg-primary-500' : 'bg-secondary-300'}`}><span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${(settings as Record<string, unknown>)[key] ? 'translate-x-4' : 'translate-x-0.5'}`} /></button></label>
+              <label key={key} className="flex items-center justify-between py-1.5 cursor-pointer"><span className="text-xs text-foreground-700">{label}</span><button onClick={() => demo.updateGallerySettings({ [key]: !(settings as unknown as Record<string, unknown>)[key] })} className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${(settings as unknown as Record<string, unknown>)[key] ? 'bg-primary-500' : 'bg-secondary-300'}`}><span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${(settings as unknown as Record<string, unknown>)[key] ? 'translate-x-4' : 'translate-x-0.5'}`} /></button></label>
             ))}</div></div></div>
         )}
 

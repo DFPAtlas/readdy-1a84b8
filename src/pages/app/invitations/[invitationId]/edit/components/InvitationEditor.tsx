@@ -1,3 +1,5 @@
+import { isDemoMode } from '@/demo/demoConfig';
+import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import LayersPanel from './LayersPanel';
 import EditorTopbar from './EditorTopbar';
@@ -96,6 +98,7 @@ export default function InvitationEditor({
   userId,
   onCreated,
 }: InvitationEditorProps) {
+  const { weddingId } = useActiveWedding();
   // ── Document state — single source of truth ──
   const [document, setDocument] = useState<InvitationDocument>(() =>
     normalizeDocument(DEFAULT_INVITATION),
@@ -299,14 +302,15 @@ export default function InvitationEditor({
   const loadSenders = useCallback(async () => {
     setSendersLoading(true);
     setSendersError(null);
-    const result = await loadVerifiedSenders();
+    if (!weddingId) {setVerifiedSenders([]);setSendersLoading(false);return;}
+    const result = await loadVerifiedSenders(weddingId);
     if (result.success && result.data) {
       setVerifiedSenders(result.data);
     } else {
       setSendersError(result.error || 'Failed to load senders');
     }
     setSendersLoading(false);
-  }, []);
+  }, [weddingId]);
 
   useEffect(() => {
     loadSenders();
@@ -357,7 +361,7 @@ export default function InvitationEditor({
         }
 
         setLoading(false);
-      } else if (userId) {
+      } else if (userId && (weddingId || isDemoMode)) {
         // Create new — guard against double-create in StrictMode
         if (creationGuardRef.current) return;
         creationGuardRef.current = true;
@@ -365,7 +369,7 @@ export default function InvitationEditor({
         setLoading(true);
 
         const normalized = normalizeDocument(DEFAULT_INVITATION);
-        const result = await createInvitationDesign(userId, normalized, 'Untitled Invitation');
+        const result = await createInvitationDesign(userId, normalized, 'Untitled Invitation', weddingId);
 
         if (cancelled) return;
 
@@ -400,7 +404,7 @@ export default function InvitationEditor({
     return () => {
       cancelled = true;
     };
-  }, [invitationId, userId, onCreated]);
+  }, [invitationId, userId, weddingId, onCreated]);
 
   // ── Derived history availability ──
   const canUndo = history.index > 0;
@@ -1024,7 +1028,6 @@ export default function InvitationEditor({
         editingStartContentRef.current = null;
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [assetLookup, commitDocument],
   );
 
@@ -1307,7 +1310,7 @@ export default function InvitationEditor({
 
       {/* Mobile: Asset Library sheet */}
       <ResponsiveSheet
-        isOpen={mobileSheet === 'assets'}
+        open={mobileSheet === 'assets'}
         onClose={handleCloseMobileSheet}
         side="left"
         title="Asset Library"
@@ -1320,7 +1323,7 @@ export default function InvitationEditor({
 
       {/* Mobile: Layers sheet */}
       <ResponsiveSheet
-        isOpen={mobileSheet === 'layers'}
+        open={mobileSheet === 'layers'}
         onClose={handleCloseMobileSheet}
         side="left"
         title="Layers"
@@ -1338,7 +1341,7 @@ export default function InvitationEditor({
 
       {/* Mobile: Send sheet */}
       <ResponsiveSheet
-        isOpen={mobileSheet === 'send'}
+        open={mobileSheet === 'send'}
         onClose={handleCloseMobileSheet}
         side="right"
         title="Send Invitation"

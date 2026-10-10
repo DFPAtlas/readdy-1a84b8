@@ -303,3 +303,4 @@ export const COMMON_TIMEZONES = [
   'Asia/Hong_Kong',
   'Asia/Tokyo',
 ] as const;
+export type { WeddingRole } from "./membership";

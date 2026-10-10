@@ -83,9 +83,9 @@ export default function CampaignEditor({ templates, initialData, onSave, onClose
 
   const toggleAudienceFilter = (key: keyof AudienceFilter, value: string | boolean) => {
     const filter = { ...form.audience_filter };
-    if (typeof value === 'boolean') {
-      filter[key] = value;
-    } else if (key === 'rsvp_status') {
+    if (typeof value === 'boolean' && key !== 'rsvp_status') {
+      Object.assign(filter, { [key]: value });
+    } else if (key === 'rsvp_status' && typeof value === 'string') {
       const arr = filter.rsvp_status || [];
       filter.rsvp_status = arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
     }

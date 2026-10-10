@@ -1,3 +1,5 @@
+import WorkspaceSearch from '@/components/feature/WorkspaceSearch';
+import type * as React from "react";
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
@@ -276,7 +278,7 @@ function DemoSearchPage() {
 
   // Filter results
   const results = useMemo(() => {
-    if (!query.trim()) return [];
+    if (!query.trim()) return new Map<string, SearchResult[]>();
     const q = query.toLowerCase();
     let filtered = allResults.filter(
       (r) =>
@@ -551,13 +553,4 @@ function DemoSearchPage() {
   );
 }
 
-export default function SearchPage() {
-  if (isDemoMode) return <DemoSearchPage />;
-  return (
-    <AppShell>
-      <div className="max-w-4xl mx-auto py-20 text-center">
-        <p className="text-sm text-foreground-500">Search is available in the production workspace.</p>
-      </div>
-    </AppShell>
-  );
-}
+export default function SearchPage() { return isDemoMode ? <DemoSearchPage /> : <WorkspaceSearch />; }

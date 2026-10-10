@@ -21,6 +21,8 @@ export interface ActiveWedding {
   wedding_date: string | null;
   slug: string;
   status: string;
+  timezone?: string;
+  location?: string;
   role?: WeddingRole;
   membershipStatus?: string;
 }
@@ -38,6 +40,7 @@ export interface ActiveWeddingContextValue {
   wedding: ActiveWedding | null;
   activeWedding: AccessibleWedding | null;
   activeMembership: WeddingMembership | null;
+  membership: WeddingMembership | null;
   weddingId: string | null;
   activeWeddingId: string | null;
   role: WeddingRole | null;
@@ -74,6 +77,8 @@ interface MembershipRow {
     wedding_date: string | null;
     slug: string;
     status: string;
+    timezone?: string;
+    location?: string;
   } | null;
 }
 
@@ -88,6 +93,8 @@ function accessibleToActive(wedding: AccessibleWedding): ActiveWedding {
     wedding_date: wedding.wedding_date,
     slug: wedding.slug,
     status: wedding.status,
+    timezone: wedding.timezone,
+    location: wedding.location,
     role: wedding.role,
     membershipStatus: wedding.membershipStatus,
   };
@@ -153,6 +160,8 @@ export function ActiveWeddingProvider({ children }: { children: ReactNode }) {
             partner_two_name,
             wedding_date,
             slug,
+            timezone,
+            location,
             status
           )
         `)
@@ -187,6 +196,8 @@ export function ActiveWeddingProvider({ children }: { children: ReactNode }) {
           wedding_date: w.wedding_date,
           slug: w.slug || '',
           status: w.status || 'active',
+          timezone: w.timezone,
+          location: w.location,
           role: m.role,
           membershipStatus: m.status as WeddingMembership['status'],
         });
@@ -324,6 +335,7 @@ export function ActiveWeddingProvider({ children }: { children: ReactNode }) {
     wedding,
     activeWedding,
     activeMembership,
+    membership: activeMembership,
     weddingId,
     activeWeddingId: weddingId,
     role,
@@ -367,6 +379,7 @@ export function useActiveWedding(): ActiveWeddingContextValue {
         wedding: demoWedding,
         activeWedding: null,
         activeMembership: null,
+        membership: null,
         weddingId: DEMO_CONFIG.weddingId,
         activeWeddingId: DEMO_CONFIG.weddingId,
         role: 'owner',

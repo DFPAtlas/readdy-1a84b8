@@ -37,7 +37,7 @@ function containsSecretValue(obj: unknown, path: string = 'root'): string | null
   if (obj === null || obj === undefined) return null;
   if (typeof obj === 'string') {
     const lower = obj.toLowerCase();
-    for (const kw of SECRET_KEYWORDS) {
+    for (const kw of [...SECRET_KEYWORDS, ...PRIVACY_KEYWORDS]) {
       if (lower.includes(kw)) return `${path}: string contains "${kw}"`;
     }
     return null;
@@ -52,7 +52,7 @@ function containsSecretValue(obj: unknown, path: string = 'root'): string | null
   if (typeof obj === 'object') {
     for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
       const keyLower = key.toLowerCase();
-      for (const kw of SECRET_KEYWORDS) {
+      for (const kw of [...SECRET_KEYWORDS, ...PRIVACY_KEYWORDS]) {
         if (keyLower.includes(kw)) return `${path}.${key}: key name contains "${kw}"`;
       }
       const result = containsSecretValue(value, `${path}.${key}`);

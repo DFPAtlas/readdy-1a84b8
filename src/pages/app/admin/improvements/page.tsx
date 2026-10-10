@@ -1,3 +1,4 @@
+import { usePlatformAdminAccess } from '@/context/PlatformAdminContext';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -60,7 +61,7 @@ function computePriorityScore(
   const sevScore: Record<ImpactLevel, number> = { low: 1, medium: 3, high: 6, critical: 10 };
   const freqMap: Record<string, number> = { rare: 1, occasional: 2, frequent: 4, widespread: 6 };
   const confMap: Record<string, number> = { low: 0.5, medium: 1, high: 1.5 };
-  const effortMap: Record<string, number> = { small: 3, medium: 2, large: 1, xl: 0.5 };
+  const effortMap: Record<string, number> = { small: 1, medium: 2, large: 3, xl: 6 };
 
   const s = sevScore[severity] || 3;
   const f = (frequency && freqMap[frequency]) ? freqMap[frequency] : 2;
@@ -72,7 +73,7 @@ function computePriorityScore(
 
 export default function ImprovementsPage() {
   const { membership } = useActiveWedding();
-  const isAuthorised = membership?.role === 'owner' || membership?.role === 'partner';
+  const isAuthorised = usePlatformAdminAccess();
   const isDemo = isDemoMode;
 
   const [items, setItems] = useState<Improvement[]>([]);

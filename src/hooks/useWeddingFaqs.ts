@@ -131,7 +131,7 @@ export function useWeddingFaqs() {
     setSaving(true);
     try {
       if (demo) {
-        demo.updateFaq(faqId, updates);
+        demo.updateFaq(faqId, { ...updates, related_links: updates.related_links?.map(link => ({ ...link, type: link.type || 'external' })) });
       } else {
         const { supabase } = await import('@/lib/supabase');
         const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };

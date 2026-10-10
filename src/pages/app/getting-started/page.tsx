@@ -225,7 +225,7 @@ function DemoGettingStarted() {
 
 function NormalGettingStarted() {
   const navigate = useNavigate();
-  const { loading, completed, total, percentage, steps, nextStep } = useOnboardingProgress();
+  const { loading, error, completed, total, percentage, steps, nextStep } = useOnboardingProgress();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   const visibleSteps = steps.filter((s) => !dismissed.has(s.key));
@@ -249,6 +249,7 @@ function NormalGettingStarted() {
         <div className="mb-8">
           <p className="text-xs font-label text-foreground-400 uppercase tracking-widest mb-2">Welcome to Vowora</p>
           <h1 className="font-heading text-3xl md:text-4xl text-foreground-900 mb-2">Let's set up your wedding</h1>
+            {error && <p role="alert" className="text-sm text-red-600 mt-3">{error}</p>}
           <p className="text-sm text-foreground-500 max-w-lg">
             Complete the steps below in any order. Each step checks against real data from your workspace.
           </p>

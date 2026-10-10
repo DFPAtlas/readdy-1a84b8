@@ -1,0 +1,12 @@
+node_modules/
+out/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.local
+
+supabase/.temp/
+test-results/
+playwright-report/

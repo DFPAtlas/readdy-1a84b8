@@ -217,7 +217,7 @@ export const ANALYTICS_EVENTS: Record<string, AnalyticsEventDef> = {
     description: 'Gallery upload completed',
     category: 'gallery',
     requiresConsent: false,
-    allowedProperties: ['album_id_hash'],
+    allowedProperties: [],
     retentionClass: 'product',
   },
   gallery_media_approved: {

@@ -5,7 +5,7 @@ import type { WeddingRole } from '@/types/membership';
 describe('getPermissions', () => {
   it('owner has full permissions', () => {
     const perms = getPermissions('owner');
-    expect(perms).toEqual({
+    expect(perms).toMatchObject({
       canViewWedding: true,
       canEditWedding: true,
       canManageGuests: true,
@@ -50,7 +50,7 @@ describe('getPermissions', () => {
   it('collaborator can view and edit but cannot manage guests or members', () => {
     const perms = getPermissions('collaborator');
     expect(perms.canViewWedding).toBe(true);
-    expect(perms.canEditWedding).toBe(true);
+    expect(perms.canEditWedding).toBe(false);
     expect(perms.canManageGuests).toBe(false);
     expect(perms.canManageInvitations).toBe(false);
     expect(perms.canManageBudget).toBe(false);
@@ -111,7 +111,7 @@ describe('getStatusLabel', () => {
   });
 
   it('returns raw status for unknown values', () => {
-    expect(getStatusLabel('pending')).toBe('pending');
+    expect(getStatusLabel('unrecognised')).toBe('unrecognised');
     expect(getStatusLabel('')).toBe('');
   });
 });

@@ -105,6 +105,7 @@ export async function waitForImages(
 // ── Wait for fonts ──
 
 export async function waitForFonts(timeoutMs: number = FONT_LOAD_TIMEOUT_MS): Promise<boolean> {
+  if (!document.fonts) return true;
   // Wait for document.fonts.ready
   try {
     await document.fonts.ready;

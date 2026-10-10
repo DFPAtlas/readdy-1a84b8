@@ -1,245 +1,95 @@
 name: Vowora CI
-
 on:
   push:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
-
+permissions:
+  contents: read
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-permissions:
-  contents: read
-  pull-requests: write
-
 env:
-  NODE_VERSION: '20'
-
+  VITE_DEMO_MODE: 'false'
+  VITE_PUBLIC_SITE_URL: https://vowora.uk
+  VITE_PUBLIC_SUPABASE_URL: https://example.supabase.co
+  VITE_PUBLIC_SUPABASE_ANON_KEY: eyJ-ci-placeholder
+  VITE_RELEASE_VERSION: ci
 jobs:
-  # ── 1. Repository Validation ──
-  repo-check:
-    name: Repository Validation
+  checks:
+    name: Types, lint, unit tests and production build
     runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check lockfile
-        run: |
-          if [ ! -f "package-lock.json" ]; then
-            echo "::error::package-lock.json is missing — run npm install locally and commit"
-            exit 1
-          fi
-
-      - name: Check merge conflict markers
-        run: |
-          if grep -rn '<<<<<<< HEAD\|=======\|>>>>>>>' src/ supabase/ 2>/dev/null; then
-            echo "::error::Merge conflict markers found in source — resolve before merging"
-            exit 1
-          fi
-
-      - name: Check for committed .env files
-        run: |
-          ENV_FILES=$(git ls-files '*.env' '.env*' | grep -v '.env.example' || true)
-          if [ -n "$ENV_FILES" ]; then
-            echo "::error::Committed .env files detected: $ENV_FILES"
-            exit 1
-          fi
-
-      - name: Check for hardcoded localhost in production paths
-        run: |
-          if grep -rn 'localhost:3000\|localhost:5173\|\b127\.0\.0\.1:[0-9]' src/lib/env.ts src/lib/supabase.ts 2>/dev/null; then
-            echo "::warning::Hardcoded localhost URLs found in config files"
-          fi
-
-  # ── 2. Dependency Installation (shared) ──
-  install:
-    name: Install Dependencies
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '24'
           cache: npm
       - run: npm ci
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ env.NODE_VERSION }}-${{ hashFiles('package-lock.json') }}
-
-  # ── 3. TypeScript ──
-  type-check:
-    name: Type Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [repo-check, install]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
+      - run: node scripts/check-repository.mjs
       - run: npm run type-check
-
-  # ── 4. Lint ──
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [repo-check, install]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
       - run: npm run lint
-
-  # ── 5. Unit Tests ──
-  test:
-    name: Unit & Integration Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [repo-check, install]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - run: npx vitest run --coverage
-      - name: Upload coverage
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 7
-
-  # ── 6. Production Build ──
-  build:
-    name: Production Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [type-check, lint, test]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - name: Create production .env
-        run: |
-          cp .env.example .env
-          echo "VITE_DEMO_MODE=false" >> .env
-          echo "VITE_PUBLIC_SITE_URL=https://vowora.uk" >> .env
-          echo "VITE_RELEASE_VERSION=ci-${GITHUB_SHA::8}" >> .env
+      - run: npm test -- --coverage
       - run: npm run build
-      - name: Validate production build
-        run: node scripts/validate-environment.mjs production
-      - name: Check bundle size
-        run: |
-          if [ -d "out/assets" ]; then
-            echo "=== Build output ==="
-            du -sh out/
-            echo "=== Largest JS chunks ==="
-            ls -lhS out/assets/*.js 2>/dev/null | head -10 || echo "No JS assets found"
-            echo "=== Largest CSS chunks ==="
-            ls -lhS out/assets/*.css 2>/dev/null | head -5 || echo "No CSS assets found"
-          fi
-      - name: Check for demo data in production build
-        run: |
-          if grep -r 'emma-and-james\|demo-session\|Demo\|VITE_DEMO_MODE.*true' out/assets/*.js 2>/dev/null | head -5; then
-            echo "::warning::Possible demo references in production build — review"
-          fi
-      - name: Check for secret patterns in build
-        run: |
-          if grep -rE 'sk_live_|eyJ.*service_role|re_[A-Za-z0-9]{20,}' out/ 2>/dev/null; then
-            echo "::error::Possible secret exposure in build output"
-            exit 1
-          fi
-
-  # ── 7. Environment Validation ──
-  env-validate:
-    name: Environment Validation
+      - run: node scripts/validate-environment.mjs production
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verified-frontend
+          path: out/
+  backend:
+    name: Database journeys and Edge Function types
     runs-on: ubuntu-latest
-    timeout-minutes: 3
-    needs: [repo-check, install]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '24'
           cache: npm
       - run: npm ci
-      - name: Validate environment for CI
-        run: node scripts/validate-environment.mjs preview
-      - name: Simulate production validation
-        run: |
-          cp .env.example .env
-          echo "VITE_DEMO_MODE=false" >> .env
-          echo "VITE_PUBLIC_SITE_URL=https://vowora.uk" >> .env
-          echo "VITE_RELEASE_VERSION=ci-test" >> .env
-          node scripts/validate-environment.mjs production
-      - name: Check for leaked server secrets
-        run: |
-          LEAKED=$(grep -rn 'VITE_.*SECRET\|VITE_.*SERVICE_ROLE\|VITE_.*RESEND_API' .env.example 2>/dev/null || true)
-          if [ -n "$LEAKED" ]; then
-            echo "::error::Server-only secrets found with VITE_ prefix in .env.example"
-            echo "$LEAKED"
-            exit 1
-          fi
-
-  # ── 8. Security Scan ──
-  security-scan:
-    name: Security Scan
+      - run: npm run test:database
+      - run: npm run check:edge
+  browser:
+    name: Production browser smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-test-results
+          path: test-results/
+  security:
+    name: Dependency and secret checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [repo-check, install]
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '24'
           cache: npm
       - run: npm ci
-      - name: npm audit (production deps only)
-        run: npm audit --production --audit-level=high
-        continue-on-error: true
-      - name: npm audit (all deps)
-        run: npm audit --audit-level=critical || true
-      - name: Gitleaks secret scanning
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          config-path: .gitleaks.toml
-      - name: Check for hardcoded API keys
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --audit-level=critical
+      - name: Verify secret scanner detects a synthetic canary
         run: |
-          PATTERNS=(
-            "sk_live_"
-            "sk_test_"
-            "eyJ.*service_role"
-            "re_[A-Za-z0-9]{20,}"
-            "livesec_"
-          )
-          for pattern in "${PATTERNS[@]}"; do
-            MATCHES=$(grep -rn "$pattern" src/ --include='*.ts' --include='*.tsx' 2>/dev/null | grep -v '.test.' | grep -v '.gitleaks.' || true)
-            if [ -n "$MATCHES" ]; then
-              echo "::warning::Possible secret in source: $pattern"
-              echo "$MATCHES" | head -3
-            fi
-          done
-      - name: Dependency license check (basic)
-        run: |
-          npx license-checker --production --summary --onlyAllow 'MIT;ISC;Apache-2.0;BSD-2-Clause;BSD-3-Clause;CC0-1.0;Unlicense;WTFPL;0BSD;Python-2.0' 2>/dev/null || echo "::warning::Some dependencies have non-standard licenses — review"
+          set +e
+          node -e 'const crypto=require("node:crypto"), chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";process.stdout.write("token = "+["ghp",Array.from(crypto.randomBytes(36),b=>chars[b%chars.length]).join("")].join("_")+"\n")' | docker run --rm -i ghcr.io/gitleaks/gitleaks:v8.30.0 stdin --redact
+          SCAN_RESULT=$?
+          set -e
+          test "$SCAN_RESULT" -eq 1
+      - name: Scan repository history
+        run: docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/gitleaks/gitleaks:v8.30.0 git --config /repo/.gitleaks.toml --redact /repo

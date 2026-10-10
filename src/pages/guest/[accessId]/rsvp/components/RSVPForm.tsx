@@ -1,3 +1,4 @@
+import type { GuestRecipientInfo } from '@/types/access';
 import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
@@ -164,6 +165,7 @@ export function setFormEventField(gf: GuestFormState, eventKey: string, val: boo
 // ── Step Renderers ──
 
 interface StepProps {
+  canEdit?: boolean;
   gf: GuestFormState;
   currentRecipient: ReturnType<typeof useGuestPortal>['data']['recipients'][number];
   portal: ReturnType<typeof useGuestPortal>['data']['portal_settings'];
@@ -189,7 +191,7 @@ interface StepProps {
   canSubmit: boolean;
   hasSubmitted: boolean;
   eventFlags: ReturnType<typeof getRecipientEventFlags>;
-  householdMembers: typeof STEPS;
+  householdMembers: GuestRecipientInfo[];
 }
 
 export function WelcomeStep({ hasSubmitted, canSubmit, deadline, householdMembers, recipients }: StepProps) {

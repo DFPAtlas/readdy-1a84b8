@@ -421,8 +421,8 @@ export function useGuestService() {
         .select('tag_id, guest_tags(*)')
         .eq('wedding_id', weddingId)
         .eq('guest_id', guestId);
-      return ((data || []) as Array<{ tag_id: string; guest_tags: GuestTag }>)
-        .map((row) => row.guest_tags)
+      return (data || [])
+        .map((row) => (Array.isArray(row.guest_tags) ? row.guest_tags[0] : row.guest_tags) as GuestTag)
         .filter(Boolean);
     } catch {
       return [];

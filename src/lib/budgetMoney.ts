@@ -33,17 +33,17 @@ export function toMajor(cents: number): number {
 
 /**
  * Format a minor-unit amount for display.
- * e.g. formatMinor(2550, 'GBP') → "£2,550"
- *      formatMinor(2550, 'GBP', true) → "£2,550.00"
+ * e.g. formatMinor(2550, 'GBP') → "£25.50"
+ *      formatMinor(2550, 'GBP', true) → "£25.50"
  */
 export function formatMinor(cents: number, currency: CurrencyCode = 'GBP', showDecimals = false): string {
   const cfg = CURRENCY_CONFIG[currency] || CURRENCY_CONFIG.GBP;
   const major = toMajor(cents);
-  return major.toLocaleString(cfg.locale, {
+  return major.toLocaleString(currency === 'EUR' ? 'en-IE' : cfg.locale, {
     style: 'currency',
-    currency,
-    minimumFractionDigits: showDecimals ? 2 : 0,
-    maximumFractionDigits: showDecimals ? 2 : 0,
+    currency: currency in CURRENCY_CONFIG ? currency : 'GBP',
+    minimumFractionDigits: showDecimals || major % 1 !== 0 ? 2 : 0,
+    maximumFractionDigits: showDecimals || major % 1 !== 0 ? 2 : 0,
   });
 }
 

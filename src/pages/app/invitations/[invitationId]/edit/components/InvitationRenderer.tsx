@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useRef, useCallback, useEffect, useState } from 'react';
 import type {
   InvitationDocument,

@@ -1,4 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useActiveWedding } from '@/hooks/useActiveWedding';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { DEMO_CONFIG, isDemoMode } from '@/demo/demoConfig';
 import type { GalleryAdminAsset, GalleryModerationRules } from '@/types/gallery';
@@ -14,16 +15,17 @@ interface LiveWallTabProps {
 }
 
 const WALL_CONFIG_DEFAULTS = {
+  enabled: false,
   photo_duration_ms: 5000,
   transition_style: 'fade' as const,
   shuffle: true,
   show_captions: true,
   show_couple_names: true,
   show_hashtag: true,
-  hashtag: '#EmmaAndJames',
+  hashtag: '',
   show_qr_upload: true,
   show_upload_count: true,
-  background_style: 'gradient' as const,
+  background_style: 'gradient' as 'gradient' | 'solid' | 'blur',
   background_color: '#1a1a2e',
   show_logo: false,
   fullscreen_by_default: false,
@@ -56,7 +58,9 @@ export default function LiveWallTab({ assets, rules, saving, onToggleWall, onBul
     });
   }, []);
 
-  const wallSlug = DEMO_CONFIG.publicSlug;
+  const { activeWedding } = useActiveWedding();
+  const wallSlug = isDemoMode ? DEMO_CONFIG.publicSlug : activeWedding?.slug || '';
+  useEffect(() => { setWallConfig({ ...WALL_CONFIG_DEFAULTS, ...((rules?.provider_config?.live_wall || {}) as Partial<typeof WALL_CONFIG_DEFAULTS>) }); }, [rules?.provider_config]);
 
   return (
     <div>
@@ -65,6 +69,9 @@ export default function LiveWallTab({ assets, rules, saving, onToggleWall, onBul
         <div className="lg:col-span-1 space-y-4">
           <div className="bg-white border border-secondary-100 rounded-xl p-5">
             <h3 className="font-heading text-base font-semibold text-foreground-900 mb-4">Wall Controls</h3>
+            <label className="flex gap-2 mb-3"><input type="checkbox" checked={wallConfig.enabled} onChange={e => setWallConfig(c => ({ ...c, enabled: e.target.checked }))}/>Enable the public photo wall</label>
+            <p className="text-xs mb-4">Enabling the wall makes approved, published photos selected for the wall accessible through its link.</p>
+            <button disabled={saving} className="underline mb-4" onClick={async () => { try { await onUpdateRules({ provider_config: { ...(rules?.provider_config || {}), live_wall: wallConfig } }); showToast('Wall settings saved'); } catch { showToast('Wall settings could not be saved'); } }}>{saving ? 'Saving…' : 'Save wall settings'}</button>
 
             <div className="space-y-3">
               {/* Pause / Resume */}
@@ -153,7 +160,7 @@ export default function LiveWallTab({ assets, rules, saving, onToggleWall, onBul
 
               <label className="flex items-center justify-between py-1.5 cursor-pointer">
                 <span className="text-xs text-foreground-700">Show QR upload prompt</span>
-                <button onClick={() => setWallConfig((p) => ({ ...p, show_qr_upload: !p.show_qr_upload }))} className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${wallConfig.show_qr_upload ? 'bg-primary-500' : 'bg-secondary-300'}`}>
+                <button disabled={!isDemoMode} onClick={() => setWallConfig((p) => ({ ...p, show_qr_upload: !p.show_qr_upload }))} className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${wallConfig.show_qr_upload ? 'bg-primary-500' : 'bg-secondary-300'}`}>
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${wallConfig.show_qr_upload ? 'translate-x-4' : 'translate-x-0.5'}`} />
                 </button>
               </label>

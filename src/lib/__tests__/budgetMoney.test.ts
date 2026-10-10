@@ -53,12 +53,12 @@ describe('toMinor / toMajor conversion', () => {
 describe('formatMinor / formatMajor', () => {
   it('formats GBP without decimals by default', () => {
     const result = formatMinor(2550, 'GBP');
-    expect(result).toBe('£2,550');
+    expect(result).toBe('£25.50');
   });
 
   it('formats GBP with decimals', () => {
     const result = formatMinor(2550, 'GBP', true);
-    expect(result).toBe('£2,550.00');
+    expect(result).toBe('£25.50');
   });
 
   it('formats USD', () => {
@@ -68,7 +68,7 @@ describe('formatMinor / formatMajor', () => {
 
   it('formats EUR', () => {
     const result = formatMinor(5000, 'EUR');
-    expect(result).toBe('€50.00');
+    expect(result).toBe('€50');
   });
 
   it('falls back to GBP for unknown currency', () => {
@@ -78,7 +78,7 @@ describe('formatMinor / formatMajor', () => {
 
   it('formatMajor is a convenience wrapper', () => {
     const result = formatMajor(25.50, 'GBP');
-    expect(result).toBe('£2,550');
+    expect(result).toBe('£25.50');
   });
 
   it('formats zero correctly', () => {

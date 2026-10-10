@@ -145,7 +145,7 @@ export default function GuestItineraryPage() {
   };
 
   // Timezone display
-  const timezone = (wedding as Record<string, unknown>).timezone as string | undefined;
+  const timezone = (wedding as unknown as Record<string, unknown>).timezone as string | undefined;
   const timezoneLabel = timezone || 'Europe/London';
 
   // ── Loading ──

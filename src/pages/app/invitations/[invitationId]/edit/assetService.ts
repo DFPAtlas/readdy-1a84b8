@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { AssetLibraryItem, EditorAsset } from '../types';
+import type { AssetLibraryItem, EditorAsset } from './types';
 import { getDemoImageForAsset } from './demoAssetImages';
 
 // ── Result types ──

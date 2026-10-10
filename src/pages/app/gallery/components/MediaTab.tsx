@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useMemo, useCallback, useRef } from 'react';
 import type { GalleryAdminAsset, GalleryAdminAlbum } from '@/types/gallery';
 import { MODERATION_STATUS_OPTIONS, SOURCE_TYPE_OPTIONS, MEDIA_TYPE_OPTIONS, ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES, MAX_BATCH_UPLOAD } from '@/types/gallery';

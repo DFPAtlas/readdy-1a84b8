@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useWeddingWebsiteBuilder } from '@/hooks/useWeddingWebsiteBuilder';
@@ -123,7 +124,7 @@ export default function WeddingWebsiteBuilderPage() {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [unpublishConfirm, setUnpublishConfirm] = useState(false);
   const [discardConfirm, setDiscardConfirm] = useState(false);
-  const toastTimer = useRef<ReturnType<typeof setTimeout>>();
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const showToast = useCallback((type: 'success' | 'error', message: string) => {
     setToast({ type, message });
@@ -608,7 +609,7 @@ function PagesTab({
               <div className="flex-1 min-w-0 flex items-center gap-2">
                 <i className={`${SECTION_ICONS[section.type] || 'ri-file-line'} text-sm ${section.visible ? 'text-foreground-600' : 'text-foreground-300'} flex-shrink-0`} />
                 <span className={`text-xs font-label truncate ${section.visible ? 'text-foreground-800' : 'text-foreground-400 line-through'}`}>
-                  {isCustom ? ((section.config as Record<string, unknown>).internal_name as string || 'Custom Section') : SECTION_LABELS[section.type]}
+                  {isCustom ? ((section.config as unknown as Record<string, unknown>).internal_name as string || 'Custom Section') : SECTION_LABELS[section.type]}
                 </span>
               </div>
 
@@ -649,7 +650,7 @@ function SectionEditor({
   onReset: () => void;
   onRemove?: () => void;
 }) {
-  const cfg = section.config as Record<string, unknown>;
+  const cfg = section.config as unknown as Record<string, unknown>;
 
   const updateConfig = (field: string, value: unknown) => {
     onChange({ config: { ...cfg, [field]: value } });
@@ -1224,7 +1225,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
     <div style={{ fontFamily: `"${theme.body_font}", serif`, backgroundColor: theme.background_color, color: theme.text_color }}>
       {/* Each visible section renders a simplified preview */}
       {visibleSections.map((section) => {
-        const cfg = section.config as Record<string, unknown>;
+        const cfg = section.config as unknown as Record<string, unknown>;
 
         // Shared section wrapper
         const SectionWrap = ({ id, bg = '' }: { id: string; bg?: string }) => (
@@ -1245,7 +1246,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
                 <div className="absolute inset-0 bg-black/40" style={{ opacity: (cfg.overlay_strength as number || 40) / 100 }} />
                 <div className="relative z-10 text-center px-4" style={{ textAlign: (cfg.text_alignment as 'left' | 'center' | 'right') || 'center' }}>
                   <h1 className="text-4xl md:text-5xl font-bold text-white mb-3" style={{ fontFamily: `"${theme.heading_font}", serif` }}>
-                    {cfg.title || coupleNames}
+                    {String(cfg.title || coupleNames)}
                   </h1>
                   {cfg.subtitle && <p className="text-lg text-white/80 mb-6">{cfg.subtitle as string}</p>}
                   <div className="flex items-center justify-center gap-3">
@@ -1274,7 +1275,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
                   <div className={`flex flex-col ${hasImg && cfg.image_position === 'left' ? 'md:flex-row' : hasImg && cfg.image_position === 'right' ? 'md:flex-row-reverse' : ''} gap-8 items-center`}>
                     <div className={hasImg ? 'flex-1' : 'max-w-2xl mx-auto text-center'}>
                       <h2 className="text-2xl md:text-3xl font-bold mb-4" style={{ fontFamily: `"${theme.heading_font}", serif` }}>
-                        {cfg.heading || SECTION_LABELS[section.type]}
+                        {String(cfg.heading || SECTION_LABELS[section.type])}
                       </h2>
                       {cfg.body && <p className="text-sm leading-relaxed whitespace-pre-line" style={{ opacity: 0.75 }}>{cfg.body as string}</p>}
                     </div>
@@ -1293,7 +1294,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
             return (
               <section key={section.id} id="schedule" className={`${spacing} bg-black/[0.02]`}>
                 <div className={`${widthClass} mx-auto px-4 md:px-6`}>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{cfg.heading || 'Schedule'}</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{String(cfg.heading || 'Schedule')}</h2>
                   {cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
                   <div className={`${cardStyles} bg-white rounded-lg p-6`}>
                     <div className="space-y-4">
@@ -1320,7 +1321,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
             return (
               <section key={section.id} id="gallery" className={spacing}>
                 <div className={`${widthClass} mx-auto px-4 md:px-6`}>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{cfg.heading || 'Gallery'}</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{String(cfg.heading || 'Gallery')}</h2>
                   {cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
                   <div className="grid grid-cols-3 gap-2">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -1336,7 +1337,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
             return (
               <section key={section.id} id="faqs" className={`${spacing} bg-black/[0.02]`}>
                 <div className={`${widthClass} mx-auto px-4 md:px-6`}>
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{cfg.heading || 'FAQs'}</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{String(cfg.heading || 'FAQs')}</h2>
                   {cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
                   <div className={`${cardStyles} bg-white rounded-lg divide-y divide-secondary-100`}>
                     {['What time should guests arrive?', 'Is there parking on site?', 'What is the dress code?'].map((q, i) => (
@@ -1355,10 +1356,10 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
             return (
               <section key={section.id} id="rsvp" className={`${spacing} text-center`} style={{ backgroundColor: theme.primary_color, color: '#fff' }}>
                 <div className="max-w-2xl mx-auto px-4">
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{cfg.heading || 'RSVP'}</h2>
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{String(cfg.heading || 'RSVP')}</h2>
                   {cfg.introduction && <p className="text-sm mb-6 opacity-80">{cfg.introduction as string}</p>}
                   <button className={`${btnRadius} px-8 py-3 font-label text-sm cursor-pointer whitespace-nowrap`} style={{ backgroundColor: '#fff', color: theme.primary_color }}>
-                    {cfg.button_label || 'Respond Now'}
+                    {String(cfg.button_label || 'Respond Now')}
                   </button>
                 </div>
               </section>
@@ -1371,7 +1372,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
               <section key={section.id} id={section.type} className={spacing}>
                 <div className={`${widthClass} mx-auto px-4 md:px-6 text-center`}>
                   <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: `"${theme.heading_font}", serif` }}>
-                    {cfg.heading || SECTION_LABELS[section.type]}
+                    {String(cfg.heading || SECTION_LABELS[section.type])}
                   </h2>
                   {cfg.introduction && <p className="text-sm max-w-lg mx-auto" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
                   {!cfg.heading && !cfg.introduction && (

@@ -1,3 +1,4 @@
+import PublishedWeddingWebsite from '@/components/feature/PublishedWeddingWebsite';
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
@@ -82,128 +83,8 @@ export default function PublicWeddingPage() {
     { label: 'RSVP', href: '#rsvp' },
   ], []);
 
-  // ── Non-demo path: query by slug ──
-  const [liveWedding, setLiveWedding] = useState<Record<string, unknown> | null>(null);
-  const [liveLoading, setLiveLoading] = useState(!isDemo);
+  if (!isDemo) return <PublishedWeddingWebsite slug={slug} />;
 
-  useEffect(() => {
-    if (isDemo) return;
-    let cancelled = false;
-    const fetchWedding = async () => {
-      try {
-        const { data, error: queryErr } = await supabase
-          .from('weddings')
-          .select('partner_one_name, partner_two_name, title, wedding_date, slug, location, welcome_message, dress_code, parking_notes, accessibility_notes, children_policy, plus_one_policy, contact_information, status')
-          .eq('slug', slug)
-          .maybeSingle();
-        if (cancelled) return;
-        if (queryErr || !data) {
-          setLiveWedding(null);
-          setLiveLoading(false);
-          return;
-        }
-        setLiveWedding(data as Record<string, unknown>);
-      } catch {
-        if (!cancelled) setLiveWedding(null);
-      } finally {
-        if (!cancelled) setLiveLoading(false);
-      }
-    };
-    fetchWedding();
-    return () => { cancelled = true; };
-  }, [slug, isDemo]);
-
-  // ── Early returns after all hooks ──
-  if (!isDemo) {
-    if (liveLoading) {
-      return (
-        <div className="min-h-screen bg-background-50 flex items-center justify-center px-4">
-          <div className="flex items-center gap-3 text-foreground-500">
-            <i className="ri-loader-4-line animate-spin text-xl" />
-            <span className="text-sm">Loading...</span>
-          </div>
-        </div>
-      );
-    }
-    if (!liveWedding) {
-      return (
-        <div className="min-h-screen bg-background-50 flex items-center justify-center px-4">
-          <div className="text-center max-w-md">
-            <div className="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-secondary-100 text-foreground-300 mb-5">
-              <i className="ri-heart-line text-2xl" />
-            </div>
-            <h1 className="font-heading text-2xl text-foreground-900 mb-3">Wedding page not found</h1>
-            <p className="text-sm text-foreground-600 mb-6">The wedding page you are looking for is not available. Please check the link and try again.</p>
-            <Link to="/" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary-500 text-background-50 text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap">
-              Back to Vowora
-            </Link>
-          </div>
-        </div>
-      );
-    }
-    // Render live wedding page
-    const lw = liveWedding;
-    const lwDate = lw.wedding_date
-      ? new Date(lw.wedding_date as string).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-      : '';
-    const lwTitle = (lw.title as string) || `${lw.partner_one_name} & ${lw.partner_two_name}`;
-    return (
-      <div className="min-h-screen bg-background-50">
-        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-secondary-100">
-          <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
-            <span className="font-heading text-lg text-foreground-900">{lwTitle}</span>
-          </div>
-        </header>
-        <section className="relative min-h-[500px] flex items-center justify-center bg-gradient-to-br from-primary-50 via-background-50 to-accent-50">
-          <div className="text-center px-4 max-w-2xl mx-auto">
-            <p className="text-sm text-foreground-400 font-label uppercase tracking-[0.25em] mb-6">We&apos;re getting married</p>
-            <h1 className="font-heading text-5xl md:text-7xl text-foreground-900 leading-tight mb-4">
-              {lw.partner_one_name as string}<br />
-              <span className="font-light text-4xl md:text-6xl">&amp;</span><br />
-              {lw.partner_two_name as string}
-            </h1>
-            <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white border border-secondary-200 mt-4">
-              <i className="ri-calendar-line text-foreground-400 text-sm" />
-              <span className="text-sm font-label text-foreground-600">{lwDate}</span>
-              {lw.location && <><span className="text-foreground-300">·</span><span className="text-sm font-label text-foreground-600">{lw.location as string}</span></>}
-            </div>
-          </div>
-        </section>
-        <main className="max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-16 space-y-12">
-          {lw.welcome_message && (
-            <section className="text-center">
-              <p className="text-base text-foreground-600 leading-relaxed italic">&ldquo;{lw.welcome_message as string}&rdquo;</p>
-            </section>
-          )}
-          {lw.dress_code && (
-            <div className="bg-white border border-secondary-100 rounded-xl p-5">
-              <h3 className="font-label text-sm font-semibold text-foreground-900 mb-2">Dress code</h3>
-              <p className="text-sm text-foreground-600">{lw.dress_code as string}</p>
-            </div>
-          )}
-          {lw.children_policy && (
-            <div className="bg-white border border-secondary-100 rounded-xl p-5">
-              <h3 className="font-label text-sm font-semibold text-foreground-900 mb-2">Children</h3>
-              <p className="text-sm text-foreground-600">{lw.children_policy as string}</p>
-            </div>
-          )}
-          {lw.accessibility_notes && (
-            <div className="bg-white border border-secondary-100 rounded-xl p-5">
-              <h3 className="font-label text-sm font-semibold text-foreground-900 mb-2">Accessibility</h3>
-              <p className="text-sm text-foreground-600">{lw.accessibility_notes as string}</p>
-            </div>
-          )}
-        </main>
-        <footer className="border-t border-secondary-100 py-10 text-center bg-white">
-          <p className="font-heading text-xl text-foreground-900 mb-1">{lwTitle}</p>
-          <p className="text-xs text-foreground-400">{lwDate}{lw.location ? ` · ${lw.location}` : ''}</p>
-          <p className="text-[11px] text-foreground-300 mt-4">
-            Powered by <Link to="/" className="text-foreground-400 hover:text-foreground-600 cursor-pointer">Vowora</Link>
-          </p>
-        </footer>
-      </div>
-    );
-  }
 
   if (!demo || !wedding) {
     return (
@@ -532,7 +413,7 @@ function PublicWeddingPageContent({
 
           {Object.keys(travelGroups).length > 0 ? (
             <div className="space-y-8">
-              {Object.entries(travelGroups).map(([category, places]) => (
+              {Object.entries(travelGroups as Record<string, typeof travelGroups[string]>).map(([category, places]) => (
                 <div key={category}>
                   <h3 className="font-heading text-lg text-foreground-900 mb-4 flex items-center gap-2">
                     <i className="ri-arrow-right-s-line text-foreground-400" /> {category}s

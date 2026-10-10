@@ -1,46 +1,8 @@
+import { oneRelation } from "../_shared/relations.ts";
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
+import { edgeGuestCorsHeaders, newGuestSessionSecret, sha256Hex } from "../_shared/guestAccess.ts";
 
-// ── CORS allowlist (environment-driven) ──
-// Replaces the previous wildcard. Configure additional origins with the
-// GUEST_ALLOWED_ORIGINS env var (comma-separated); local development origins
-// are included by default (or alongside an explicit list with ALLOW_LOCAL_ORIGINS=true).
-const VOWORA_PRODUCTION_ORIGINS = ["https://vowora.uk", "https://www.vowora.uk"];
-const GUEST_LOCAL_ORIGINS = [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "http://localhost:4173",
-  "http://127.0.0.1:4173",
-];
-
-function normalizeOrigin(origin: string): string {
-  return origin.trim().replace(/\/+$/, "");
-}
-
-function allowedGuestOrigins(): string[] {
-  const configured = (Deno.env.get("GUEST_ALLOWED_ORIGINS") ?? "")
-    .split(",")
-    .map(normalizeOrigin)
-    .filter(Boolean);
-  const base = configured.length > 0 ? configured : [...VOWORA_PRODUCTION_ORIGINS];
-  const includeLocal = configured.length === 0 || Deno.env.get("ALLOW_LOCAL_ORIGINS") === "true";
-  return Array.from(new Set(includeLocal ? [...base, ...GUEST_LOCAL_ORIGINS] : base));
-}
-
-function buildCorsHeaders(req: Request): Record<string, string> {
-  const requestOrigin = normalizeOrigin(req.headers.get("origin") ?? "");
-  const allowed = allowedGuestOrigins();
-  const allowOrigin = requestOrigin && allowed.includes(requestOrigin)
-    ? requestOrigin
-    : (allowed[0] ?? VOWORA_PRODUCTION_ORIGINS[0]);
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Vary": "Origin",
-  };
-}
 
 const securityHeaders = {
   "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
@@ -61,43 +23,38 @@ function generateSessionSecret(): string {
   return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
-function buildFingerprint(req: Request): string {
+
+async function buildFingerprint(req: Request): Promise<string> {
   const ip = req.headers.get("cf-connecting-ip") ||
     req.headers.get("x-real-ip") ||
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
   const ua = req.headers.get("user-agent") || "unknown";
-  return sha256(`${ip}:${ua.slice(0, 64)}`);
+  return await sha256Hex(`${ip}:${ua.slice(0, 64)}`);
 }
 
 function genericError(reason: string) {
   return { valid: false, reason };
 }
 
-function allHeaders(corsHeaders: Record<string, string>): Record<string, string> {
-  return { ...corsHeaders, ...securityHeaders };
+function allHeaders(req: Request): Record<string, string> {
+  return { ...edgeGuestCorsHeaders(req), ...securityHeaders };
 }
 
 Deno.serve(async (req: Request) => {
-  const corsHeaders = buildCorsHeaders(req);
+  const corsHeaders = edgeGuestCorsHeaders(req);
 
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: allHeaders(corsHeaders) });
+    return new Response("ok", { headers: allHeaders(req) });
   }
 
-  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
+  if (req.method !== "POST") return new Response(null, { status: 405, headers: allHeaders(req) });
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const fingerprint = buildFingerprint(req);
+  const fingerprint = await buildFingerprint(req);
 
   try {
     const body = await req.json();
@@ -107,7 +64,7 @@ Deno.serve(async (req: Request) => {
       await logAnonActivity(supabase, fingerprint, "invalid_token_format", "Token missing or too short");
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -115,21 +72,22 @@ Deno.serve(async (req: Request) => {
     const windowStart = new Date(Date.now() - RATE_WINDOW_MINUTES * 60 * 1000).toISOString();
 
     const { count: recentFailures, error: rateErr } = await supabase
-      .from("invitation_access_activity")
+      .from("guest_access_security_events")
       .select("id", { count: "exact", head: true })
-      .eq("event_type", "validation_failed")
+      .eq("fingerprint_hash", fingerprint)
+      .in("event_type", ["validation_failed", "invalid_token_format"])
       .gte("created_at", windowStart)
-      .filter("security_metadata->>fingerprint", "eq", fingerprint);
+      .eq("source", "validate-invitation");
 
     if (!rateErr && recentFailures !== null && recentFailures >= MAX_FAILED_ATTEMPTS) {
       await logAnonActivity(supabase, fingerprint, "rate_limited", "Too many failed attempts");
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
 
-    const tokenHash = sha256(rawToken);
+    const tokenHash = await sha256Hex(rawToken);
 
     // Find active token
     const { data: accessToken, error: tokenErr } = await supabase
@@ -152,7 +110,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -167,7 +125,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(JSON.stringify(genericError("expired")), {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -176,13 +134,14 @@ Deno.serve(async (req: Request) => {
       .from("invitations")
       .select("*, template:invitation_templates(id, name, style_preset, header_text, body_text, closing_text, footer_text, rsvp_button_label, image_url, theme_config)")
       .eq("id", accessToken.invitation_id)
+      .eq("wedding_id", accessToken.wedding_id)
       .maybeSingle();
 
     if (invErr || !invitation) {
       await logWeddingActivity(supabase, accessToken.wedding_id, accessToken.invitation_id, accessToken.id, "validation_failed", "Invitation not found", fingerprint);
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -190,7 +149,7 @@ Deno.serve(async (req: Request) => {
       await logWeddingActivity(supabase, accessToken.wedding_id, accessToken.invitation_id, accessToken.id, "access_denied_cancelled", "Invitation cancelled or archived", fingerprint);
       return new Response(JSON.stringify(genericError("cancelled")), {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -204,7 +163,7 @@ Deno.serve(async (req: Request) => {
     if (wedErr || !wedding) {
       return new Response(JSON.stringify(genericError("invalid_link")), {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -218,7 +177,7 @@ Deno.serve(async (req: Request) => {
     if (portalSettings && !portalSettings.portal_enabled) {
       return new Response(JSON.stringify(genericError("portal_disabled")), {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
 
@@ -227,41 +186,45 @@ Deno.serve(async (req: Request) => {
       if (new Date() >= closeDate) {
         return new Response(JSON.stringify(genericError("portal_closed")), {
           status: 200,
-          headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+          headers: { ...allHeaders(req), "Content-Type": "application/json" },
         });
       }
     }
 
-    // Issue a fresh guest session. The raw credential is returned to the
-    // browser exactly ONCE (as session_id); only its one-way SHA-256 hash is
-    // ever persisted. An existing active session cannot be reused here because
-    // the server no longer holds the raw secret, so each validation issues a new
-    // session and stale ones simply expire.
-    const rawSession = generateSessionSecret();
-    const sessionHash = sha256(rawSession);
-    const expiresAt = new Date(Date.now() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    // Issue a fresh bearer secret for each validation; never disclose the stored digest.
+    const rawSessionSecret = newGuestSessionSecret();
+    const storedSessionHash = await sha256Hex(rawSessionSecret);
     const now = new Date().toISOString();
-
-    const { error: sessionErr } = await supabase
+    const expiresAt = new Date(Date.now() + SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+    const { data: createdSession, error: sessionErr } = await supabase
       .from("guest_access_sessions")
       .insert({
         wedding_id: accessToken.wedding_id,
         invitation_id: accessToken.invitation_id,
         access_token_id: accessToken.id,
-        session_hash: sessionHash,
+        session_hash: storedSessionHash,
         status: "active",
         expires_at: expiresAt,
         created_at: now,
         last_seen_at: now,
-      });
-
-    if (sessionErr) {
+      })
+      .select("id")
+      .single();
+    if (sessionErr || !createdSession) {
       console.error("Session creation failed:", sessionErr);
       return new Response(JSON.stringify(genericError("unavailable")), {
-        status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        status: 200, headers: { ...allHeaders(req), "Content-Type": "application/json" },
       });
     }
+    await supabase.from("guest_portal_activity").insert({
+      wedding_id: accessToken.wedding_id,
+      invitation_id: accessToken.invitation_id,
+      session_id: createdSession.id,
+      actor_type: "guest",
+      event_type: "session_created",
+      summary: "Guest portal session created",
+      metadata: { fingerprint },
+    });
 
     await supabase.from("guest_portal_activity").insert({
       wedding_id: accessToken.wedding_id,
@@ -286,14 +249,15 @@ Deno.serve(async (req: Request) => {
     const { data: recipients } = await supabase
       .from("invitation_recipients")
       .select("guest_id, guest:guests(id, full_name, preferred_name), recipient_role, ceremony_included, reception_included, evening_included, welcome_event_included, day_after_event_included, plus_one_allowed")
-      .eq("invitation_id", invitation.id);
+      .eq("invitation_id", invitation.id)
+      .eq("wedding_id", accessToken.wedding_id);
 
     // Get events
     const { data: events } = await supabase
       .from("wedding_events")
       .select("*, venue:wedding_venues(id, name, address_line_1, city, postcode, country)")
       .eq("wedding_id", accessToken.wedding_id)
-      .eq("status", "active")
+      .eq("status", "published")
       .in("visibility", ["public", "invitation_holders"]);
 
     const filteredEvents = (events || []).map((evt) => ({
@@ -319,8 +283,8 @@ Deno.serve(async (req: Request) => {
 
     const guestRecipients = (recipients || []).map((r) => ({
       guest_id: r.guest_id,
-      guest_name: r.guest?.full_name || "Guest",
-      preferred_name: r.guest?.preferred_name || null,
+      guest_name: oneRelation(r.guest)?.full_name || "Guest",
+      preferred_name: oneRelation(r.guest)?.preferred_name || null,
       recipient_role: r.recipient_role,
       ceremony_included: r.ceremony_included,
       reception_included: r.reception_included,
@@ -330,6 +294,22 @@ Deno.serve(async (req: Request) => {
       plus_one_allowed: r.plus_one_allowed,
     }));
 
+    const designAssets: Record<string,string>={};
+    if(invitation.design_document){
+      const layers=(invitation.design_document as {layers?:{props?:{assetId?:string}}[]}).layers;
+      const ids=Array.isArray(layers)?layers.map(layer=>layer.props?.assetId).filter((id):id is string=>typeof id==='string'&&/^[a-f0-9-]{36}$/i.test(id)):[];
+      if(ids.length){
+        const {data:assets}=await supabase.from('asset_library').select('id,wedding_id,file_url,storage_path').in('id',ids).or(`wedding_id.is.null,wedding_id.eq.${invitation.wedding_id}`);
+        for(const asset of assets||[]){
+          const value=asset.storage_path||asset.file_url;if(!value)continue;
+          let path=value;
+          if(/^https:\/\//.test(value)){try{const parsed=new URL(value);if(parsed.origin!==new URL(supabaseUrl).origin)continue;const parts=parsed.pathname.split('/invitation-assets/');if(parts.length!==2)continue;path=decodeURIComponent(parts[1]);}catch{continue;}}
+          path=path.replace(/^invitation-assets\//,'');if(path.includes('..'))continue;
+          const {data:signed}=await supabase.storage.from('invitation-assets').createSignedUrl(path,3600);
+          if(signed?.signedUrl)designAssets[asset.id]=signed.signedUrl;
+        }
+      }
+    }
     const data = {
       wedding: {
         id: wedding.id,
@@ -353,6 +333,8 @@ Deno.serve(async (req: Request) => {
         rsvp_deadline: invitation.rsvp_deadline,
         status: invitation.status,
         template: invitation.template,
+        design_document: invitation.design_document || null,
+        design_assets: designAssets,
       },
       recipients: guestRecipients,
       events: filteredEvents,
@@ -373,54 +355,42 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({
         valid: true,
         data,
-        // Raw credential — returned once only. Never the stored hash.
-        session_id: rawSession,
+        session_id: rawSessionSecret,
       }),
       {
         status: 200,
-        headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+        headers: { ...allHeaders(req), "Content-Type": "application/json" },
       },
     );
   } catch (err) {
     console.error("validate-invitation error:", err);
-    try {
-      await supabase.from("invitation_access_activity").insert({
-        wedding_id: "00000000-0000-0000-0000-000000000000",
-        invitation_id: "00000000-0000-0000-0000-000000000000",
-        actor_type: "system",
-        event_type: "edge_function_error",
-        summary: "Unexpected error in validate-invitation",
-        security_metadata: { fingerprint, error: String(err).slice(0, 256) },
-      });
-    } catch { /* best effort */ }
+    await logAnonActivity(supabase, fingerprint, "edge_function_error", "Unexpected validation error");
     return new Response(JSON.stringify(genericError("unavailable")), {
       status: 200,
-      headers: { ...allHeaders(corsHeaders), "Content-Type": "application/json" },
+      headers: { ...allHeaders(req), "Content-Type": "application/json" },
     });
   }
 });
 
 async function logAnonActivity(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   fingerprint: string,
   eventType: string,
   summary: string,
   extra?: Record<string, unknown>,
 ) {
   try {
-    await supabase.from("invitation_access_activity").insert({
-      wedding_id: "00000000-0000-0000-0000-000000000000",
-      invitation_id: "00000000-0000-0000-0000-000000000000",
-      actor_type: "unknown",
+    await supabase.from("guest_access_security_events").insert({
+      fingerprint_hash: fingerprint,
       event_type: eventType,
-      summary,
-      security_metadata: { fingerprint, ...(extra || {}) },
+      source: "validate-invitation",
+      metadata: { summary, ...(extra || {}) },
     });
   } catch { /* best effort */ }
 }
 
 async function logWeddingActivity(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   weddingId: string,
   invitationId: string,
   accessTokenId: string,

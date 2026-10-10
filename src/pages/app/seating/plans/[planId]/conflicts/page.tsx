@@ -51,11 +51,11 @@ export default function SeatingConflictsPage() {
       ]);
 
       const newConflicts: Array<Record<string, unknown>> = [];
-      const tables = (tablesData || []) as Record<string, unknown>[];
-      const seats = (seatsData || []) as Record<string, unknown>[];
+      const tables = (tablesData || []) as unknown as Record<string, unknown>[];
+      const seats = (seatsData || []) as unknown as Record<string, unknown>[];
       const rules = (rulesData || []) as SeatingRule[];
-      const guests = (guestsData || []) as Record<string, unknown>[];
-      const assigns = (assignments || []) as Record<string, unknown>[];
+      const guests = (guestsData || []) as unknown as Record<string, unknown>[];
+      const assigns = (assignments || []) as unknown as Record<string, unknown>[];
 
       // 1. Check over-capacity
       const tableGuestCounts: Record<string, number> = {};
@@ -70,15 +70,15 @@ export default function SeatingConflictsPage() {
       // 2. Check split households
       const householdTables: Record<string, Set<string>> = {};
       assigns.forEach((a) => {
-        const guest = (a as Record<string, unknown>).guests as Record<string, unknown> | undefined;
+        const guest = (a as unknown as Record<string, unknown>).guests as unknown as Record<string, unknown> | undefined;
         const hid = guest?.household_id as string | undefined;
         const tid = a.table_id as string;
         if (hid) { if (!householdTables[hid]) householdTables[hid] = new Set(); householdTables[hid].add(tid); }
       });
       Object.entries(householdTables).forEach(([hid, tableSet]) => {
         if (tableSet.size > 1) {
-          const guestsInHousehold = assigns.filter((a) => ((a as Record<string, unknown>).guests as Record<string, unknown>)?.household_id === hid);
-          const guestNames = guestsInHousehold.map((a) => ((a as Record<string, unknown>).guests as Record<string, unknown>)?.full_name).join(', ');
+          const guestsInHousehold = assigns.filter((a) => ((a as unknown as Record<string, unknown>).guests as unknown as Record<string, unknown>)?.household_id === hid);
+          const guestNames = guestsInHousehold.map((a) => ((a as unknown as Record<string, unknown>).guests as unknown as Record<string, unknown>)?.full_name).join(', ');
           newConflicts.push({ wedding_id: weddingId, seating_plan_id: planId, conflict_type: 'split_household', severity: 'medium', guest_id: guestsInHousehold[0]?.guest_id, summary: `Household split across ${tableSet.size} tables: ${guestNames}`, status: 'open' });
         }
       });

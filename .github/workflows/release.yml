@@ -1,241 +1,49 @@
-name: Vowora Release
-
+name: Prepare Readdy release
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Deployment environment'
-        required: true
-        type: choice
-        options:
-          - staging
-          - production
       release_version:
-        description: 'Release version (e.g. 2026.08.05.1)'
+        description: Release version
         required: true
         type: string
-      release_notes:
-        description: 'Release notes summary'
-        required: true
-        type: string
-  push:
-    tags:
-      - 'v*'
-
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
-
 permissions:
   contents: read
-  deployments: write
-
-env:
-  NODE_VERSION: '20'
-
 jobs:
-  # ── 1. Pre-flight CI Gates ──
-  preflight:
-    name: Pre-flight Checks
+  package:
+    name: Verify and package one Readdy handoff
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    env:
+      VITE_DEMO_MODE: 'false'
+      VITE_PUBLIC_SITE_URL: https://vowora.uk
+      VITE_PUBLIC_SUPABASE_URL: ${{ vars.VITE_PUBLIC_SUPABASE_URL }}
+      VITE_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.VITE_PUBLIC_SUPABASE_ANON_KEY }}
+      VITE_RELEASE_VERSION: ${{ inputs.release_version }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '24'
           cache: npm
       - run: npm ci
+      - run: node scripts/check-repository.mjs
+      - run: node scripts/validate-environment.mjs production
       - run: npm run type-check
       - run: npm run lint
-      - run: npx vitest run
-      - run: npm run build -- --mode production
-
-  # ── 2. Environment Validation ──
-  validate-env:
-    name: Validate Environment
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    needs: [preflight]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Validate target environment
-        run: |
-          echo "RELEASE_ENV=${{ github.event.inputs.environment || 'production' }}" >> $GITHUB_ENV
-      - name: Set up env file
-        run: |
-          echo "VITE_DEMO_MODE=false" > .env
-          echo "VITE_RELEASE_VERSION=${{ github.event.inputs.release_version || github.ref_name }}" >> .env
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - run: node scripts/validate-environment.mjs $RELEASE_ENV
-
-  # ── 3. Security Audit ──
-  security-audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [preflight]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - name: Critical vulnerability check
-        run: |
-          AUDIT=$(npm audit --json 2>/dev/null || true)
-          if echo "$AUDIT" | grep -q '"critical"'; then
-            echo "::error::Critical vulnerabilities found — must be resolved before release"
-            echo "$AUDIT" | grep -A5 '"severity":"critical"' || true
-            exit 1
-          fi
-      - name: Gitleaks secret scan
-        uses: gitleaks/gitleaks-action@v2
-        with:
-          config-path: .gitleaks.toml
-      - name: Check for demo mode in release config
-        run: |
-          if grep -q 'VITE_DEMO_MODE=true' .env 2>/dev/null; then
-            echo "::error::VITE_DEMO_MODE is true — cannot release to production with demo mode"
-            exit 1
-          fi
-
-  # ── 4. Build Artifact ──
-  build-artifact:
-    name: Build Release Artifact
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [validate-env, security-audit]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-      - run: npm ci
-      - name: Set release environment
-        run: |
-          echo "VITE_DEMO_MODE=false" > .env
-          echo "VITE_RELEASE_VERSION=${{ github.event.inputs.release_version || github.ref_name }}" >> .env
-          echo "VITE_BUILD_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> .env
+      - run: npm test
+      - run: npm run test:database
+      - run: npm run check:edge
+      - run: npm audit --omit=dev --audit-level=high
       - run: npm run build
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Record exact handoff commit
+        run: git rev-parse HEAD > out/release-commit.txt
+      - uses: actions/upload-artifact@v4
         with:
-          name: release-build-${{ github.sha }}
-          path: out/
-          retention-days: 30
-
-  # ── 5. Staging Deployment ──
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: [build-artifact]
-    if: github.event.inputs.environment == 'staging' || github.ref_type == 'tag'
-    environment:
-      name: staging
-      url: https://staging.vowora.uk
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: release-build-${{ github.sha }}
-          path: out/
-      - name: Record staging deployment
-        run: |
-          echo "Deployed release ${{ github.event.inputs.release_version || github.ref_name }} to staging"
-          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          echo "Commit: ${{ github.sha }}"
-      - name: Post-deployment smoke test
-        run: |
-          echo "Running staging smoke tests..."
-          # In production, this would run Playwright or curl checks against staging
-          echo "Smoke tests passed (placeholder — configure deployment target)"
-
-  # ── 6. Production Deployment (Manual Approval Required) ──
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: [build-artifact]
-    if: github.event.inputs.environment == 'production'
-    environment:
-      name: production
-      url: https://vowora.uk
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: release-build-${{ github.sha }}
-          path: out/
-      - name: Production deployment approval gate
-        run: |
-          echo "============================================"
-          echo "  PRODUCTION DEPLOYMENT"
-          echo "  Release: ${{ github.event.inputs.release_version }}"
-          echo "  Commit: ${{ github.sha }}"
-          echo "  Notes: ${{ github.event.inputs.release_notes }}"
-          echo "  Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          echo "============================================"
-      - name: Verify build contains no demo data
-        run: |
-          if grep -rq 'emma-and-james' out/ 2>/dev/null; then
-            echo "::error::Demo wedding reference found in production build"
-            exit 1
-          fi
-          if grep -rq 'VITE_DEMO_MODE.*true' out/assets/*.js 2>/dev/null; then
-            echo "::error::Demo mode reference found in production bundle"
-            exit 1
-          fi
-      - name: Record release
-        run: |
-          echo "Release recorded: ${{ github.event.inputs.release_version }}"
-          echo "Deployed at: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          echo "Rollback target: previous production deployment"
-
-  # ── 7. Release Verification ──
-  verify-release:
-    name: Verify Release
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [deploy-staging, deploy-production]
-    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
-    steps:
-      - uses: actions/checkout@v4
-      - name: Verify release metadata
-        run: |
-          echo "Release: ${{ github.event.inputs.release_version || github.ref_name }}"
-          echo "Environment: ${{ github.event.inputs.environment }}"
-          echo "Commit: ${{ github.sha }}"
-          echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          echo "Status: VERIFIED"
-      - name: Upload release evidence
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-evidence-${{ github.sha }}
+          name: vowora-readdy-handoff
           path: |
             out/
-          retention-days: 90
-
-  # ── 8. Notify on Failure ──
-  notify-failure:
-    name: Notify Release Failure
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    needs: [preflight, validate-env, security-audit, build-artifact, deploy-staging, deploy-production]
-    if: failure()
-    steps:
-      - name: Log failure
-        run: |
-          echo "Release workflow failed"
-          echo "Release: ${{ github.event.inputs.release_version || github.ref_name }}"
-          echo "Environment: ${{ github.event.inputs.environment }}"
-          echo "See workflow logs for details"
+            supabase/
+            docs/RELEASE-HANDOFF.md
+            docs/THREE-PHASE-BUILD.md
+      - name: Handoff status
+        run: echo "Package prepared. This workflow does not deploy Supabase or publish Readdy. Follow docs/RELEASE-HANDOFF.md once."

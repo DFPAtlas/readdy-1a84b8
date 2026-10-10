@@ -1,4 +1,5 @@
 export interface InvitationAccessToken {
+  delivery_channel?: string;
   id: string;
   wedding_id: string;
   invitation_id: string;
@@ -296,6 +297,7 @@ export interface SeatingSeat {
 }
 
 export interface SeatingCompanion {
+  seat_label?: string;
   full_name: string;
   preferred_name: string | null;
 }

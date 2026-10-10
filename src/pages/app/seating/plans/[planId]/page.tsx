@@ -534,7 +534,7 @@ export default function SeatingPlanWorkspacePage() {
   // ── Apply undo/redo entry (local + persist, no new undo push) ──
   const applyUndoRedoEntry = useCallback(async (entry: UndoEntry, reverse: boolean) => {
     const side = reverse ? entry.after : entry.before;
-    const id = (side as Record<string, unknown>).id as string | undefined;
+    const id = (side as unknown as Record<string, unknown>).id as string | undefined;
 
     setSaveStatus('saving');
     switch (entry.type) {

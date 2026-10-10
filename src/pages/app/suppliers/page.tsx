@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import AppShell from '@/components/feature/AppShell';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
@@ -64,7 +65,7 @@ function DemoSuppliersPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [viewMode, setViewMode] = useState<SupplierViewMode>('grid');
-  const [selectedSupplier, setSelectedSupplier] = useState<ReturnType<typeof demo.useDemoDataSafe>['state']['suppliers'][0] | null>(null);
+  const [selectedSupplier, setSelectedSupplier] = useState<import('@/demo/demoTypes').DemoSupplier | null>(null);
   const [detailTab, setDetailTab] = useState<'overview' | 'quotes' | 'documents'>('overview');
   const [toast, setToast] = useState('');
 
@@ -131,7 +132,7 @@ function DemoSuppliersPage() {
               <div className={`w-8 h-8 flex items-center justify-center rounded-lg ${card.bg} ${card.color} mb-2`}>
                 <i className={`${card.icon} text-xs`} />
               </div>
-              {(card as Record<string, unknown>).isText ? (
+              {(card as unknown as Record<string, unknown>).isText ? (
                 <p className="text-base font-heading font-semibold text-foreground-900">{card.value}</p>
               ) : (
                 <p className="text-xl font-heading font-semibold text-foreground-900">{card.value}</p>
@@ -442,7 +443,7 @@ function NormalSuppliersPage() {
       if (ok) {
         showToast('Supplier updated');
         if (selectedSupplier?.id === editingId) {
-          setSelectedSupplier((prev) => prev ? { ...prev, ...form, business_name: form.business_name, category: form.category, status: form.status } : null);
+          setSelectedSupplier((prev) => prev ? { ...prev, ...form, contacts: prev.contacts, agreed_amount: form.agreed_amount === '' ? null : Number(form.agreed_amount), business_name: form.business_name, category: form.category, status: form.status } : null);
         }
         return true;
       }
@@ -554,7 +555,7 @@ function NormalSuppliersPage() {
               <div className={`w-8 h-8 flex items-center justify-center rounded-lg ${card.bg} ${card.color} mb-2`}>
                 <i className={`${card.icon} text-xs`} />
               </div>
-              {(card as Record<string, unknown>).isText ? (
+              {(card as unknown as Record<string, unknown>).isText ? (
                 <p className="text-base font-heading font-semibold text-foreground-900">{card.value}</p>
               ) : (
                 <p className="text-xl font-heading font-semibold text-foreground-900">{card.value}</p>

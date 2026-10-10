@@ -1,3 +1,4 @@
+import WorkspaceActivity from '@/components/feature/WorkspaceActivity';
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
@@ -201,13 +202,4 @@ function DemoActivityCentre() {
   );
 }
 
-export default function ActivityPage() {
-  if (isDemoMode) return <DemoActivityCentre />;
-  return (
-    <AppShell>
-      <div className="max-w-5xl mx-auto py-20 text-center">
-        <p className="text-sm text-foreground-500">Activity history is available in the production workspace.</p>
-      </div>
-    </AppShell>
-  );
-}
+export default function ActivityPage() { return isDemoMode ? <DemoActivityCentre /> : <WorkspaceActivity />; }

@@ -39,7 +39,7 @@ export function useEntitlements(currentPlan: BillingPlanKey): Entitlements {
   const isOverLimit = <K extends keyof PlanLimits>(key: K, currentValue: number): boolean => {
     const limit = plan.limits[key];
     if (limit === null) return false;
-    return currentValue > limit;
+    return typeof limit === "number" && currentValue > limit;
   };
 
   const canUpgradeTo = (target: BillingPlanKey): boolean => {

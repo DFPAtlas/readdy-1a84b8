@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,7 +15,7 @@ const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
 // ── SHA-256 hashing ──
 
 async function sha256(buffer: Uint8Array): Promise<string> {
-  const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", new Uint8Array(buffer));
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
@@ -71,7 +71,7 @@ Deno.serve(async (req: Request) => {
     const file = formData.get("file") as File | null;
     const consentMetadata = formData.get("consent_metadata") === "true";
 
-    if (!sessionHash || !albumId || !file) {
+    if (!validGuestSessionSecret(sessionHash) || !albumId || !file) {
       return new Response(JSON.stringify({ success: false, error: "Missing required fields" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
     const { data: session } = await supabase
       .from("guest_access_sessions")
       .select("id, wedding_id, invitation_id")
-      .eq("session_hash", await sha256String(sessionHash))
+      .eq("session_hash", await sha256Hex(sessionHash))
       .eq("status", "active")
       .maybeSingle();
 

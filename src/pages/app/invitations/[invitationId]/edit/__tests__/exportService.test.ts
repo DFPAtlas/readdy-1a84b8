@@ -1,3 +1,4 @@
+import '@/test/canvas';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   sanitizeFilename,
@@ -15,7 +16,7 @@ describe('sanitizeFilename', () => {
   });
 
   it('replaces spaces with hyphens', () => {
-    expect(sanitizeFilename('Amelia & Jonathan')).toBe('Amelia--Jonathan');
+    expect(sanitizeFilename('Amelia & Jonathan')).toBe('Amelia-Jonathan');
   });
 
   it('removes special characters', () => {
@@ -83,12 +84,9 @@ describe('waitForImages', () => {
     img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     container.appendChild(img);
 
-    // Wait for the data URL image to load
-    await new Promise<void>((resolve) => {
-      img.onload = () => resolve();
-      img.onerror = () => resolve();
-      if (img.complete) resolve();
-    });
+    // jsdom does not decode HTML image elements; model an already loaded image.
+    Object.defineProperty(img, 'complete', { value: true });
+    Object.defineProperty(img, 'naturalWidth', { value: 1 });
 
     const result = await waitForImages(container, 2000);
     expect(result.ready).toBe(true);

@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWeddingWebsiteBuilder } from '@/hooks/useWeddingWebsiteBuilder';
@@ -127,7 +128,7 @@ export default function WebsiteSeoPage() {
   const [seoState, setSeoState] = useState<SeoConfig | null>(null);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout>>();
+  const toastTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const hasInitialized = useRef(false);
 
   // Initialize local SEO state from draftConfig

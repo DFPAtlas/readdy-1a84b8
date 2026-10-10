@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState } from 'react';
 import type { GuestProfile, GuestNotificationPrefs, GuestConsentState, PrivacyRequestItem } from '@/types/access';
 

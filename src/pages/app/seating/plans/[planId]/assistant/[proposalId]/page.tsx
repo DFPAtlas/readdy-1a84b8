@@ -63,7 +63,7 @@ export default function ProposalReviewPage() {
 
     // Verify revision match
     const { data: currentPlan } = await supabase.from('seating_plans').select('revision').eq('id', planId).single();
-    if ((currentPlan as Record<string, unknown>)?.revision !== proposal?.source_revision) {
+    if ((currentPlan as unknown as Record<string, unknown>)?.revision !== proposal?.source_revision) {
       setError('The plan has changed since this proposal was generated. Please regenerate.'); setApplying(false); return;
     }
 

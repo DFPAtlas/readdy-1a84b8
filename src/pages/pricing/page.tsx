@@ -27,7 +27,6 @@ export default function PricingPage() {
   const currentPlanKey = subscription?.planKey || 'free';
 
   const handlePlanAction = useCallback((planKey: BillingPlanKey) => {
-    if (planKey === 'free' && currentPlanKey === 'free') return; // Already on free
 
     if (!isAuthenticated) {
       // Redirect to signup with plan preserved

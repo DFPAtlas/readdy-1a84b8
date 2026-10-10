@@ -1,6 +1,6 @@
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,11 +11,7 @@ const corsHeaders = {
 
 // The browser holds the raw guest session credential; only its SHA-256 hash is
 // stored in guest_access_sessions.session_hash, so hash before every lookup.
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+
 
 // Rate limiting: max 3 questions per hour per invitation
 const MAX_QUESTIONS_PER_HOUR = 3;
@@ -41,7 +37,7 @@ Deno.serve(async (req: Request) => {
     const { data: session, error: sessionErr } = await supabase
       .from("guest_access_sessions")
       .select("id, wedding_id, invitation_id, status")
-      .eq("session_hash", sha256(session_hash))
+      .eq("session_hash", await sha256Hex(session_hash))
       .eq("status", "active")
       .maybeSingle();
 

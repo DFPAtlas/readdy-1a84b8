@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback, useRef } from 'react';
 import AppShell from '@/components/feature/AppShell';
 import { isDemoMode } from '@/demo/demoConfig';
@@ -817,7 +818,7 @@ function BillingSection({ weddingId }: { weddingId: string | null }) {
           })}
         </div>
         <p className="text-[11px] text-foreground-400 mt-3">
-          Stripe integration handles all billing securely. <readdy-link integration="stripe">Connect Stripe</readdy-link> to enable paid plans.
+          Stripe integration handles all billing securely. <a href="https://supabase.com/dashboard">Connect Stripe</a> to enable paid plans.
         </p>
       </SettingsCard>
 
@@ -852,7 +853,7 @@ function DataSection({ weddingId }: { weddingId: string | null }) {
   const handleExport = async () => {
     try {
       await requestExport();
-      setExportMsg('Export requested. You\'ll be notified when it\'s ready.');
+      setExportMsg('Archive request recorded. Contact Support to arrange fulfilment; planning exports are available on the Exports page.');
       setTimeout(() => setExportMsg(null), 4000);
     } catch (err: unknown) {
       setExportMsg(err instanceof Error ? err.message : 'Export failed');

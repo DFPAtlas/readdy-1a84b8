@@ -64,8 +64,8 @@ export default function GuestRSVPGuestPage() {
                   {['ceremony', 'reception', 'evening', 'welcome', 'day_after'].map((event) => {
                     const field = `${event}_attending`;
                     const includedField = `${event}_included`;
-                    if (!(recipient as Record<string, unknown>)[includedField]) return null;
-                    const isSelected = (rsvp as Record<string, unknown>)[field];
+                    if (!(recipient as unknown as Record<string, unknown>)[includedField]) return null;
+                    const isSelected = (rsvp as unknown as Record<string, unknown>)[field];
                     return (
                       <p key={event} className="flex items-center gap-2 text-foreground-700">
                         <i className={`${isSelected ? 'ri-checkbox-circle-fill text-emerald-500' : 'ri-checkbox-blank-circle-line text-foreground-300'} text-sm`} />

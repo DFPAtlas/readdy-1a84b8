@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 type RevealDirection = 'up' | 'left' | 'right' | 'none';

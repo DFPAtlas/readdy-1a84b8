@@ -1,6 +1,9 @@
+import type * as React from "react";
 import { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { isDemoMode } from '@/demo/demoConfig';
+import { accountDestination, selectedPlan, safeReturnPath } from '@/lib/signupIntent';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthProvider';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
@@ -16,6 +19,17 @@ export default function SignupPage() {
   const [submittedEmail, setSubmittedEmail] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const intent = { selected_plan: selectedPlan(params.get("plan")) || "free", signup_return_to: safeReturnPath(params.get("redirect")) || "" };
+  const next = accountDestination(intent);
+  const [resendStatus, setResendStatus] = useState("");
+  const [resendAt, setResendAt] = useState(0);
+  async function resend() {
+    if (Date.now() < resendAt) return;
+    setResendAt(Date.now() + 60000);
+    const { error } = await supabase.auth.resend({ type: "signup", email: submittedEmail, options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` } });
+    setResendStatus(error ? error.message : "A new link has been requested. Check your inbox and spam folder.");
+  }
 
   const { signUp, authError, clearAuthError } = useAuth();
 
@@ -48,7 +62,7 @@ export default function SignupPage() {
     if (isDemoMode) {
       await new Promise((r) => setTimeout(r, 800));
       setLoading(false);
-      navigate('/app/onboarding');
+      navigate(next);
       return;
     }
 
@@ -58,7 +72,7 @@ export default function SignupPage() {
     const first_name = (data.get('first_name') as string).trim();
     const last_name = (data.get('last_name') as string).trim();
 
-    const result = await signUp(email, password, { first_name, last_name });
+    const result = await signUp(email, password, { first_name, last_name, ...intent, marketing_consent: data.get("marketing_consent") === "on" });
     setLoading(false);
 
     if (result.success) {
@@ -66,7 +80,7 @@ export default function SignupPage() {
         setSubmittedEmail(email);
         setVerificationSent(true);
       } else {
-        navigate('/app/onboarding');
+        navigate(next);
       }
     }
   };
@@ -103,13 +117,17 @@ export default function SignupPage() {
                 <p className="text-xs text-foreground-500 mb-6">
                   Please check your inbox and click the link to verify your account before logging in.
                 </p>
-                <Link to="/login" className="inline-flex items-center justify-center whitespace-nowrap rounded-lg border border-secondary-200 text-foreground-700 px-5 py-2.5 text-sm font-medium font-label cursor-pointer hover:bg-secondary-50 transition-all">
+                <button type="button" onClick={resend} className="btn-primary mb-4">Resend verification email</button>
+                <button type="button" onClick={() => setVerificationSent(false)} className="block underline mx-auto mb-4">Correct my email address</button>
+                {resendStatus && <p role="status" className="mb-4 text-sm">{resendStatus}</p>}
+                <Link to={`/login?redirect=${encodeURIComponent(next)}`} className="inline-flex items-center justify-center whitespace-nowrap rounded-lg border border-secondary-200 text-foreground-700 px-5 py-2.5 text-sm font-medium font-label cursor-pointer hover:bg-secondary-50 transition-all">
                   Back to log in
                 </Link>
               </div>
             ) : (
               <>
                 <h1 className="font-heading text-xl text-foreground-900 mb-6">Create your Vowora account</h1>
+                <p className="text-sm mb-4">{intent.signup_return_to ? "Create an account to join the wedding you were invited to." : `Start on the ${intent.selected_plan} plan. You can invite your partner after setup.`}</p>
 
                 <form ref={formRef} onSubmit={handleSubmit} noValidate>
                   <div className="space-y-4">
@@ -267,7 +285,10 @@ export default function SignupPage() {
                 <div className="mt-5 pt-5 border-t border-secondary-100 text-center">
                   <p className="text-sm text-foreground-600">
                     Already have an account?{' '}
-                    <Link to="/login" className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer">
+                    <button type="button" onClick={resend} className="btn-primary mb-4">Resend verification email</button>
+                <button type="button" onClick={() => setVerificationSent(false)} className="block underline mx-auto mb-4">Correct my email address</button>
+                {resendStatus && <p role="status" className="mb-4 text-sm">{resendStatus}</p>}
+                <Link to={`/login?redirect=${encodeURIComponent(next)}`} className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer">
                       Log in
                     </Link>
                   </p>

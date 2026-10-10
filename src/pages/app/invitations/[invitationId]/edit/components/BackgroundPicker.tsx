@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { CanvasBackground, BackgroundPattern } from '../types';
 import { BACKGROUND_COLOR_PRESETS, BACKGROUND_PATTERN_LABELS } from '../types';

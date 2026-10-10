@@ -1,3 +1,4 @@
+import { usePlatformAdminAccess } from '@/context/PlatformAdminContext';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -67,7 +68,7 @@ function getSinceDate(range: TimeRange): string {
 export default function AnalyticsDashboardPage() {
   const { profile } = useAuth();
   const { membership } = useActiveWedding();
-  const isAuthorised = membership?.role === 'owner' || membership?.role === 'partner';
+  const isAuthorised = usePlatformAdminAccess();
   const isDemo = isDemoMode;
 
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
@@ -98,15 +99,15 @@ export default function AnalyticsDashboardPage() {
       ] = await Promise.allSettled([
         supabase.from('weddings').select('id, status, created_at').gte('created_at', since),
         supabase.from('wedding_members').select('id, role'),
-        supabase.from('wedding_website_configs').select('id, is_published, published_at'),
+        supabase.from('wedding_website_configs').select('id, status, published_at'),
         supabase.from('invitations').select('id, status, created_at'),
         supabase.from('rsvp_submissions').select('id, status, submitted_at'),
-        supabase.from('subscriptions').select('id, status, plan_code, created_at'),
+        supabase.from('wedora_subscriptions').select('id, status, plan_key, created_at'),
         supabase.from('wedora_support_cases').select('id, status, created_at'),
         supabase.from('guests').select('id, created_at'),
         supabase.from('wedding_events').select('id, created_at'),
-        supabase.from('gallery_assets').select('id, status, created_at'),
-        supabase.from('gift_registry_items').select('id, is_published'),
+        supabase.from('gallery_assets').select('id, publication_status, created_at'),
+        supabase.from('gift_registries').select('id, status'),
       ]);
 
       const get = (r: PromiseSettledResult<any>) => r.status === 'fulfilled' && !r.value.error ? r.value.data : [];
@@ -126,7 +127,7 @@ export default function AnalyticsDashboardPage() {
       // ── Summary metrics ──
       const activeWeddingsCount = weddings.filter((w: any) => w.status === 'active').length;
       const newWeddingsCount = weddings.length;
-      const publishedSites = websites.filter((w: any) => w.is_published).length;
+      const publishedSites = websites.filter((w: any) => w.status === 'published').length;
       const activeMembers = members.length;
       const activeSubs = subs.filter((s: any) => s.status === 'active').length;
       const totalSubs = subs.length;
@@ -202,7 +203,7 @@ export default function AnalyticsDashboardPage() {
       // ── Plan distribution ──
       const planMap: Record<string, number> = {};
       subs.forEach((s: any) => {
-        const plan = s.plan_code || 'unknown';
+        const plan = s.plan_key || 'unknown';
         planMap[plan] = (planMap[plan] || 0) + 1;
       });
       setPlanDistribution(Object.entries(planMap).map(([label, count]) => ({ label, count })));
@@ -216,7 +217,7 @@ export default function AnalyticsDashboardPage() {
         { feature: 'Events', activeCount: withEvents, pctOfActive: Math.round((withEvents / totalActive) * 100), actionsCompleted: events.length, trend: events.length > 0 ? 'up' : 'flat', errorRate: null },
         { feature: 'Website', activeCount: websites.length, pctOfActive: Math.round((websites.length / totalActive) * 100), actionsCompleted: publishedSites, trend: publishedSites > 0 ? 'up' : 'flat', errorRate: null },
         { feature: 'Gallery', activeCount: gallery.length, pctOfActive: Math.round((gallery.length / totalActive) * 100), actionsCompleted: gallery.filter((g: any) => g.status === 'approved').length, trend: 'no_data', errorRate: null },
-        { feature: 'Registry', activeCount: registry.length, pctOfActive: Math.round((registry.length / totalActive) * 100), actionsCompleted: registry.filter((r: any) => r.is_published).length, trend: 'no_data', errorRate: null },
+        { feature: 'Registry', activeCount: registry.length, pctOfActive: Math.round((registry.length / totalActive) * 100), actionsCompleted: registry.filter((r: any) => r.status === 'published').length, trend: 'no_data', errorRate: null },
       ]);
 
       setLastRefreshed(new Date().toLocaleString());

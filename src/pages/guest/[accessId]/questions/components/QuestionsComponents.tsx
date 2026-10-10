@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback } from 'react';
 import type { WeddingFaq, FaqCategory, FaqRelatedLink, GuestQuestion } from '@/types/access';
 

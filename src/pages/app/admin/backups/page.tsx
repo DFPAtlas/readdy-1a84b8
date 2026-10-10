@@ -1,3 +1,4 @@
+import { usePlatformAdminAccess } from '@/context/PlatformAdminContext';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -111,7 +112,7 @@ function BackupRow({ backup, onRecordVerify }: { backup: BackupRecord; onRecordV
 
 export default function BackupsDashboardPage() {
   const { membership } = useActiveWedding();
-  const isAuthorised = membership?.role === 'owner' || membership?.role === 'partner';
+  const isAuthorised = usePlatformAdminAccess();
   const isDemo = isDemoMode;
 
   const [refreshing, setRefreshing] = useState(true);

@@ -36,7 +36,7 @@ function BillingSkeleton() {
   return (
     <div className="max-w-5xl mx-auto animate-pulse space-y-8">
       <div>
-        <div className="h-4 w-32 rounded bg-secondary-200 mb-2" />
+      <div className="h-4 w-32 rounded bg-secondary-200 mb-2" />
         <div className="h-8 w-64 rounded bg-secondary-200 mb-1" />
         <div className="h-4 w-80 rounded bg-secondary-100" />
       </div>
@@ -80,6 +80,8 @@ export default function BillingPage() {
   const [showUpgradeConfirm, setShowUpgradeConfirm] = useState<BillingPlanKey | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const selectedPlanNotice = searchParams.get("selected_plan");
 
   // Handle checkout return
   useEffect(() => {
@@ -189,6 +191,8 @@ export default function BillingPage() {
 
   return (
     <AppShell>
+        {selectedPlanNotice && <div role="status" className="max-w-5xl mx-auto mb-4 rounded-xl bg-primary-50 p-4">Your private wedding is ready. Review the {selectedPlanNotice} plan below, then choose Upgrade to start secure checkout. You can also keep using Free.</div>}
+
       <div className="max-w-5xl mx-auto">
         {/* Toast */}
         {toast && (

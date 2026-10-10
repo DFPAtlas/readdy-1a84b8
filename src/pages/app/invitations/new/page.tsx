@@ -362,7 +362,7 @@ function NormalNewInvitationPage() {
                   { key: 'dayAfter', label: 'Day-after event', icon: 'ri-sun-line' },
                 ].map((ev) => (
                   <label key={ev.key} className="flex items-center gap-3 p-3 rounded-lg border border-secondary-200 cursor-pointer hover:border-secondary-300 transition-colors">
-                    <input type="checkbox" checked={(form as Record<string, boolean>)[ev.key]} onChange={(e) => setForm((p) => ({ ...p, [ev.key]: e.target.checked }))} className="cursor-pointer" />
+                    <input type="checkbox" checked={Boolean(form[ev.key as keyof typeof form])} onChange={(e) => setForm((p) => ({ ...p, [ev.key]: e.target.checked }))} className="cursor-pointer" />
                     <i className={`${ev.icon} text-foreground-500`} />
                     <span className="text-sm text-foreground-700">{ev.label}</span>
                   </label>

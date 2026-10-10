@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import { useParams, Link } from 'react-router-dom';
 import WeddingHero from './components/WeddingHero';
@@ -259,7 +260,7 @@ export default function GuestHomePage() {
                 icon="ri-gift-line"
                 iconBg="bg-primary-50 text-primary-600"
                 title="Gift Registry"
-                badge={data.registry?.items?.length ? `${data.registry.items.length} gift${data.registry.items.length !== 1 ? 's' : ''}` : undefined}
+                badge={data.registry?.registries.flatMap(r => r.items).length ? `${data.registry.registries.flatMap(r => r.items).length} gift${data.registry.registries.flatMap(r => r.items).length !== 1 ? 's' : ''}` : undefined}
               />
               <RegistryPreview data={data} basePath={basePath} />
             </PreviewCard>
