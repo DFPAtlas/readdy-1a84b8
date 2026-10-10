@@ -18,8 +18,10 @@ export const PUBLIC_SITE_URL = import.meta.env.VITE_PUBLIC_SITE_URL || '';
 export const PUBLIC_SITE_HOST = PUBLIC_SITE_URL ? PUBLIC_SITE_URL.replace(/^https?:\/\//, '') : 'vowora.uk';
 
 // ── Supabase ──
-export const SUPABASE_URL = import.meta.env.VITE_PUBLIC_SUPABASE_URL || '';
-export const SUPABASE_ANON_KEY = import.meta.env.VITE_PUBLIC_SUPABASE_ANON_KEY || '';
+import { resolvePublicSupabaseConfig } from './publicSupabaseConfig';
+const publicSupabaseConfig = resolvePublicSupabaseConfig(import.meta.env);
+export const SUPABASE_URL = publicSupabaseConfig.url;
+export const SUPABASE_ANON_KEY = publicSupabaseConfig.key;
 
 // ── Google Maps ──
 export const GOOGLE_MAPS_KEY = import.meta.env.VITE_PUBLIC_GOOGLE_MAPS_KEY || '';

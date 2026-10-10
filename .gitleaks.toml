@@ -1,9 +1,16 @@
 title = "Vowora secret scan"
 [extend]
 useDefault = true
-[allowlist]
+[[allowlists]]
 description = "Generated dependency lockfile and placeholder environment template"
 paths = [
   '''^package-lock\.json$''',
   '''^\.env\.example$''',
 ]
+
+[[allowlists]]
+description = "This project's intentionally public Supabase publishable browser key"
+condition = "AND"
+paths = ['''^src/lib/publicSupabaseConfig\.ts$''']
+regexTarget = "secret"
+regexes = ['''^sb_publishable_[A-Za-z0-9_-]+$''']
