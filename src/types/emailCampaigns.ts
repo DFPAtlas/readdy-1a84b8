@@ -151,7 +151,7 @@ export interface DeliveryStats {
   failed: number;
 }
 
-export interface AudienceFilter {
+export interface AudienceFilter extends Record<string, unknown> {
   guest_ids?: string[];
   household_ids?: string[];
   rsvp_status?: string[];

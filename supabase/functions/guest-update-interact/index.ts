@@ -1,6 +1,5 @@
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
 const corsHeaders = {
@@ -11,11 +10,7 @@ const corsHeaders = {
 
 // The browser holds the raw guest session credential; only its SHA-256 hash is
 // stored in guest_access_sessions.session_hash, so hash before every lookup.
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
+
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {

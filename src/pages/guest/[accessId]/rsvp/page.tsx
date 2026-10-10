@@ -215,7 +215,7 @@ function NormalRSVPPage() {
     if (!gf) return;
 
     if (!saveDraft && gf.response_status === 'attending') {
-      const eventFlags = getRecipientEventFlags(currentRecipient as unknown as Record<string, unknown>);
+      const eventFlags = getRecipientEventFlags(currentRecipient as unknown as unknown as Record<string, unknown>);
       const anySelected = eventFlags.some((ef) => getFormEventField(gf, ef.key));
       if (!anySelected) { setServerError('Please select at least one event you plan to attend.'); return; }
       if (requireMealChoices && mealOptions.length > 0 && !gf.meal_choice) {
@@ -349,7 +349,7 @@ function NormalRSVPPage() {
   const hasPlusOne = currentRecipient.plus_one_allowed === true;
   const hasSubmitted = !!(rsvpResponses[currentRecipient.guest_id]?.submitted_at && !rsvpResponses[currentRecipient.guest_id]?.is_draft);
   const canEdit = !hasSubmitted || allowRsvpUpdates;
-  const eventFlags = getRecipientEventFlags(currentRecipient as unknown as Record<string, unknown>);
+  const eventFlags = getRecipientEventFlags(currentRecipient as unknown as unknown as Record<string, unknown>);
 
   const visibleSteps = STEPS.filter((s) => {
     if (s.key === 'meals') return isAttending && mealOptions.length > 0;

@@ -368,7 +368,7 @@ function NormalGuestDetailPage() {
 
         // RSVP response data
         if (rsvpRes.data && !cancelled) {
-          const rd = rsvpRes.data as Record<string, unknown>;
+          const rd = rsvpRes.data as unknown as Record<string, unknown>;
           setRsvpData(rd);
 
           // Fetch revisions
@@ -449,11 +449,11 @@ function NormalGuestDetailPage() {
 
       // Refresh RSVP data
       const { data: freshRsvp } = await supabase.from('rsvp_responses').select('*').eq('guest_id', guest.id).eq('wedding_id', weddingId).order('updated_at', { ascending: false }).limit(1).maybeSingle();
-      setRsvpData((freshRsvp || null) as Record<string, unknown> | null);
+      setRsvpData((freshRsvp || null) as unknown as Record<string, unknown> | null);
 
       // Refresh activity
       const { data: freshAct } = await supabase.from('guest_activity_log').select('action, summary, created_at').eq('guest_id', guestId).order('created_at', { ascending: false }).limit(20);
-      setActivityLog((freshAct.data || []) as Array<{ action: string; summary: string; created_at: string }>);
+      setActivityLog((freshAct || []) as Array<{ action: string; summary: string; created_at: string }>);
     } catch (err: unknown) {
       setFeedback({ type: 'error', message: err instanceof Error ? err.message : 'Failed to record RSVP' });
     } finally {

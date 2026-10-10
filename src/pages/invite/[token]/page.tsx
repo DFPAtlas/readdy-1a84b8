@@ -1,3 +1,4 @@
+import GuestInvitationDesign from '@/components/feature/GuestInvitationDesign';
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { storeGuestSession } from '@/hooks/useGuestPortal';
@@ -18,6 +19,8 @@ interface InviteData {
     contact_information?: string;
   };
   invitation: {
+    design_document?: unknown;
+    design_assets?: Record<string,string>;
     id: string;
     formal_recipient_name?: string;
     informal_greeting?: string;
@@ -88,7 +91,7 @@ export default function InviteLandingPage() {
           invitation_type: 'household',
           rsvp_deadline: '2027-03-24',
           status: 'sent',
-          template: { style_preset: 'minimal' } as Record<string, unknown>,
+          template: { style_preset: 'minimal' } as unknown as Record<string, unknown>,
         },
         recipients: [
           { guest_id: 'demo-guest-oliver', guest_name: 'Oliver Bennett', recipient_role: 'primary' },
@@ -212,6 +215,7 @@ export default function InviteLandingPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-12 md:py-20">
         <div className="w-full max-w-2xl">
           <div className={`bg-white rounded-2xl ${ps.border} border p-8 md:p-12 text-center`}>
+            {invitation.design_document&&<GuestInvitationDesign value={invitation.design_document} assets={invitation.design_assets}/>}
             {/* Couple names */}
             <p className={`font-heading text-4xl md:text-5xl ${ps.text} mb-2`}>
               {wedding.partner_one_name} <span className="text-2xl">&amp;</span> {wedding.partner_two_name}

@@ -164,13 +164,13 @@ export default function GuestRegistryPage() {
               reg.registry_type === 'external_links' ? reg.external_url || '#' :
               'gifts';
             const isExternal = reg.registry_type === 'external_links';
-            const CardWrapper = isExternal ? 'a' : Link;
+            const CardWrapper = Link;
             const cardProps = isExternal
-              ? { href: subPath as string, target: '_blank', rel: 'noopener noreferrer', className: 'bg-white rounded-xl border border-secondary-100 p-5 hover:border-primary-200 transition-all cursor-pointer group nofollow' }
+              ? { to: subPath as string, target: '_blank', rel: 'noopener noreferrer', className: 'bg-white rounded-xl border border-secondary-100 p-5 hover:border-primary-200 transition-all cursor-pointer group nofollow' }
               : { to: subPath as string, className: 'bg-white rounded-xl border border-secondary-100 p-5 hover:border-primary-200 transition-all cursor-pointer group' };
 
             return (
-              <CardWrapper key={reg.id} {...(cardProps as Record<string, unknown>)}>
+              <CardWrapper key={reg.id} {...cardProps}>
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center group-hover:bg-primary-100 transition-colors">
                     <i className={`${config.icon} text-sm text-primary-500`} />

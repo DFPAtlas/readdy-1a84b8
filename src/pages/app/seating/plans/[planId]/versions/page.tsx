@@ -56,7 +56,7 @@ export default function PlanVersionsPage() {
       const nextVer = versions.length > 0 ? Math.max(...versions.map((v) => v.version_number)) + 1 : 1;
       await supabase.from('seating_plan_versions').insert({
         wedding_id: weddingId, seating_plan_id: planId, version_number: nextVer,
-        label: 'Manual snapshot', reason: 'Manual snapshot', snapshot_data: snapshot as unknown as Record<string, unknown>,
+        label: 'Manual snapshot', reason: 'Manual snapshot', snapshot_data: snapshot as unknown as unknown as Record<string, unknown>,
         source_revision: planRes.data.revision,
       });
       await supabase.from('seating_activity_log').insert({ wedding_id: weddingId, seating_plan_id: planId, action: 'version_created', summary: `Snapshot v${nextVer} created` });
@@ -106,7 +106,7 @@ export default function PlanVersionsPage() {
       await supabase.from('seating_plan_versions').insert({
         wedding_id: weddingId, seating_plan_id: planId, version_number: nextVer,
         label: `Restored from v${version.version_number}`, reason: `Restored from version ${version.version_number}: ${version.label || 'unnamed'}`,
-        snapshot_data: {} as unknown as Record<string, unknown>, source_revision: ((planData.revision as number) || 1) + 1,
+        snapshot_data: {} as unknown as unknown as Record<string, unknown>, source_revision: ((planData.revision as number) || 1) + 1,
       });
 
       await supabase.from('seating_activity_log').insert({

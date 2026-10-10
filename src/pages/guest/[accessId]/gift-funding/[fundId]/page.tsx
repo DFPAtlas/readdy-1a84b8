@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useRef } from 'react';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import { useParams, useNavigate } from 'react-router-dom';

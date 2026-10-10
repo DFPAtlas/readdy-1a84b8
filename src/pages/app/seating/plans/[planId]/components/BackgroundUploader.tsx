@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { BackgroundAsset } from '@/types/seating';

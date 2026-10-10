@@ -59,7 +59,7 @@ describe('Privacy request validation', () => {
 
     const isSensitive = (key: string) =>
       key.includes('token') || key.includes('password') || key.includes('secret') ||
-      key.includes('card') || key.includes('session') || key.includes('hash');
+      key.includes('card') || key.includes('session') || key.includes('hash') || key.includes('stripe_key');
 
     sensitiveKeys.forEach((key) => expect(isSensitive(key)).toBe(true));
     safeKeys.forEach((key) => expect(isSensitive(key)).toBe(false));

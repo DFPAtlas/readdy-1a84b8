@@ -1,16 +1,6 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Cache-Control": "no-store, no-cache, must-revalidate",
-  "Pragma": "no-cache",
-};
-
-// ── Types ──
-
+import { unsubscribeUrl } from "../_shared/unsubscribe.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { edgeGuestCorsHeaders, sha256Hex } from "../_shared/guestAccess.ts";
 interface SendRequest {
   invitationId: string;
   senderId: string;
@@ -23,42 +13,10 @@ interface SendRequest {
   submissionId: string;
 }
 
-interface SendResult {
-  accepted: boolean;
-  submissionId: string;
-  sendLogIds: string[];
-  guestIds: string[];
-  acceptedCount: number;
-  rejectedCount: number;
-  rejectionReasons: string[];
-  error?: string;
-}
-
-interface VerifiedSenderRow {
-  id: string;
-  user_id: string;
-  email: string;
-  display_name: string | null;
-  is_verified: boolean;
-}
-
-interface InvitationDesignRow {
-  id: string;
-  user_id: string;
-  title: string;
-  document: unknown;
-}
-
-interface InvitationGuestRow {
-  id: string;
-  invitation_id: string;
-  name: string | null;
-  email: string | null;
-}
-
 // ── Validation ──
 
-const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+const EMAIL_REGEX =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
 const MAX_RECIPIENTS = 100;
 const MAX_EMAIL_LENGTH = 254;
 const MAX_SUBJECT_LENGTH = 160;
@@ -69,7 +27,11 @@ function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email);
 }
 
-function validateSendRequest(body: unknown): { valid: boolean; error?: string; request?: SendRequest } {
+function validateSendRequest(body: unknown): {
+  valid: boolean;
+  error?: string;
+  request?: SendRequest;
+} {
   if (!body || typeof body !== "object") {
     return { valid: false, error: "Invalid request body" };
   }
@@ -82,16 +44,28 @@ function validateSendRequest(body: unknown): { valid: boolean; error?: string; r
   const subject = typeof b.subject === "string" ? b.subject.trim() : "";
   const message = typeof b.message === "string" ? b.message : "";
   const mode = b.mode === "now" || b.mode === "scheduled" ? b.mode : "";
-  const scheduledFor = typeof b.scheduledFor === "string" && b.scheduledFor ? b.scheduledFor : null;
+  const scheduledFor =
+    typeof b.scheduledFor === "string" && b.scheduledFor
+      ? b.scheduledFor
+      : null;
   const timezone = typeof b.timezone === "string" ? b.timezone : "";
   const submissionId = typeof b.submissionId === "string" ? b.submissionId : "";
 
   if (!invitationId) return { valid: false, error: "Missing invitationId" };
   if (!senderId) return { valid: false, error: "Missing senderId" };
-  if (!submissionId) return { valid: false, error: "Missing submissionId" };
+  if (!/^[a-zA-Z0-9-]{8,80}$/.test(submissionId))
+    return { valid: false, error: "Missing submissionId" };
   if (!subject) return { valid: false, error: "Subject is required" };
-  if (subject.length > MAX_SUBJECT_LENGTH) return { valid: false, error: `Subject exceeds ${MAX_SUBJECT_LENGTH} characters` };
-  if (message.length > MAX_MESSAGE_LENGTH) return { valid: false, error: `Message exceeds ${MAX_MESSAGE_LENGTH} characters` };
+  if (subject.length > MAX_SUBJECT_LENGTH)
+    return {
+      valid: false,
+      error: `Subject exceeds ${MAX_SUBJECT_LENGTH} characters`,
+    };
+  if (message.length > MAX_MESSAGE_LENGTH)
+    return {
+      valid: false,
+      error: `Message exceeds ${MAX_MESSAGE_LENGTH} characters`,
+    };
   if (!mode) return { valid: false, error: "Invalid mode" };
 
   // Validate recipients
@@ -107,21 +81,33 @@ function validateSendRequest(body: unknown): { valid: boolean; error?: string; r
   // Deduplicate
   const unique = [...new Set(validRecipients)];
 
-  if (unique.length === 0) return { valid: false, error: "No valid recipients" };
-  if (unique.length > MAX_RECIPIENTS) return { valid: false, error: `Maximum ${MAX_RECIPIENTS} recipients allowed` };
+  if (unique.length === 0)
+    return { valid: false, error: "No valid recipients" };
+  if (unique.length > MAX_RECIPIENTS)
+    return {
+      valid: false,
+      error: `Maximum ${MAX_RECIPIENTS} recipients allowed`,
+    };
 
   // Validate schedule
   if (mode === "scheduled") {
-    if (!scheduledFor) return { valid: false, error: "Scheduled time is required" };
+    if (!scheduledFor)
+      return { valid: false, error: "Scheduled time is required" };
     const scheduledDate = new Date(scheduledFor);
-    if (isNaN(scheduledDate.getTime())) return { valid: false, error: "Invalid scheduled date" };
+    if (isNaN(scheduledDate.getTime()))
+      return { valid: false, error: "Invalid scheduled date" };
 
     const now = new Date();
     const minTime = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes from now
-    if (scheduledDate < minTime) return { valid: false, error: "Scheduled time must be at least 5 minutes in the future" };
+    if (scheduledDate < minTime)
+      return {
+        valid: false,
+        error: "Scheduled time must be at least 5 minutes in the future",
+      };
 
-    const maxTime = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 12 months
-    if (scheduledDate > maxTime) return { valid: false, error: "Cannot schedule more than 12 months ahead" };
+    const maxTime = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 12 months
+    if (scheduledDate > maxTime)
+      return { valid: false, error: "Cannot schedule more than 30 days ahead" };
   }
 
   // Validate timezone
@@ -148,361 +134,234 @@ function validateSendRequest(body: unknown): { valid: boolean; error?: string; r
   };
 }
 
-// ── Guest upsert ──
-
-async function resolveGuestForEmail(
-  supabase: ReturnType<typeof createClient>,
-  invitationId: string,
-  email: string,
-): Promise<{ id: string; created: boolean }> {
-  const normalized = email.trim().toLowerCase();
-
-  // Try to find existing guest
-  const { data: existing } = await supabase
-    .from("invitation_guests")
-    .select("id")
-    .eq("invitation_id", invitationId)
-    .eq("email", normalized)
-    .maybeSingle();
-
-  if (existing) {
-    return { id: existing.id, created: false };
-  }
-
-  // Create new guest
-  const { data: created, error: createErr } = await supabase
-    .from("invitation_guests")
-    .insert({
-      invitation_id: invitationId,
-      email: normalized,
-      rsvp_status: "pending",
-      plus_one: false,
-    })
-    .select("id")
-    .single();
-
-  if (createErr) {
-    // Race condition — another request may have created it between our select and insert
-    const { data: raceCheck } = await supabase
-      .from("invitation_guests")
-      .select("id")
-      .eq("invitation_id", invitationId)
-      .eq("email", normalized)
-      .maybeSingle();
-
-    if (raceCheck) {
-      return { id: raceCheck.id, created: false };
-    }
-
-    throw new Error(`Failed to create guest: ${createErr.message}`);
-  }
-
-  return { id: created.id, created: true };
-}
-
-// ── Create send_log row ──
-
-async function createSendLog(
-  supabase: ReturnType<typeof createClient>,
-  invitationId: string,
-  guestId: string,
-  channel: string,
-  submissionId: string,
-): Promise<string> {
-  const { data, error } = await supabase
-    .from("send_log")
-    .insert({
-      invitation_id: invitationId,
-      guest_id: guestId,
-      channel,
-      status: "queued",
-      submission_id: submissionId,
-    })
-    .select("id")
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to create send log: ${error.message}`);
-  }
-
-  return data.id;
-}
-
-// ── Main handler ──
-
+const escapeHtml = (value: string) =>
+  value.replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ]!,
+  );
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
+  const headers = {
+    ...edgeGuestCorsHeaders(req),
+    "Content-Type": "application/json",
+  };
+  const reply = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers });
+  if (req.method === "OPTIONS") return new Response("ok", { headers });
+  if (req.method !== "POST") return reply({ error: "Method not allowed" }, 405);
   try {
-    const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    // Separate anon client used only to verify the caller's JWT; privileged
-    // database operations stay on the service-role client above.
-    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
-
-    // ── Auth ──
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authErr } = await supabaseAuth.auth.getUser(token);
-    if (authErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ── Parse & validate body ──
-    let body: unknown;
-    try {
-      body = await req.json();
-    } catch {
-      return new Response(JSON.stringify({ error: "Invalid JSON" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const validation = validateSendRequest(body);
-    if (!validation.valid || !validation.request) {
-      return new Response(JSON.stringify({ accepted: false, error: validation.error }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const db = createClient(Deno.env.get("SUPABASE_URL") || "", serviceKey);
+    const {
+      data: { user },
+      error: authError,
+    } = await db.auth.getUser(
+      (req.headers.get("authorization") || "").replace(/^Bearer /, ""),
+    );
+    if (authError || !user)
+      return reply({ accepted: false, error: "Please sign in again" }, 401);
+    const validation = validateSendRequest(await req.json());
+    if (!validation.request)
+      return reply({ accepted: false, error: validation.error }, 400);
     const request = validation.request;
-
-    // ── Load invitation design ──
-    const { data: design, error: designErr } = await supabase
+    const { data: design, error: designError } = await db
       .from("invitation_designs")
-      .select("id, user_id, title")
+      .select("id,wedding_id,title")
       .eq("id", request.invitationId)
-      .maybeSingle();
-
-    if (designErr || !design) {
-      return new Response(JSON.stringify({ accepted: false, error: "Invitation not found or unavailable" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const designRow = design as InvitationDesignRow;
-
-    // Verify ownership
-    if (designRow.user_id !== user.id) {
-      return new Response(JSON.stringify({ accepted: false, error: "Invitation not found or unavailable" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ── Verify sender ──
-    const { data: sender, error: senderErr } = await supabase
-      .from("verified_senders")
-      .select("id, user_id, email, display_name, is_verified")
-      .eq("id", request.senderId)
+      .single();
+    if (designError || !design)
+      return reply(
+        { accepted: false, error: "Invitation design unavailable" },
+        404,
+      );
+    const { data: member } = await db
+      .from("wedding_members")
+      .select("role")
+      .eq("wedding_id", design.wedding_id)
       .eq("user_id", user.id)
+      .eq("status", "active")
+      .maybeSingle();
+    if (!member || !["owner", "partner", "planner"].includes(member.role))
+      return reply(
+        { accepted: false, error: "Your role cannot send invitations" },
+        403,
+      );
+    const { data: sender } = await db
+      .from("verified_senders")
+      .select("email,display_name")
+      .eq("id", request.senderId)
+      .eq("wedding_id", design.wedding_id)
       .eq("is_verified", true)
       .maybeSingle();
-
-    if (senderErr || !sender) {
-      return new Response(JSON.stringify({ accepted: false, error: "Sender not found or not verified" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const senderRow = sender as VerifiedSenderRow;
-
-    // ── Check n8n webhook URL ──
-    const n8nWebhookUrl = Deno.env.get("N8N_SEND_WEBHOOK_URL");
-
-    if (!n8nWebhookUrl) {
-      return new Response(JSON.stringify({
-        accepted: false,
-        error: "Invitation sending is not configured",
-        deploymentTodo: "Add N8N_SEND_WEBHOOK_URL to Supabase secrets",
-      }), {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Validate n8n URL
-    let parsedUrl: URL;
-    try {
-      parsedUrl = new URL(n8nWebhookUrl);
-    } catch {
-      return new Response(JSON.stringify({ accepted: false, error: "Send service misconfigured" }), {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    if (parsedUrl.protocol !== "https:") {
-      const isProd = !n8nWebhookUrl.includes("localhost") && !n8nWebhookUrl.includes("127.0.0.1");
-      if (isProd) {
-        return new Response(JSON.stringify({ accepted: false, error: "Send service misconfigured: HTTPS required in production" }), {
-          status: 503,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    }
-
-    // ── Guest upsert ──
-    const guestResults: Array<{ guestId: string; email: string; created: boolean }> = [];
-    const guestErrors: string[] = [];
-
+    if (!sender)
+      return reply(
+        { accepted: false, error: "Choose a verified sender for this wedding" },
+        400,
+      );
+    const apiKey = Deno.env.get("RESEND_API_KEY");
+    const site = new URL(
+      Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk",
+    );
+    if (!apiKey || site.protocol !== "https:")
+      return reply(
+        { accepted: false, error: "Invitation sending is not configured" },
+        503,
+      );
+    const { data: guests, error: guestError } = await db
+      .from("guests")
+      .select("id,email,full_name")
+      .eq("wedding_id", design.wedding_id)
+      .is("archived_at", null)
+      .in("email", request.recipients);
+    if (guestError) throw guestError;
+    const sendLogIds: string[] = [],
+      guestIds: string[] = [],
+      rejectionReasons: string[] = [];
+    let acceptedCount = 0;
+    const signingKey = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(
+        Deno.env.get("INVITATION_LINK_SECRET") || serviceKey,
+      ),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
     for (const email of request.recipients) {
-      try {
-        const result = await resolveGuestForEmail(supabase, request.invitationId, email);
-        guestResults.push({ guestId: result.id, email, created: result.created });
-      } catch (err) {
-        guestErrors.push(`${email}: ${err instanceof Error ? err.message : "Unknown error"}`);
+      const matches = (guests || []).filter(
+        (g) => g.email?.toLowerCase() === email,
+      );
+      if (matches.length !== 1) {
+        rejectionReasons.push(
+          `${email}: add a unique guest record with this email before sending.`,
+        );
+        continue;
       }
-    }
-
-    if (guestResults.length === 0) {
-      return new Response(JSON.stringify({
-        accepted: false,
-        error: "Failed to prepare guests",
-        rejectionReasons: guestErrors,
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ── Create send_log rows ──
-    const sendLogIds: string[] = [];
-    const logErrors: string[] = [];
-
-    for (const gr of guestResults) {
+      const guest = matches[0];
       try {
-        const logId = await createSendLog(supabase, request.invitationId, gr.guestId, "email", request.submissionId);
-        sendLogIds.push(logId);
-      } catch (err) {
-        logErrors.push(`${gr.email}: ${err instanceof Error ? err.message : "Unknown error"}`);
-      }
-    }
-
-    if (sendLogIds.length === 0) {
-      return new Response(JSON.stringify({
-        accepted: false,
-        error: "Failed to create send logs",
-        rejectionReasons: logErrors,
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // ── Build n8n payload ──
-    const n8nPayload = {
-      event: "invitation.send.requested",
-      version: 1,
-      submissionId: request.submissionId,
-      invitationId: request.invitationId,
-      sender: {
-        id: senderRow.id,
-        email: senderRow.email,
-        displayName: senderRow.display_name || senderRow.email,
-      },
-      recipients: guestResults.map((gr, i) => ({
-        guestId: gr.guestId,
-        email: gr.email,
-        sendLogId: sendLogIds[i],
-      })),
-      subject: request.subject,
-      message: request.message,
-      delivery: {
-        mode: request.mode,
-        scheduledFor: request.scheduledFor,
-        timezone: request.timezone,
-      },
-    };
-
-    // ── Call n8n ──
-    let n8nAccepted = false;
-    let n8nError: string | undefined;
-
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
-
-      const n8nRes = await fetch(n8nWebhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(n8nPayload),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (!n8nRes.ok) {
-        n8nError = `Webhook returned status ${n8nRes.status}`;
-      } else {
-        const contentType = n8nRes.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const ack = await n8nRes.json();
-          if (ack && typeof ack === "object" && ack.accepted === true && ack.submissionId === request.submissionId) {
-            n8nAccepted = true;
-          } else {
-            n8nError = "Webhook did not confirm acceptance";
-          }
-        } else {
-          n8nError = "Webhook returned non-JSON response";
+        const rawToken = Array.from(
+          new Uint8Array(
+            await crypto.subtle.sign(
+              "HMAC",
+              signingKey,
+              new TextEncoder().encode(
+                `vowora-invitation/v1/${design.wedding_id}/${request.submissionId}/${guest.id}`,
+              ),
+            ),
+          ),
+          (b) => b.toString(16).padStart(2, "0"),
+        ).join("");
+        const { data: prepared, error: prepareError } = await db.rpc(
+          "prepare_design_invitation_send",
+          {
+            p_design: design.id,
+            p_guest: guest.id,
+            p_submission: request.submissionId,
+            p_token_hash: await sha256Hex(rawToken),
+            p_actor: user.id,
+          },
+        );
+        if (prepareError) throw prepareError;
+        const log = prepared as {
+          log_id: string;
+          invitation_id: string;
+          status: string;
+          created_at: string;
+          resend_email_id: string | null;
+        };
+        sendLogIds.push(log.log_id);
+        guestIds.push(guest.id);
+        if (log.resend_email_id) {
+          acceptedCount++;
+          continue;
         }
+        // The provider's idempotency window is 24 hours. Never retry an uncertain old send with a fresh key.
+        if (
+          Date.now() - new Date(log.created_at).getTime() >
+          23 * 60 * 60 * 1000
+        )
+          throw new Error(
+            "This send is too old to retry safely. Check its delivery status before making a new send.",
+          );
+        const link = `${site.origin}/invite/${rawToken}`;
+        const preferences = await unsubscribeUrl(design.wedding_id, email);
+        const payload = {
+          from: `${(sender.display_name || "Wedding invitation").replace(/[<>\r\n]/g, "")} <${sender.email}>`,
+          to: [email],
+          subject: request.subject,
+          text: `${request.message}\n\nView your invitation and RSVP: ${link}\nEmail preferences: ${preferences}`,
+          html: `<p>${escapeHtml(request.message).replace(/\n/g, "<br>")}</p><p><a href="${link}">View your invitation and RSVP</a></p><p><a href="${escapeHtml(preferences)}">Stop wedding emails</a></p>`,
+          headers: { "List-Unsubscribe": `<${preferences}>` },
+          ...(request.mode === "scheduled"
+            ? { scheduled_at: request.scheduledFor }
+            : {}),
+        };
+        const response = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "Idempotency-Key": `invitation/${log.log_id}`,
+          },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(15000),
+        });
+        const result = await response.json();
+        if (!response.ok || !result.id)
+          throw new Error(
+            result.message || "Email provider did not accept this invitation",
+          );
+        const { error: logError } = await db
+          .from("send_log")
+          .update({
+            status: request.mode === "scheduled" ? "scheduled" : "sent",
+            resend_email_id: result.id,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", log.log_id);
+        if (logError) throw logError;
+        const { error: invError } = await db
+          .from("invitations")
+          .update({
+            status: "sent",
+            delivery_status:
+              request.mode === "scheduled" ? "scheduled" : "sent",
+            delivery_method: "email",
+          })
+          .eq("id", log.invitation_id);
+        if (invError) throw invError;
+        acceptedCount++;
+      } catch (error) {
+        rejectionReasons.push(
+          `${email}: ${error instanceof Error ? error.message : "Sending failed"}`,
+        );
       }
-    } catch (err) {
-      n8nError = err instanceof Error ? err.message : "Webhook request failed";
     }
-
-    // ── Build response ──
-    const result: SendResult = {
-      accepted: n8nAccepted,
-      submissionId: request.submissionId,
-      sendLogIds,
-      guestIds: guestResults.map((g) => g.guestId),
-      acceptedCount: n8nAccepted ? guestResults.length : 0,
-      rejectedCount: n8nAccepted ? 0 : guestResults.length,
-      rejectionReasons: [
-        ...guestErrors,
-        ...logErrors,
-        ...(n8nError ? [n8nError] : []),
-      ],
-    };
-
-    return new Response(JSON.stringify(result), {
-      status: n8nAccepted ? 200 : 502,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    console.error("send-invitation-design error:", err);
-    return new Response(JSON.stringify({
-      accepted: false,
-      error: err instanceof Error ? err.message : "Internal server error",
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return reply(
+      {
+        accepted: acceptedCount > 0,
+        submissionId: request.submissionId,
+        sendLogIds,
+        guestIds,
+        acceptedCount,
+        rejectedCount: request.recipients.length - acceptedCount,
+        rejectionReasons,
+        ...(!acceptedCount
+          ? { error: rejectionReasons[0] || "No invitations accepted" }
+          : {}),
+      },
+      acceptedCount ? 200 : 422,
+    );
+  } catch (error) {
+    console.error("Invitation send failed", error);
+    return reply(
+      {
+        accepted: false,
+        error: "Invitation sending failed. Please retry the same submission.",
+      },
+      500,
+    );
   }
 });

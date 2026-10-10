@@ -1,6 +1,7 @@
+import type * as React from "react";
 import { useState, useRef, useCallback, useEffect } from 'react';
-import type { SaveState, InvitationDocument } from '../types';
-import type { SaveResult } from '../persistenceService';
+import type { SaveState, InvitationDocument } from './types';
+import type { SaveResult } from './persistenceService';
 import { normalizeDocument } from './components/InvitationEditor';
 
 // ── Revision tracking ──
@@ -141,14 +142,12 @@ export function useInvitationAutosave({
 
       guardedSetSaveState('saving', gen);
 
-      const result = await saveFn(snapshot.invitationId, snapshot.document, snapshot.title);
+      let result: SaveResult;
+      try { result = await saveFn(snapshot.invitationId, snapshot.document, snapshot.title); }
+      catch (error) { result = { success: false, error: error instanceof Error ? error.message : 'Save failed' }; }
 
       // Check generation — ignore stale completions
-      if (gen !== generationRef.current) {
-        savingRef.current = false;
-        revisionRef.current.inFlightRevision = null;
-        return;
-      }
+      if (gen !== generationRef.current || !mountedRef.current) return;
 
       savingRef.current = false;
       revisionRef.current.inFlightRevision = null;
@@ -325,6 +324,7 @@ export function useInvitationAutosave({
     // Clear any pending timers from previous invitation
     clearTimers();
     queuedSaveRef.current = false;
+    savingRef.current = false;
 
     if (manualSavePromiseRef.current) {
       manualSavePromiseRef.current.reject(new Error('Route changed'));

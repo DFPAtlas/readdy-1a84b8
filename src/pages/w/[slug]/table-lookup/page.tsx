@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -27,7 +28,7 @@ export default function PublicTableLookupPage() {
         if (!pub) { setMode('disabled'); return; }
 
         const lookup = (pub as { lookup_settings: Record<string, unknown> | null }).lookup_settings || {};
-        if ((lookup as Record<string, unknown>).mode !== 'name_code') { setMode('disabled'); return; }
+        if ((lookup as unknown as Record<string, unknown>).mode !== 'name_code') { setMode('disabled'); return; }
         setMode('form');
       } else {
         setMode('disabled');

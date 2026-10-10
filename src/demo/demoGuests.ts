@@ -6,7 +6,7 @@ const W = DEMO_CONFIG.weddingId;
 export const demoGuests: DemoGuest[] = [
   // ── PATEL HOUSEHOLD (demo-session guests) ──
   {
-    id: 'demo-guest-oliver', full_name: 'Oliver Bennett', last_name: 'Bennett', preferred_name: 'Oliver', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-oliver', full_name: 'Oliver Bennett', last_name: 'Bennett', preferred_name: 'Oliver', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Brother of the groom', connection_group: 'Family of groom',
     wedding_party_role: 'Best Man', invitation_group: 'Wedding party', email: 'oliver.bennett@example.com',
     mobile_phone: '07700 900001', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -19,7 +19,7 @@ export const demoGuests: DemoGuest[] = [
     rsvp_message: 'So excited to celebrate with you both! Can\'t wait for the big day.', rsvp_song_request: 'Don\'t Stop Believin\' — Journey',
   },
   {
-    id: 'demo-guest-sophie', full_name: 'Sophie Carter', last_name: 'Carter', preferred_name: 'Sophie', title: 'Miss',
+    wedding_id: W, id: 'demo-guest-sophie', full_name: 'Sophie Carter', last_name: 'Carter', preferred_name: 'Sophie', title: 'Miss',
     guest_type: 'adult', relationship_label: 'Sister of the bride', connection_group: 'Family of bride',
     wedding_party_role: 'Maid of Honour', invitation_group: 'Wedding party', email: 'sophie.carter@example.com',
     mobile_phone: '07700 900002', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -29,7 +29,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-carter', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-priya', full_name: 'Priya Patel', last_name: 'Patel', preferred_name: 'Priya', title: 'Dr',
+    wedding_id: W, id: 'demo-guest-priya', full_name: 'Priya Patel', last_name: 'Patel', preferred_name: 'Priya', title: 'Dr',
     guest_type: 'adult', relationship_label: 'University friend of Emma', connection_group: 'Friends of bride',
     wedding_party_role: '', invitation_group: 'Friends', email: 'priya.patel@example.com',
     mobile_phone: '07700 900003', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -39,7 +39,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-patel', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-raj', full_name: 'Raj Patel', last_name: 'Patel', preferred_name: 'Raj', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-raj', full_name: 'Raj Patel', last_name: 'Patel', preferred_name: 'Raj', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Partner of Priya', connection_group: 'Friends of bride',
     wedding_party_role: '', invitation_group: 'Friends', email: 'raj.patel@example.com',
     mobile_phone: '07700 900004', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -49,7 +49,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-patel', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-anika', full_name: 'Anika Patel', last_name: 'Patel', preferred_name: 'Anika', title: 'Miss',
+    wedding_id: W, id: 'demo-guest-anika', full_name: 'Anika Patel', last_name: 'Patel', preferred_name: 'Anika', title: 'Miss',
     guest_type: 'child', relationship_label: 'Daughter of Priya & Raj', connection_group: 'Friends of bride',
     wedding_party_role: '', invitation_group: 'Friends', email: '',
     mobile_phone: '', ceremony_invited: true, reception_invited: true, evening_invited: false,
@@ -59,7 +59,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-patel', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: '',
   },
   {
-    id: 'demo-guest-rohan', full_name: 'Rohan Patel', last_name: 'Patel', preferred_name: 'Rohan', title: 'Master',
+    wedding_id: W, id: 'demo-guest-rohan', full_name: 'Rohan Patel', last_name: 'Patel', preferred_name: 'Rohan', title: 'Master',
     guest_type: 'child', relationship_label: 'Son of Priya & Raj', connection_group: 'Friends of bride',
     wedding_party_role: '', invitation_group: 'Friends', email: '',
     mobile_phone: '', ceremony_invited: true, reception_invited: true, evening_invited: false,
@@ -70,7 +70,7 @@ export const demoGuests: DemoGuest[] = [
   },
   // ── MORE GUESTS ──
   {
-    id: 'demo-guest-margaret', full_name: 'Margaret Bennett', last_name: 'Bennett', preferred_name: 'Margaret', title: 'Mrs',
+    wedding_id: W, id: 'demo-guest-margaret', full_name: 'Margaret Bennett', last_name: 'Bennett', preferred_name: 'Margaret', title: 'Mrs',
     guest_type: 'adult', relationship_label: 'Mother of the groom', connection_group: 'Family of groom',
     wedding_party_role: '', invitation_group: 'Family', email: 'margaret.bennett@example.com',
     mobile_phone: '07700 900005', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -80,7 +80,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-bennett-sr', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'sms',
   },
   {
-    id: 'demo-guest-david', full_name: 'David Bennett', last_name: 'Bennett', preferred_name: 'David', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-david', full_name: 'David Bennett', last_name: 'Bennett', preferred_name: 'David', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Father of the groom', connection_group: 'Family of groom',
     wedding_party_role: '', invitation_group: 'Family', email: 'david.bennett@example.com',
     mobile_phone: '07700 900006', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -90,7 +90,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-bennett-sr', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-helen', full_name: 'Helen Carter', last_name: 'Carter', preferred_name: 'Helen', title: 'Mrs',
+    wedding_id: W, id: 'demo-guest-helen', full_name: 'Helen Carter', last_name: 'Carter', preferred_name: 'Helen', title: 'Mrs',
     guest_type: 'adult', relationship_label: 'Mother of the bride', connection_group: 'Family of bride',
     wedding_party_role: '', invitation_group: 'Family', email: 'helen.carter@example.com',
     mobile_phone: '07700 900007', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -100,7 +100,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-carter-sr', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-philip', full_name: 'Philip Carter', last_name: 'Carter', preferred_name: 'Philip', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-philip', full_name: 'Philip Carter', last_name: 'Carter', preferred_name: 'Philip', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Father of the bride', connection_group: 'Family of bride',
     wedding_party_role: '', invitation_group: 'Family', email: 'philip.carter@example.com',
     mobile_phone: '07700 900008', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -110,7 +110,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-carter-sr', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-amelia', full_name: 'Amelia Wood', last_name: 'Wood', preferred_name: 'Amelia', title: 'Miss',
+    wedding_id: W, id: 'demo-guest-amelia', full_name: 'Amelia Wood', last_name: 'Wood', preferred_name: 'Amelia', title: 'Miss',
     guest_type: 'adult', relationship_label: 'Bridesmaid', connection_group: 'Friends of bride',
     wedding_party_role: 'Bridesmaid', invitation_group: 'Wedding party', email: 'amelia.wood@example.com',
     mobile_phone: '07700 900009', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -120,7 +120,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-wood', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-ruth', full_name: 'Ruth Okonkwo', last_name: 'Okonkwo', preferred_name: 'Ruth', title: 'Miss',
+    wedding_id: W, id: 'demo-guest-ruth', full_name: 'Ruth Okonkwo', last_name: 'Okonkwo', preferred_name: 'Ruth', title: 'Miss',
     guest_type: 'adult', relationship_label: 'Bridesmaid', connection_group: 'Friends of bride',
     wedding_party_role: 'Bridesmaid', invitation_group: 'Wedding party', email: 'ruth.okonkwo@example.com',
     mobile_phone: '07700 900010', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -130,7 +130,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-okonkwo', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-tom', full_name: 'Tom Davies', last_name: 'Davies', preferred_name: 'Tom', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-tom', full_name: 'Tom Davies', last_name: 'Davies', preferred_name: 'Tom', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Partner of Ruth', connection_group: 'Friends of bride',
     wedding_party_role: '', invitation_group: 'Friends', email: 'tom.davies@example.com',
     mobile_phone: '07700 900011', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -140,7 +140,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-okonkwo', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-george', full_name: 'George Whitfield', last_name: 'Whitfield', preferred_name: 'George', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-george', full_name: 'George Whitfield', last_name: 'Whitfield', preferred_name: 'George', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Groomsman', connection_group: 'Friends of groom',
     wedding_party_role: 'Groomsman', invitation_group: 'Wedding party', email: 'george.whitfield@example.com',
     mobile_phone: '07700 900012', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -150,7 +150,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-whitfield', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-daniel', full_name: 'Daniel Chen', last_name: 'Chen', preferred_name: 'Daniel', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-daniel', full_name: 'Daniel Chen', last_name: 'Chen', preferred_name: 'Daniel', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Groomsman', connection_group: 'Friends of groom',
     wedding_party_role: 'Groomsman', invitation_group: 'Wedding party', email: 'daniel.chen@example.com',
     mobile_phone: '07700 900013', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -161,7 +161,7 @@ export const demoGuests: DemoGuest[] = [
   },
   // ── AWAITING RSVP ──
   {
-    id: 'demo-guest-laura', full_name: 'Laura Simmons', last_name: 'Simmons', preferred_name: 'Laura', title: 'Miss',
+    wedding_id: W, id: 'demo-guest-laura', full_name: 'Laura Simmons', last_name: 'Simmons', preferred_name: 'Laura', title: 'Miss',
     guest_type: 'adult', relationship_label: 'Colleague of Emma', connection_group: 'Work',
     wedding_party_role: '', invitation_group: 'Work', email: 'laura.simmons@example.com',
     mobile_phone: '07700 900014', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -171,7 +171,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-simmons', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-james-w', full_name: 'James Walker', last_name: 'Walker', preferred_name: 'James', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-james-w', full_name: 'James Walker', last_name: 'Walker', preferred_name: 'James', title: 'Mr',
     guest_type: 'adult', relationship_label: 'University friend of James', connection_group: 'Friends of groom',
     wedding_party_role: '', invitation_group: 'Friends', email: 'james.walker@example.com',
     mobile_phone: '07700 900015', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -181,7 +181,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-walker', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-nadia', full_name: 'Nadia Hussain', last_name: 'Hussain', preferred_name: 'Nadia', title: 'Dr',
+    wedding_id: W, id: 'demo-guest-nadia', full_name: 'Nadia Hussain', last_name: 'Hussain', preferred_name: 'Nadia', title: 'Dr',
     guest_type: 'adult', relationship_label: 'University friend of Emma', connection_group: 'Friends of bride',
     wedding_party_role: '', invitation_group: 'Friends', email: 'nadia.hussain@example.com',
     mobile_phone: '07700 900016', ceremony_invited: false, reception_invited: true, evening_invited: true,
@@ -191,7 +191,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-hussain', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-ahmed', full_name: 'Ahmed Khalil', last_name: 'Khalil', preferred_name: 'Ahmed', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-ahmed', full_name: 'Ahmed Khalil', last_name: 'Khalil', preferred_name: 'Ahmed', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Husband of Nadia', connection_group: 'Friends of bride',
     wedding_party_role: '', invitation_group: 'Friends', email: 'ahmed.khalil@example.com',
     mobile_phone: '07700 900017', ceremony_invited: false, reception_invited: true, evening_invited: true,
@@ -201,7 +201,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-hussain', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-aunt-carol', full_name: 'Carol Bennett', last_name: 'Bennett', preferred_name: 'Aunt Carol', title: 'Mrs',
+    wedding_id: W, id: 'demo-guest-aunt-carol', full_name: 'Carol Bennett', last_name: 'Bennett', preferred_name: 'Aunt Carol', title: 'Mrs',
     guest_type: 'adult', relationship_label: 'Aunt of the groom', connection_group: 'Family of groom',
     wedding_party_role: '', invitation_group: 'Family', email: 'carol.bennett@example.com',
     mobile_phone: '07700 900018', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -212,7 +212,7 @@ export const demoGuests: DemoGuest[] = [
   },
   // ── DECLINED ──
   {
-    id: 'demo-guest-henry', full_name: 'Henry Thorne', last_name: 'Thorne', preferred_name: 'Henry', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-henry', full_name: 'Henry Thorne', last_name: 'Thorne', preferred_name: 'Henry', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Colleague of James', connection_group: 'Work',
     wedding_party_role: '', invitation_group: 'Work', email: 'henry.thorne@example.com',
     mobile_phone: '07700 900019', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -222,7 +222,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-thorne', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-eleanor', full_name: 'Eleanor Frost', last_name: 'Frost', preferred_name: 'Eleanor', title: 'Mrs',
+    wedding_id: W, id: 'demo-guest-eleanor', full_name: 'Eleanor Frost', last_name: 'Frost', preferred_name: 'Eleanor', title: 'Mrs',
     guest_type: 'adult', relationship_label: 'Cousin of Emma', connection_group: 'Family of bride',
     wedding_party_role: '', invitation_group: 'Family', email: 'eleanor.frost@example.com',
     mobile_phone: '07700 900020', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -232,7 +232,7 @@ export const demoGuests: DemoGuest[] = [
     household_id: 'demo-hh-frost', status: 'active', invite_preparation_status: 'ready', preferred_contact_method: 'email',
   },
   {
-    id: 'demo-guest-robert', full_name: 'Robert Frost', last_name: 'Frost', preferred_name: 'Robert', title: 'Mr',
+    wedding_id: W, id: 'demo-guest-robert', full_name: 'Robert Frost', last_name: 'Frost', preferred_name: 'Robert', title: 'Mr',
     guest_type: 'adult', relationship_label: 'Partner of Eleanor', connection_group: 'Family of bride',
     wedding_party_role: '', invitation_group: 'Family', email: 'robert.frost@example.com',
     mobile_phone: '07700 900021', ceremony_invited: true, reception_invited: true, evening_invited: true,
@@ -243,7 +243,7 @@ export const demoGuests: DemoGuest[] = [
   },
   // ── EVENING ONLY ──
   {
-    id: 'demo-guest-maya', full_name: 'Maya Okonkwo', last_name: 'Okonkwo', preferred_name: 'Maya', title: 'Miss',
+    wedding_id: W, id: 'demo-guest-maya', full_name: 'Maya Okonkwo', last_name: 'Okonkwo', preferred_name: 'Maya', title: 'Miss',
     guest_type: 'adult', relationship_label: 'Sister of Ruth', connection_group: 'Friends of bride',
     wedding_party_role: '', invitation_group: 'Friends', email: 'maya.okonkwo@example.com',
     mobile_phone: '07700 900022', ceremony_invited: false, reception_invited: false, evening_invited: true,

@@ -24,7 +24,7 @@ export interface DemoWedding {
 export interface DemoWeddingVenue {
   id: string;
   wedding_id: string;
-  venue_type: 'ceremony' | 'reception' | 'both';
+  venue_type: 'ceremony' | 'reception' | 'both' | 'other';
   name: string;
   address_line_1: string;
   city: string;
@@ -337,7 +337,7 @@ export interface DemoGalleryAlbum {
   cover_image_index: number;
 }
 
-export interface DemoGallerySettings {
+export interface DemoGallerySettings extends Record<string, unknown> {
   guest_uploads_enabled: boolean;
   couple_approval_required: boolean;
   auto_add_to_wall: boolean;
@@ -434,6 +434,15 @@ export interface DemoQuestionActivity {
 }
 
 export interface DemoPortalSettings {
+  meal_options?: string[];
+  portal_enabled?: boolean;
+  rsvp_enabled?: boolean;
+  household_rsvp_enabled?: boolean;
+  require_meal_choices?: boolean;
+  allow_song_requests?: boolean;
+  allow_messages?: boolean;
+  allow_late_rsvp?: boolean;
+  allow_rsvp_updates?: boolean;
   show_questions: boolean;
   allow_guest_questions: boolean;
   questions_contact_message: string;
@@ -474,7 +483,8 @@ export interface DemoState {
   questionActivity: DemoQuestionActivity[];
   portalSettings: DemoPortalSettings;
   // Website Builder
-  websiteConfig: Record<string, unknown> | null;
+  websiteConfig: import("@/types/website").WebsiteConfig | null;
+  rsvpSettings?: Record<string, unknown>;
   /** Billing subscription state (demo only) */
   subscription: Record<string, unknown> | null;
 }

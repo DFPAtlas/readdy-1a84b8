@@ -122,7 +122,7 @@ function DemoEditGuestPage() {
       reception_invited: form.reception_invited ?? true,
       evening_invited: form.evening_invited ?? true,
       plus_one_status: (form.plus_one_status as DemoGuest['plus_one_status']) || 'none',
-      plus_one_name: (form as Record<string, unknown>).plus_one_name as string || '',
+      plus_one_name: (form as unknown as Record<string, unknown>).plus_one_name as string || '',
       dietary_requirements: form.dietary_requirements || '',
       allergy_notes: form.allergy_notes || '',
       accessibility_notes: form.accessibility_notes || '',

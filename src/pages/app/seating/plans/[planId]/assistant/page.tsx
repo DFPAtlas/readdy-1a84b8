@@ -86,13 +86,13 @@ export default function SeatingAssistantPage() {
         supabase.from('seating_seats').select('*').eq('seating_plan_id', planId).eq('seat_status', 'available'),
       ]);
 
-      const allGuests = (unseatedRes || []) as Record<string, unknown>[];
-      const tables = (tablesRes || []) as Record<string, unknown>[];
-      const availSeats = (seatsRes || []) as Record<string, unknown>[];
+      const allGuests = (unseatedRes || []) as unknown as Record<string, unknown>[];
+      const tables = (tablesRes || []) as unknown as Record<string, unknown>[];
+      const availSeats = (seatsRes || []) as unknown as Record<string, unknown>[];
 
       // Get already seated guests
       const { data: assignments } = await supabase.from('seating_assignments').select('*').eq('plan_id', planId);
-      const seatedGuestIds = new Set(((assignments || []) as Record<string, unknown>[]).map((a) => a.guest_id as string));
+      const seatedGuestIds = new Set(((assignments || []) as unknown as Record<string, unknown>[]).map((a) => a.guest_id as string));
       const unseatedGuests = allGuests.filter((g) => !seatedGuestIds.has(g.id as string));
 
       // Simple deterministic algorithm: sort by priority, assign round-robin
@@ -158,7 +158,7 @@ export default function SeatingAssistantPage() {
       if (propErr) throw propErr;
 
       if (proposedAssignments.length > 0) {
-        const proposalId = (proposalData as Record<string, unknown>).id as string;
+        const proposalId = (proposalData as unknown as Record<string, unknown>).id as string;
         const inserts = proposedAssignments.map((a) => ({
           wedding_id: weddingId, seating_plan_id: planId, proposal_id: proposalId,
           guest_id: a.guest_id, proposed_table_id: a.proposed_table_id, proposed_seat_id: a.proposed_seat_id,

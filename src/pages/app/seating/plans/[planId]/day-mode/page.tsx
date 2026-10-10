@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';

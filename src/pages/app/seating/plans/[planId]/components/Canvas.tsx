@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useRef, useCallback, useEffect, useMemo, forwardRef } from 'react';
 import type { SeatingPlan, TableWithData, RoomObject, BackgroundAsset, SeatingZone, SeatingSeat } from '@/types/seating';
 import DemoHoverTooltip, { type HoverTarget } from './DemoHoverTooltip';

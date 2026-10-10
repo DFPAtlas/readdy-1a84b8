@@ -53,7 +53,7 @@ export function saveDemoDesign(id: string, document: InvitationDocument, title: 
   const idx = designs.findIndex((d) => d.id === id);
   const now = new Date().toISOString();
   if (idx === -1) {
-    return { success: false, error: 'Design not found' };
+    return { success: false, updatedAt: now, error: 'Design not found' };
   }
   designs[idx] = { ...designs[idx], title, document, updated_at: now };
   saveAllDesigns(designs);

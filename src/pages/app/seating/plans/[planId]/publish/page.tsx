@@ -28,7 +28,7 @@ export default function SeatingPublishPage() {
       const { data: pub } = await supabase.from('seating_publications').select('*').eq('seating_plan_id', planId).eq('wedding_id', weddingId).order('created_at', { ascending: false }).limit(1).maybeSingle();
       if (pub) setPublication(pub as SeatingPublication);
 
-      const { data: assigns } = await supabase.from('seating_assignments').select('guest_id').eq('plan_id', planId);
+      const { data: assigns } = await supabase.from('seating_assignments').select('guest_id, table_id').eq('plan_id', planId);
       const { data: guests } = await supabase.from('guests').select('id').eq('wedding_id', weddingId).eq('status', 'active').in('rsvp_status', ['accepted', 'pending']);
       const { data: tables } = await supabase.from('seating_tables').select('id, capacity').eq('plan_id', planId);
       const { data: conflicts } = await supabase.from('seating_conflicts').select('id').eq('seating_plan_id', planId).eq('severity', 'critical').in('status', ['open', 'reviewed']);
@@ -41,7 +41,7 @@ export default function SeatingPublishPage() {
       const checksList: FinalisationCheck[] = [
         { id: 'all_seated', label: 'All attending guests seated', status: unseated.length === 0 ? 'passed' : 'failed', detail: unseated.length === 0 ? 'All guests are seated.' : `${unseated.length} guest${unseated.length > 1 ? 's' : ''} unseated.` },
         { id: 'no_duplicates', label: 'No duplicate assignments', status: 'not_tested', detail: 'Run audit for full duplicate check.' },
-        { id: 'no_over_capacity', label: 'No over-capacity tables', status: tablesData.every((t: { capacity: number }) => t.capacity >= (assigns || []).filter((a: { table_id: string }) => a.table_id === t.id).length) ? 'passed' : 'failed', detail: tablesData.every((t: { capacity: number }) => t.capacity >= (assigns || []).filter((a: { table_id: string }) => a.table_id === t.id).length) ? 'All tables within capacity.' : 'Some tables exceed capacity.' },
+        { id: 'no_over_capacity', label: 'No over-capacity tables', status: tablesData.every((t) => t.capacity >= (assigns || []).filter((a: { table_id: string }) => a.table_id === t.id).length) ? 'passed' : 'failed', detail: tablesData.every((t) => t.capacity >= (assigns || []).filter((a: { table_id: string }) => a.table_id === t.id).length) ? 'All tables within capacity.' : 'Some tables exceed capacity.' },
         { id: 'no_critical_conflicts', label: 'No critical conflicts', status: (conflicts || []).length === 0 ? 'passed' : 'failed', detail: (conflicts || []).length === 0 ? 'No critical conflicts.' : `${(conflicts || []).length} critical conflict(s) unresolved.` },
         { id: 'has_version', label: 'Version snapshot exists', status: 'not_tested', detail: 'A version will be created on publish.' },
         { id: 'public_names_safe', label: 'Table names are guest-safe', status: 'not_tested', detail: 'Review table names for private notes.' },

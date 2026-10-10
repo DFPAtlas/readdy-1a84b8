@@ -17,12 +17,13 @@ export interface VerifiedSenderResult {
 
 // ── Load verified senders for the authenticated user ──
 
-export async function loadVerifiedSenders(): Promise<VerifiedSenderResult> {
+export async function loadVerifiedSenders(weddingId: string): Promise<VerifiedSenderResult> {
   try {
     const { data, error } = await supabase
       .from('verified_senders')
       .select('id, email, display_name, is_verified')
       .eq('is_verified', true)
+      .eq('wedding_id', weddingId)
       .order('email', { ascending: true });
 
     if (error) {

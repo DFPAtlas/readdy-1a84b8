@@ -18,6 +18,8 @@ export interface WeddingMembership {
 }
 
 export interface AccessibleWedding {
+  timezone?: string;
+  location?: string;
   id: string;
   title: string;
   partner_one_name: string;

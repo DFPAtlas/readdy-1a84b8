@@ -1,5 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
 
@@ -9,16 +8,12 @@ const RATE_WINDOW_MS = 60_000; // 1 minute
 const MAX_REQUESTS_PER_WINDOW = 10;
 const rateStore = new Map<string, { count: number; resetAt: number }>();
 
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 
-function buildFingerprint(req: Request): string {
+
+async function buildFingerprint(req: Request): Promise<string> {
   const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const ua = req.headers.get("user-agent") || "unknown";
-  return sha256(`${ip}:${ua.slice(0, 64)}`);
+  return await sha256Hex(`${ip}:${ua.slice(0, 64)}`);
 }
 
 function checkRateLimit(fp: string): boolean {
@@ -112,7 +107,7 @@ Deno.serve(async (req: Request) => {
   }
 
   if (req.method !== "POST") return new Response(null, { status: 405, headers: corsHeaders });
-  const fingerprint = buildFingerprint(req);
+  const fingerprint = await buildFingerprint(req);
   if (!checkRateLimit(fingerprint)) {
     return new Response(
       JSON.stringify({ success: false, error: "Too many requests. Please wait a moment and try again." }),
@@ -222,7 +217,7 @@ Deno.serve(async (req: Request) => {
       .eq("wedding_id", weddingId);
 
     const recipientMap = new Map<string, Record<string, unknown>>();
-    (recipients || []).forEach((r) => recipientMap.set(r.guest_id, r as unknown as Record<string, unknown>));
+    (recipients || []).forEach((r) => recipientMap.set(r.guest_id, r as unknown as unknown as Record<string, unknown>));
 
     // ── Fetch guests ──
     const guestIds = Object.keys(guest_responses);
@@ -233,7 +228,7 @@ Deno.serve(async (req: Request) => {
       .eq("wedding_id", weddingId);
 
     const guestMap = new Map<string, Record<string, unknown>>();
-    (guests || []).forEach((g) => guestMap.set(g.id, g as unknown as Record<string, unknown>));
+    (guests || []).forEach((g) => guestMap.set(g.id, g as unknown as unknown as Record<string, unknown>));
 
     // ── Validate each guest belongs to this invitation ──
     for (const gId of guestIds) {
@@ -269,7 +264,7 @@ Deno.serve(async (req: Request) => {
       };
 
       for (const [flag, includedField] of Object.entries(eventFlags)) {
-        if ((rsvp as Record<string, unknown>)[flag] === true && !recipient[includedField]) {
+        if ((rsvp as unknown as Record<string, unknown>)[flag] === true && !recipient[includedField]) {
           return new Response(
             JSON.stringify({ success: false, error: `You are not invited to that event.` }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -280,7 +275,7 @@ Deno.serve(async (req: Request) => {
       // At least one event selected
       if (rsvp.response_status === "attending" && !save_draft) {
         const eventsSelected = Object.entries(eventFlags).some(([flag]) => {
-          const val = (rsvp as Record<string, unknown>)[flag];
+          const val = (rsvp as unknown as Record<string, unknown>)[flag];
           return val === true && recipient[eventFlags[flag]] === true;
         });
         if (!eventsSelected) {

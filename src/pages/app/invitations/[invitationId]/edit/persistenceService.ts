@@ -87,17 +87,20 @@ export async function createInvitationDesign(
   userId: string,
   document: InvitationDocument,
   title = 'Untitled Invitation',
+  weddingId?: string | null,
 ): Promise<CreateResult> {
   if (isDemoMode) {
     const result = createDemoDesign(document, title);
     return result;
   }
 
+  if (!weddingId) return { success: false, error: 'Select a wedding before creating an invitation design.' };
   try {
     const { data, error } = await supabase
       .from('invitation_designs')
       .insert({
         user_id: userId,
+        wedding_id: weddingId,
         title,
         document: document as unknown as Record<string, unknown>,
       })

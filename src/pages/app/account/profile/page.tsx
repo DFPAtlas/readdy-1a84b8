@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback } from 'react';
 import AppShell from '@/components/feature/AppShell';
 import { isDemoMode } from '@/demo/demoConfig';

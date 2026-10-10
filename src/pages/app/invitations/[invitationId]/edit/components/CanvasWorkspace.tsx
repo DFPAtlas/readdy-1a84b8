@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import InvitationRenderer from './InvitationRenderer';
 import FloatingToolbar from './FloatingToolbar';

@@ -1,3 +1,5 @@
+import { supabase } from '@/lib/supabase';
+import { Link } from 'react-router-dom';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import AppShell from '@/components/feature/AppShell';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
@@ -630,72 +632,48 @@ function DemoTimelinePage() {
 // ═══════════════════════════════════════════
 
 function NormalTimelinePage() {
-  const { weddingId } = useActiveWedding();
+  const { weddingId, permissions } = useActiveWedding();
   const eventsHook = useWeddingEvents();
-
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingItem, setEditingItem] = useState<TimelineItem | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [toast, setToast] = useState('');
-  const [filterCat, setFilterCat] = useState('all');
-  const [filterVis, setFilterVis] = useState('all');
+  const [message, setMessage] = useState('');
+  const [saving, setSaving] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
-
-  const events = eventsHook.events.map((e) => ({ id: e.id, name: e.name }));
-
-  useEffect(() => {
-    setLoading(true);
-    // Placeholder — Supabase fetch will be added when connected
-    setItems([]);
+  const loadGeneration = useRef(0);
+  const load = useCallback(async () => {
+    const generation = ++loadGeneration.current;
+    if (!weddingId) { setItems([]); setLoading(false); return; }
+    const { data, error } = await supabase.from('wedding_timeline_items').select('*').eq('wedding_id', weddingId).order('start_at');
+    if (generation !== loadGeneration.current) return;
+    if (error) setMessage('Your timeline could not be loaded. Please retry.');
+    else setItems((data || []) as TimelineItem[]);
     setLoading(false);
   }, [weddingId]);
-
-  const sorted = useMemo(() => {
-    let filtered = selectedDate ? items.filter((i) => i.timeline_date === selectedDate) : items;
-    if (filterCat !== 'all') filtered = filtered.filter((i) => i.category === filterCat);
-    if (filterVis !== 'all') filtered = filtered.filter((i) => i.visibility === filterVis);
-    return [...filtered].sort((a, b) => a.sort_order - b.sort_order);
-  }, [items, selectedDate, filterCat, filterVis]);
-
-  const validations = useMemo(() => validateTimeline(sorted), [sorted]);
-
-  if (loading) {
-    return (
-      <AppShell>
-        <div className="max-w-4xl mx-auto flex items-center justify-center py-20">
-          <div className="flex items-center gap-3 text-foreground-500">
-            <i className="ri-loader-4-line animate-spin text-xl" />
-            <span className="text-sm">Loading timeline...</span>
-          </div>
-        </div>
-      </AppShell>
-    );
+  useEffect(() => { setItems([]); setMessage(''); setLoading(true); load(); return () => { loadGeneration.current++; }; }, [load]);
+  const sorted = items.filter(item => !selectedDate || item.timeline_date === selectedDate);
+  async function save(form: TimelineFormData) {
+    if (!weddingId || !permissions.canManageTimeline || saving) return;
+    const date = form.start_at.slice(0, 10) || selectedDate;
+    if (!date) { setMessage('Choose a timeline date or add a start time.'); return; }
+    setSaving(true); setMessage('');
+    const payload = { ...form, wedding_id: weddingId, timeline_date: date, start_at: form.start_at ? new Date(form.start_at).toISOString() : null, end_at: form.end_at ? new Date(form.end_at).toISOString() : null, updated_at: new Date().toISOString() };
+    const result = editingItem ? await supabase.from('wedding_timeline_items').update(payload).eq('id', editingItem.id).eq('wedding_id', weddingId) : await supabase.from('wedding_timeline_items').insert({ ...payload, sort_order: items.length });
+    if (result.error) setMessage('The timeline item could not be saved. Your edits are still open.');
+    else { setDrawerOpen(false); setEditingItem(null); await load(); setMessage('Timeline saved.'); }
+    setSaving(false);
   }
-
-  return (
-    <AppShell>
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <p className="text-xs font-label text-foreground-400 uppercase tracking-widest mb-1">Day-of planning</p>
-            <h1 className="font-heading text-2xl md:text-3xl text-foreground-900">Wedding-Day Timeline</h1>
-            <p className="text-sm text-foreground-500 mt-1">Build a detailed operational run sheet for your wedding day.</p>
-          </div>
-        </div>
-
-        <ValidationPanel validations={validations} onDismiss={() => {}} />
-
-        <div className="bg-white rounded-xl border border-secondary-200 p-6 text-center py-20">
-          <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-full bg-primary-50 text-primary-400 mb-4">
-            <i className="ri-time-line text-xl" />
-          </div>
-          <h2 className="font-heading text-lg text-foreground-700 mb-1">Timeline coming soon</h2>
-          <p className="text-sm text-foreground-500 mb-4">The production timeline will sync with your Supabase timeline_items table.</p>
-        </div>
-      </div>
-    </AppShell>
-  );
+  async function remove(id: string) {
+    if (!weddingId || !permissions.canManageTimeline || saving) return;
+    const { error } = await supabase.from('wedding_timeline_items').delete().eq('id', id).eq('wedding_id', weddingId);
+    if (error) setMessage('The item could not be removed.'); else { setDrawerOpen(false); await load(); }
+  }
+  return <AppShell><div className="max-w-5xl mx-auto"><h1 className="font-heading text-3xl mb-3">Wedding-day timeline</h1><p className="mb-5">Create your run sheet, assign contacts and keep organiser notes separate from shared notes. Times use your device time zone.</p>
+    <div className="flex gap-4 items-center mb-5"><label>Timeline date <input type="date" className="border rounded-lg p-2" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} /></label>{permissions.canManageTimeline && <button className="underline" disabled={saving} onClick={() => { setEditingItem(null); setDrawerOpen(true); }}>Add item</button>}<Link to="/app/exports" className="underline">Export plans</Link></div>
+    <p role="status" className="mb-3">{message}</p>{loading ? <p>Loading timeline…</p> : !sorted.length ? <p>No timeline items for this date yet.</p> : <ol className="space-y-3">{sorted.map(item => <li className="border rounded-xl p-4" key={item.id}><div className="flex justify-between"><h2 className="font-semibold">{item.title}</h2>{permissions.canManageTimeline && <button className="underline" disabled={saving} onClick={() => { setEditingItem(item); setDrawerOpen(true); }}>Edit</button>}</div><p className="text-sm mt-2">{item.start_at ? new Date(item.start_at).toLocaleString() : item.timeline_date} {item.location && ` · ${item.location}`}</p><p className="mt-2">{item.description}</p>{item.responsible_contact && <p className="text-sm mt-2">Contact: {item.responsible_contact}</p>}{item.shared_notes && <p className="text-sm mt-2">Shared notes: {item.shared_notes}</p>}{item.internal_notes && permissions.canManageTimeline && <p className="text-sm mt-2">Organiser notes: {item.internal_notes}</p>}</li>)}</ol>}
+    <ItemEditorDrawer open={drawerOpen} item={editingItem} onSave={save} onClose={() => { if (!saving) setDrawerOpen(false); }} onDelete={remove} events={eventsHook.events.map(e => ({ id: e.id, name: e.name }))} />
+  </div></AppShell>;
 }
 
 // ── Page export ──

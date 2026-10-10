@@ -172,7 +172,7 @@ function NormalBudgetSetupPage() {
     const availablePct = 100 - contPct;
     setCategories((prev) => prev.map((c) => ({
       ...c,
-      percentage: c.key === 'contingency' ? contPct : (c.isLocked !== undefined ? c.percentage : Math.round(c.percentage * availablePct / (100 - (prev.find((p) => p.key === 'contingency')?.percentage || cp)) * 10) / 10),
+      percentage: c.key === 'contingency' ? contPct : Math.round(c.percentage * availablePct / Math.max(1, 100 - (prev.find((p) => p.key === 'contingency')?.percentage || cp)) * 10) / 10,
       amount: c.key === 'contingency'
         ? ((mode === 'outside' ? 0 : total) * contPct / 100)
         : Math.round(total * (c.percentage / 100) * 100) / 100,

@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';

@@ -1,6 +1,6 @@
+import { oneRelation } from "../_shared/relations.ts";
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, newGuestSessionSecret, sha256Hex } from "../_shared/guestAccess.ts";
 
 
@@ -23,21 +23,15 @@ function generateSessionSecret(): string {
   return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
-function buildFingerprint(req: Request): string {
+
+async function buildFingerprint(req: Request): Promise<string> {
   const ip = req.headers.get("cf-connecting-ip") ||
     req.headers.get("x-real-ip") ||
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
   const ua = req.headers.get("user-agent") || "unknown";
-  return sha256(`${ip}:${ua.slice(0, 64)}`);
+  return await sha256Hex(`${ip}:${ua.slice(0, 64)}`);
 }
 
 function genericError(reason: string) {
@@ -60,7 +54,7 @@ Deno.serve(async (req: Request) => {
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const fingerprint = buildFingerprint(req);
+  const fingerprint = await buildFingerprint(req);
 
   try {
     const body = await req.json();
@@ -93,7 +87,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const tokenHash = sha256(rawToken);
+    const tokenHash = await sha256Hex(rawToken);
 
     // Find active token
     const { data: accessToken, error: tokenErr } = await supabase
@@ -263,7 +257,7 @@ Deno.serve(async (req: Request) => {
       .from("wedding_events")
       .select("*, venue:wedding_venues(id, name, address_line_1, city, postcode, country)")
       .eq("wedding_id", accessToken.wedding_id)
-      .eq("status", "active")
+      .eq("status", "published")
       .in("visibility", ["public", "invitation_holders"]);
 
     const filteredEvents = (events || []).map((evt) => ({
@@ -289,8 +283,8 @@ Deno.serve(async (req: Request) => {
 
     const guestRecipients = (recipients || []).map((r) => ({
       guest_id: r.guest_id,
-      guest_name: r.guest?.full_name || "Guest",
-      preferred_name: r.guest?.preferred_name || null,
+      guest_name: oneRelation(r.guest)?.full_name || "Guest",
+      preferred_name: oneRelation(r.guest)?.preferred_name || null,
       recipient_role: r.recipient_role,
       ceremony_included: r.ceremony_included,
       reception_included: r.reception_included,
@@ -300,6 +294,22 @@ Deno.serve(async (req: Request) => {
       plus_one_allowed: r.plus_one_allowed,
     }));
 
+    const designAssets: Record<string,string>={};
+    if(invitation.design_document){
+      const layers=(invitation.design_document as {layers?:{props?:{assetId?:string}}[]}).layers;
+      const ids=Array.isArray(layers)?layers.map(layer=>layer.props?.assetId).filter((id):id is string=>typeof id==='string'&&/^[a-f0-9-]{36}$/i.test(id)):[];
+      if(ids.length){
+        const {data:assets}=await supabase.from('asset_library').select('id,wedding_id,file_url,storage_path').in('id',ids).or(`wedding_id.is.null,wedding_id.eq.${invitation.wedding_id}`);
+        for(const asset of assets||[]){
+          const value=asset.storage_path||asset.file_url;if(!value)continue;
+          let path=value;
+          if(/^https:\/\//.test(value)){try{const parsed=new URL(value);if(parsed.origin!==new URL(supabaseUrl).origin)continue;const parts=parsed.pathname.split('/invitation-assets/');if(parts.length!==2)continue;path=decodeURIComponent(parts[1]);}catch{continue;}}
+          path=path.replace(/^invitation-assets\//,'');if(path.includes('..'))continue;
+          const {data:signed}=await supabase.storage.from('invitation-assets').createSignedUrl(path,3600);
+          if(signed?.signedUrl)designAssets[asset.id]=signed.signedUrl;
+        }
+      }
+    }
     const data = {
       wedding: {
         id: wedding.id,
@@ -323,6 +333,8 @@ Deno.serve(async (req: Request) => {
         rsvp_deadline: invitation.rsvp_deadline,
         status: invitation.status,
         template: invitation.template,
+        design_document: invitation.design_document || null,
+        design_assets: designAssets,
       },
       recipients: guestRecipients,
       events: filteredEvents,
@@ -361,7 +373,7 @@ Deno.serve(async (req: Request) => {
 });
 
 async function logAnonActivity(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   fingerprint: string,
   eventType: string,
   summary: string,
@@ -378,7 +390,7 @@ async function logAnonActivity(
 }
 
 async function logWeddingActivity(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   weddingId: string,
   invitationId: string,
   accessTokenId: string,

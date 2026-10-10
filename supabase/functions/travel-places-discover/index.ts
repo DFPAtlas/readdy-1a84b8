@@ -1,6 +1,5 @@
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -81,13 +80,13 @@ Deno.serve(async (req: Request) => {
         google_place_id: p.place_id,
         name: p.name,
         address_line_1: p.vicinity,
-        latitude: p.geometry?.location?.lat ?? null,
-        longitude: p.geometry?.location?.lng ?? null,
+        latitude: (p.geometry as {location?:{lat?:number;lng?:number}} | undefined)?.location?.lat ?? null,
+        longitude: (p.geometry as {location?:{lat?:number;lng?:number}} | undefined)?.location?.lng ?? null,
         provider_rating: p.rating?.toString() ?? null,
         review_count: p.user_ratings_total ?? null,
         price_level: p.price_level != null ? Array(Number(p.price_level) + 1).fill("£").join("") : null,
         place_types: p.types || [],
-        photo_reference: p.photos?.[0]?.photo_reference || null,
+        photo_reference: (p.photos as {photo_reference?:string}[] | undefined)?.[0]?.photo_reference || null,
         provider_data: {
           types: p.types,
           business_status: p.business_status,
@@ -137,15 +136,15 @@ Deno.serve(async (req: Request) => {
           google_place_id: p.place_id,
           name: p.name,
           address_line_1: p.formatted_address,
-          latitude: p.geometry?.location?.lat ?? null,
-          longitude: p.geometry?.location?.lng ?? null,
+          latitude: (p.geometry as {location?:{lat?:number;lng?:number}} | undefined)?.location?.lat ?? null,
+          longitude: (p.geometry as {location?:{lat?:number;lng?:number}} | undefined)?.location?.lng ?? null,
           website: p.website || null,
           telephone: p.formatted_phone_number || null,
           opening_info: p.opening_hours?.weekday_text?.join("; ") || null,
           provider_rating: p.rating?.toString() ?? null,
           review_count: p.user_ratings_total ?? null,
           price_level: p.price_level != null ? Array(Number(p.price_level) + 1).fill("£").join("") : null,
-          photo_reference: p.photos?.[0]?.photo_reference || null,
+          photo_reference: (p.photos as {photo_reference?:string}[] | undefined)?.[0]?.photo_reference || null,
           place_types: p.types || [],
         },
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });

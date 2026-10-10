@@ -146,7 +146,7 @@ function NormalHouseholdsPage() {
       if (statusFilter) q = q.eq('status', statusFilter);
       if (search) q = q.ilike('display_name', `%${search}%`);
       const { data } = await q;
-      const hhs = data || [];
+      const hhs = (data || []) as typeof households;
       // Fetch all members in one query instead of N+1
       const hhIds = hhs.map((h: Record<string, unknown>) => h.id as string);
       let allMembers: Array<{ id: string; full_name: string; last_name?: string; preferred_name?: string; household_id: string }> = [];
@@ -160,7 +160,7 @@ function NormalHouseholdsPage() {
           .order('full_name');
         allMembers = (members || []) as typeof allMembers;
       }
-      const enriched = hhs.map((h: Record<string, unknown>) => {
+      const enriched = hhs.map((h) => {
         const hMembers = allMembers.filter((m) => m.household_id === h.id);
         return { ...h, member_count: hMembers.length, members: hMembers };
       });

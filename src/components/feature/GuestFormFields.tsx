@@ -152,7 +152,7 @@ export default function GuestFormFields({ form, onChange, households, tags, sele
           {(form.plus_one_status === 'named' || form.plus_one_status === 'allowed') && (
             <div>
               <label className="block text-xs font-label text-foreground-600 mb-1.5">Plus-one name</label>
-              <input type="text" className="input-field" value={(form as Record<string, unknown>).plus_one_name as string || ''} onChange={(e) => onChange('plus_one_name', e.target.value)} placeholder="Full name of plus-one" />
+              <input type="text" className="input-field" value={(form as unknown as Record<string, unknown>).plus_one_name as string || ''} onChange={(e) => onChange('plus_one_name', e.target.value)} placeholder="Full name of plus-one" />
             </div>
           )}
         </div>

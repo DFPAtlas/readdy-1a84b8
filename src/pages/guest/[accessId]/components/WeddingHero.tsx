@@ -23,7 +23,7 @@ export default function WeddingHero({ data, basePath }: WeddingHeroProps) {
   const settings = data.portal_settings || {};
   const showRsvp = settings.rsvp_enabled !== false;
   const showItinerary = settings.itinerary_enabled !== false;
-  const hashtag = (wedding as Record<string, unknown>).hashtag as string | undefined;
+  const hashtag = (wedding as unknown as Record<string, unknown>).hashtag as string | undefined;
 
   return (
     <section className="relative w-full overflow-hidden rounded-2xl" aria-label="Wedding hero banner">

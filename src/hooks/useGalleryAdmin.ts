@@ -250,14 +250,17 @@ function useRealGalleryAdmin(weddingId: string | null): UseGalleryAdminReturn {
     try {
       const { data: existing } = await supabase.from('gallery_moderation_rules').select('id').eq('wedding_id', weddingId).maybeSingle();
       if (existing) {
-        await supabase.from('gallery_moderation_rules').update({ ...updates, updated_at: new Date().toISOString() }).eq('wedding_id', weddingId);
+        const { error: saveError } = await supabase.from('gallery_moderation_rules').update({ ...updates, updated_at: new Date().toISOString() }).eq('wedding_id', weddingId);
+        if (saveError) throw saveError;
       } else {
-        await supabase.from('gallery_moderation_rules').insert({ wedding_id: weddingId, ...updates });
+        const { error: saveError } = await supabase.from('gallery_moderation_rules').insert({ wedding_id: weddingId, ...updates });
+        if (saveError) throw saveError;
       }
       const { data: updated } = await supabase.from('gallery_moderation_rules').select('*').eq('wedding_id', weddingId).maybeSingle();
       setRules(updated as GalleryModerationRules || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update rules');
+      throw err;
     } finally { setSaving(false); }
   }, [weddingId]);
 
@@ -438,7 +441,7 @@ function useDemoGalleryAdmin(): UseGalleryAdminReturn {
     }
     return [];
   }, [demo]);
-  const downloadAsset = useCallback((assetId: string) => {
+  const downloadAsset = useCallback(async (assetId: string) => {
     const asset = assets.find((a) => a.id === assetId);
     if (asset?.signed_url) window.open(asset.signed_url, '_blank');
   }, [assets]);

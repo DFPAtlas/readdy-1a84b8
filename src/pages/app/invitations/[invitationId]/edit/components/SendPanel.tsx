@@ -1,3 +1,5 @@
+import { isValidEmail, normalizeEmail, parsePastedEmails } from '@/lib/invitationEmailValidation';
+import type * as React from "react";
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import InvitationRenderer from './InvitationRenderer';
 import type { InvitationDocument, PreviewDevice } from '../types';
@@ -40,34 +42,9 @@ interface SendPanelProps {
 
 // ── Email validation ──
 
-const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-const MAX_EMAIL_LENGTH = 254;
 const MAX_RECIPIENTS = 100;
 const MAX_SUBJECT_LENGTH = 160;
 const MAX_MESSAGE_LENGTH = 2000;
-
-function isValidEmail(email: string): boolean {
-  if (!email || email.length > MAX_EMAIL_LENGTH) return false;
-  return EMAIL_REGEX.test(email);
-}
-
-function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
-// ── Parse pasted text into email array ──
-
-function parsePastedEmails(text: string): string[] {
-  const parts = text.split(/[,;\s\n\r]+/);
-  const emails: string[] = [];
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (trimmed && trimmed.includes('@') && isValidEmail(trimmed)) {
-      emails.push(normalizeEmail(trimmed));
-    }
-  }
-  return [...new Set(emails)];
-}
 
 // ── Component ──
 

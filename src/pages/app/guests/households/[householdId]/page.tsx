@@ -14,7 +14,7 @@ function HouseholdInvitationCard({ householdId }: { householdId: string }) {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from('invitations').select('id, internal_name, status, delivery_method, template:invitation_templates(id, name)').eq('household_id', householdId).in('status', ['draft', 'ready', 'sent']).maybeSingle();
-      setInv(data || null);
+      setInv(data ? { ...data, template: Array.isArray(data.template) ? data.template[0] || null : data.template } : null);
       setLoadingInv(false);
     })();
   }, [householdId]);

@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useEffect, useRef, useCallback } from 'react';
 import FocusTrap from '@/components/base/FocusTrap';
 

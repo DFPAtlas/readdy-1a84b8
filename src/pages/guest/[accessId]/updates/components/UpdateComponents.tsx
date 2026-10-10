@@ -352,7 +352,7 @@ export function NotifPrefsModal({ isOpen, onClose, preferences, onSave, isSaving
 
   if (!isOpen) return null;
 
-  const currentPref = localPrefs[0] || { id: '', guest_id: '', updates_enabled: true, email_notifications: false };
+  const currentPref = localPrefs[0] || { id: '', guest_id: '', updates_enabled: true, email_notifications: false, sms_enabled: false, important_only_updates: false, travel_updates: true, rsvp_reminders: true, gallery_notifications: true, language: 'en', timezone: 'Europe/London' };
 
   return (
     <>

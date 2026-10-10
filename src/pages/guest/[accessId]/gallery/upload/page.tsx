@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useRef, useCallback, type FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useGuestPortal } from '@/hooks/useGuestPortal';

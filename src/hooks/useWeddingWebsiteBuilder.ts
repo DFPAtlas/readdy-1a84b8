@@ -327,12 +327,6 @@ export function useWeddingWebsiteBuilder(): UseBuilderReturn {
             .insert(payload);
           if (insertError) throw insertError;
         }
-
-        // Also update the wedding's website_published flag
-        await supabase
-          .from('weddings')
-          .update({ website_published: true, updated_at: new Date().toISOString() })
-          .eq('id', activeWedding.id);
       }
 
       setPublishedConfig(published);
@@ -367,10 +361,7 @@ export function useWeddingWebsiteBuilder(): UseBuilderReturn {
         .eq('wedding_id', activeWedding.id);
       if (updateError) throw updateError;
 
-      await supabase
-        .from('weddings')
-        .update({ website_published: false, updated_at: new Date().toISOString() })
-        .eq('id', activeWedding.id);
+
 
       setPublishedConfig(null);
       setDraftConfig((prev) => prev ? { ...prev, status: 'draft' } : null);

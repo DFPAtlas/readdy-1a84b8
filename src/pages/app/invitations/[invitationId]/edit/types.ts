@@ -1,3 +1,4 @@
+import type * as React from "react";
 // ── Invitation Editor Document Model ──
 
 export type InvitationLayerType = 'text' | 'asset';

@@ -26,7 +26,7 @@ export interface WebsiteSection {
   config: Record<string, unknown>;
 }
 
-export interface HeroSectionConfig {
+export interface HeroSectionConfig extends Record<string, unknown> {
   title: string;
   subtitle: string;
   image_url: string | null;
@@ -40,7 +40,7 @@ export interface HeroSectionConfig {
   show_countdown: boolean;
 }
 
-export interface WelcomeSectionConfig {
+export interface WelcomeSectionConfig extends Record<string, unknown> {
   heading: string;
   body: string;
   image_url: string | null;
@@ -48,7 +48,7 @@ export interface WelcomeSectionConfig {
   text_alignment: 'left' | 'center';
 }
 
-export interface StorySectionConfig {
+export interface StorySectionConfig extends Record<string, unknown> {
   heading: string;
   body: string;
   image_url: string | null;
@@ -56,7 +56,7 @@ export interface StorySectionConfig {
   text_alignment: 'left' | 'center';
 }
 
-export interface ScheduleSectionConfig {
+export interface ScheduleSectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   show_date: boolean;
@@ -68,7 +68,7 @@ export interface ScheduleSectionConfig {
   layout: 'timeline' | 'cards' | 'compact';
 }
 
-export interface VenueSectionConfig {
+export interface VenueSectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   show_full_address: boolean;
@@ -79,7 +79,7 @@ export interface VenueSectionConfig {
   show_contact: boolean;
 }
 
-export interface TravelSectionConfig {
+export interface TravelSectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   show_hotels: boolean;
@@ -90,13 +90,13 @@ export interface TravelSectionConfig {
   show_map_links: boolean;
 }
 
-export interface AccommodationSectionConfig {
+export interface AccommodationSectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   max_items: number;
 }
 
-export interface DressCodeSectionConfig {
+export interface DressCodeSectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   show_children_notes: boolean;
@@ -112,13 +112,13 @@ export interface WeddingPartyProfile {
   visible: boolean;
 }
 
-export interface WeddingPartySectionConfig {
+export interface WeddingPartySectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   profiles: WeddingPartyProfile[];
 }
 
-export interface RegistrySectionConfig {
+export interface RegistrySectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   show_gifts: boolean;
@@ -128,7 +128,7 @@ export interface RegistrySectionConfig {
   show_contribution_guidance: boolean;
 }
 
-export interface GallerySectionConfig {
+export interface GallerySectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   layout: 'grid' | 'masonry' | 'carousel';
@@ -137,7 +137,7 @@ export interface GallerySectionConfig {
   show_live_wall_link: boolean;
 }
 
-export interface FaqsSectionConfig {
+export interface FaqsSectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   category_filter: string;
@@ -146,7 +146,7 @@ export interface FaqsSectionConfig {
   max_questions: number;
 }
 
-export interface ContactSectionConfig {
+export interface ContactSectionConfig extends Record<string, unknown> {
   heading: string;
   support_message: string;
   show_question_link: boolean;
@@ -154,7 +154,7 @@ export interface ContactSectionConfig {
   allowed_methods: string[];
 }
 
-export interface RsvpSectionConfig {
+export interface RsvpSectionConfig extends Record<string, unknown> {
   heading: string;
   introduction: string;
   button_label: string;
@@ -163,7 +163,7 @@ export interface RsvpSectionConfig {
   closed_text: string;
 }
 
-export interface CustomTextSectionConfig {
+export interface CustomTextSectionConfig extends Record<string, unknown> {
   internal_name: string;
   public_heading: string;
   body: string;
@@ -173,7 +173,7 @@ export interface CustomTextSectionConfig {
   background_style: 'none' | 'light' | 'dark' | 'accent';
 }
 
-export interface ThemeConfig {
+export interface ThemeConfig extends Record<string, unknown> {
   preset: string;
   heading_font: string;
   body_font: string;
@@ -189,7 +189,7 @@ export interface ThemeConfig {
   content_width: 'narrow' | 'normal' | 'wide';
 }
 
-export interface NavigationConfig {
+export interface NavigationConfig extends Record<string, unknown> {
   show_top_nav: boolean;
   sticky: boolean;
   show_initials: boolean;
@@ -206,7 +206,7 @@ export interface NavLink {
   sort_order: number;
 }
 
-export interface SeoConfig {
+export interface SeoConfig extends Record<string, unknown> {
   search_indexing: boolean;
   seo_title: string;
   meta_description: string;
@@ -220,7 +220,7 @@ export interface SeoConfig {
   canonical_domain: string | null;
 }
 
-export interface WebsiteConfig {
+export interface WebsiteConfig extends Record<string, unknown> {
   id: string;
   wedding_id: string;
   status: 'draft' | 'published' | 'unpublished';
@@ -237,7 +237,7 @@ export interface WebsiteConfig {
 
 // ── Builder UI Types ──
 
-export type BuilderTab = 'pages' | 'design' | 'navigation' | 'domain' | 'seo';
+export type BuilderTab = 'settings' | 'pages' | 'design' | 'navigation' | 'domain' | 'seo';
 
 export type SaveStatus = 'saved' | 'unsaved' | 'saving' | 'error';
 

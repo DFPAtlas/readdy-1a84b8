@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useDemoTheme } from '@/hooks/useDemoTheme';

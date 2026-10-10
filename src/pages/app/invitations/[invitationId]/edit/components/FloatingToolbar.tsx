@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { TEXT_PALETTE, TEXT_PALETTE_LABELS } from '../types';
 

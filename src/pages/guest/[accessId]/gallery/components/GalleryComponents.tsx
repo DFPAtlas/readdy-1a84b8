@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
 import type { GalleryAlbum, GalleryAsset } from '@/types/access';
 import { edgeFunctionUrl } from '@/lib/edgeFunctions';

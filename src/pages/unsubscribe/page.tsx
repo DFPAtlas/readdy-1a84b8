@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { isDemoMode } from '@/demo/demoConfig';
@@ -33,28 +34,14 @@ export default function UnsubscribePage() {
 
     try {
       if (!isDemoMode && supabase) {
-        // Record suppression in email_suppressions table
-        const { error } = await supabase
-          .from('email_suppressions')
-          .upsert({
-            email: email.trim().toLowerCase(),
-            suppression_type: prefType,
-            suppressed_at: new Date().toISOString(),
-            source: 'unsubscribe_page',
-            token: tokenParam || null,
-          }, { onConflict: 'email' });
+        const {data,error}=await supabase.functions.invoke('email-unsubscribe',{body:{wedding:searchParams.get('wedding'),email:email.trim().toLowerCase(),token:tokenParam}});
+        if (data?.error) throw new Error(data.error);
 
         if (error) throw error;
       }
 
       setStatus('success');
-      setMessage(
-        prefType === 'all'
-          ? 'You have been unsubscribed from all Vowora emails. This change is effective immediately.'
-          : prefType === 'marketing'
-            ? 'You have been unsubscribed from marketing emails. You will still receive essential service communications.'
-            : 'You have been unsubscribed from wedding update emails.'
-      );
+      setMessage(isDemoMode ? 'Demo: no real email preferences were changed.' : 'You will no longer receive invitation or update emails from this wedding. Essential account emails are unchanged.');
     } catch {
       setStatus('error');
       setMessage('Something went wrong. Please try again or contact us for help.');
@@ -115,9 +102,7 @@ export default function UnsubscribePage() {
                     </label>
                     <div className="space-y-2">
                       {[
-                        { value: 'all', label: 'All emails', desc: 'Stop receiving all emails from Vowora' },
-                        { value: 'marketing', label: 'Marketing emails only', desc: 'Keep essential service emails, stop marketing' },
-                        { value: 'updates', label: 'Wedding updates only', desc: 'Stop wedding update emails, keep account notifications' },
+                        { value: 'all', label: 'Wedding emails', desc: 'Stop invitation and update emails from this wedding' },
                       ].map((opt) => (
                         <label
                           key={opt.value}
@@ -158,14 +143,14 @@ export default function UnsubscribePage() {
 
                   <button
                     type="submit"
-                    disabled={status === 'submitting' || !email.trim()}
+                    disabled={status === 'submitting' || !email.trim() || (!isDemoMode && !tokenParam)}
                     className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-lg bg-primary-500 text-white px-5 py-2.5 text-sm font-label font-medium cursor-pointer hover:bg-primary-600 disabled:opacity-50 transition-all"
                   >
                     {status === 'submitting' ? 'Updating...' : 'Update preferences'}
                   </button>
 
                   <p className="text-center text-xs text-foreground-400">
-                    Changes take effect immediately.{' '}
+                    Use the preferences link in your wedding email to make changes.{' '}
                     <Link to="/privacy" className="text-primary-600 hover:underline cursor-pointer">Privacy Policy</Link>
                   </p>
                 </div>

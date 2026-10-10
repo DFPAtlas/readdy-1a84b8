@@ -89,8 +89,8 @@ export interface DemoDataContextValue {
   reorderFaqs: (faqIds: string[]) => void;
   convertQuestionToFaq: (questionId: string, faqData: Partial<DemoFaq>) => void;
   updatePortalSettings: (updates: Partial<DemoPortalSettings>) => void;
-  getWebsiteConfig: () => Record<string, unknown> | null;
-  saveWebsiteConfig: (config: Record<string, unknown> | null) => void;
+  getWebsiteConfig: () => import("@/types/website").WebsiteConfig | null;
+  saveWebsiteConfig: (config: import("@/types/website").WebsiteConfig | null) => void;
   updateSubscription: (updates: Record<string, unknown>) => void;
 }
 
@@ -178,7 +178,7 @@ export function DemoDataProvider({ children }: { children: ReactNode }) {
   const resetSeatingOnly = useCallback(() => { const fresh = createInitialDemoState(); update((prev) => ({ ...prev, seatingPlan: fresh.seatingPlan })); }, [update]);
   const updateGalleryModeration = useCallback((itemId: string, status: DemoState['galleryItems'][0]['moderation_status']) => { update((prev) => ({ ...prev, galleryItems: prev.galleryItems.map((gi) => { if (gi.id !== itemId) return gi; const updated: DemoState['galleryItems'][0] = { ...gi, moderation_status: status }; if (status !== 'approved') updated.wall_visible = false; return updated; }) })); }, [update]);
   const toggleWallVisibility = useCallback((itemId: string, visible: boolean) => { update((prev) => ({ ...prev, galleryItems: prev.galleryItems.map((gi) => { if (gi.id !== itemId) return gi; if (visible && gi.moderation_status !== 'approved') return gi; return { ...gi, wall_visible: visible }; }) })); }, [update]);
-  const editGalleryCaption = useCallback((itemId: string, caption: string, albumId?: string) => { update((prev) => ({ ...prev, galleryItems: prev.galleryItems.map((gi) => { if (gi.id !== itemId) return gi; const updated = { ...gi, caption }; if (albumId) (updated as Record<string, unknown>).album_id = albumId; return updated; }) })); }, [update]);
+  const editGalleryCaption = useCallback((itemId: string, caption: string, albumId?: string) => { update((prev) => ({ ...prev, galleryItems: prev.galleryItems.map((gi) => { if (gi.id !== itemId) return gi; const updated = { ...gi, caption }; if (albumId) (updated as unknown as Record<string, unknown>).album_id = albumId; return updated; }) })); }, [update]);
   const dismissGalleryReport = useCallback((itemId: string) => { update((prev) => ({ ...prev, galleryItems: prev.galleryItems.map((gi) => (gi.id === itemId ? { ...gi, reported: false } : gi)) })); }, [update]);
   const addGalleryItem = useCallback((item: DemoState['galleryItems'][0]) => { update((prev) => ({ ...prev, galleryItems: [...prev.galleryItems, item] })); }, [update]);
   const updateGallerySettings = useCallback((updates: Partial<DemoState['gallerySettings']>) => { update((prev) => ({ ...prev, gallerySettings: { ...prev.gallerySettings, ...updates } })); }, [update]);
@@ -219,21 +219,21 @@ export function DemoDataProvider({ children }: { children: ReactNode }) {
   const unpublishFaq = useCallback((faqId: string) => { update((prev) => ({ ...prev, faqs: prev.faqs.map((f) => (f.id === faqId ? { ...f, status: 'draft' as const, is_published: false, updated_at: new Date().toISOString() } : f)) })); }, [update]);
   const deleteFaq = useCallback((faqId: string) => { update((prev) => ({ ...prev, faqs: prev.faqs.filter((f) => f.id !== faqId) })); }, [update]);
   const reorderFaqs = useCallback((faqIds: string[]) => { update((prev) => ({ ...prev, faqs: faqIds.map((id, idx) => { const faq = prev.faqs.find((f) => f.id === id); return faq ? { ...faq, sort_order: idx + 1 } : null; }).filter(Boolean) as DemoFaq[] })); }, [update]);
-  const convertQuestionToFaq = useCallback((questionId: string, faqData: Partial<DemoFaq>) => { const now = new Date().toISOString(); const newId = `demo-faq-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`; const newFaq: DemoFaq = { id: newId, wedding_id: faqData.wedding_id || createInitialDemoState().wedding.id, category: faqData.category || 'general', question: faqData.question || '', answer: faqData.answer || '', related_links: faqData.related_links || [], is_published: false, status: 'draft', sort_order: 999, helpful_count: 0, not_helpful_count: 0, created_at: now, updated_at: now, ...faqData, id: newId }; update((prev) => ({ ...prev, faqs: [...prev.faqs, newFaq] })); }, [update]);
+  const convertQuestionToFaq = useCallback((questionId: string, faqData: Partial<DemoFaq>) => { const now = new Date().toISOString(); const newId = `demo-faq-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`; const newFaq: DemoFaq = { id: newId, wedding_id: faqData.wedding_id || createInitialDemoState().wedding.id, category: faqData.category || 'general', question: faqData.question || '', answer: faqData.answer || '', related_links: faqData.related_links || [], is_published: false, status: 'draft', sort_order: 999, helpful_count: 0, not_helpful_count: 0, created_at: now, updated_at: now, ...faqData }; update((prev) => ({ ...prev, faqs: [...prev.faqs, newFaq] })); }, [update]);
   const updatePortalSettings = useCallback((updates: Partial<DemoPortalSettings>) => { update((prev) => ({ ...prev, portalSettings: { ...prev.portalSettings, ...updates } })); }, [update]);
 
-  const getWebsiteConfig = useCallback((): Record<string, unknown> | null => {
+  const getWebsiteConfig = useCallback((): import("@/types/website").WebsiteConfig | null => {
     return state.websiteConfig;
   }, [state.websiteConfig]);
 
-  const saveWebsiteConfig = useCallback((config: Record<string, unknown> | null) => {
-    update((prev) => ({ ...prev, websiteConfig: config as Record<string, unknown> | null }));
+  const saveWebsiteConfig = useCallback((config: import("@/types/website").WebsiteConfig | null) => {
+    update((prev) => ({ ...prev, websiteConfig: config }));
   }, [update]);
 
   const updateSubscription = useCallback((updates: Record<string, unknown>) => {
     update((prev) => ({
       ...prev,
-      subscription: { ...((prev.subscription || {}) as Record<string, unknown>), ...updates },
+      subscription: { ...((prev.subscription || {}) as unknown as Record<string, unknown>), ...updates },
     }));
   }, [update]);
 

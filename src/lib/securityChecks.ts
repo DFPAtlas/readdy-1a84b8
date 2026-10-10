@@ -40,7 +40,7 @@ interface Rule {
   excludePatterns?: RegExp[];
 }
 
-const SECURITY_RULES: Rule[] = [
+export const SECURITY_RULES: Rule[] = [
   {
     id: 'NO_DANGEROUSLY_SET_HTML',
     name: 'dangerouslySetInnerHTML usage',

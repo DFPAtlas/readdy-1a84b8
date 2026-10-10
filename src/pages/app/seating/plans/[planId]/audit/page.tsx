@@ -34,9 +34,9 @@ export default function SeatingAuditPage() {
       results.push({ id: cid('Security', 'rls'), category: 'Security', label: 'RLS enabled', status: 'not_tested', detail: 'Row-Level Security is enabled on all seating tables. Server-side validation recommended.', action: null });
 
       // Data integrity
-      const { data: assigns } = await supabase.from('seating_assignments').select('guest_id, table_id').eq('plan_id', planId);
+      const { data: assigns } = await supabase.from('seating_assignments').select('guest_id, table_id, seating_seat_id').eq('plan_id', planId);
       const { data: seats } = await supabase.from('seating_seats').select('id, seating_table_id, seat_status').eq('seating_plan_id', planId);
-      const { data: tables } = await supabase.from('seating_tables').select('id, capacity').eq('plan_id', planId);
+      const { data: tables } = await supabase.from('seating_tables').select('id, capacity, position_x, position_y').eq('plan_id', planId);
 
       const assignsArr = assigns || [];
       const seatsArr = seats || [];

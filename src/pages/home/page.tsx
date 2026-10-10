@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent />
-      <main>
+      <main id="main-content" tabIndex={-1}>
         <VideoHero videoSrc={HERO_VIDEO_SRC} posterSrc={HERO_POSTER_SRC} />
         <ScrollReveal direction="up">
           <ProductIntro />

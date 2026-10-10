@@ -213,7 +213,7 @@ function NormalExportPage() {
       const cols = ALL_COLUMNS.filter((c) => selectedColumns.has(c.key));
       const headers = cols.map((c) => c.label);
       const rows = guests.map((g) => {
-        const record = g as Record<string, unknown>;
+        const record = g as unknown as Record<string, unknown>;
         return cols.map((c) => {
           if (c.key === 'ceremony_invited' || c.key === 'reception_invited' || c.key === 'evening_invited') return escapeCSV(record[c.key] ? 'Yes' : 'No');
           if (c.key === 'rsvp_label') return escapeCSV(getRsvpLabel((g.rsvp_status || 'pending')));

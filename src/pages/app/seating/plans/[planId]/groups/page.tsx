@@ -47,7 +47,7 @@ export default function SeatingGroupsPage() {
       (membersData || []).forEach((m: Record<string, unknown>) => {
         const gid = m.seating_group_id as string;
         if (!membersMap[gid]) membersMap[gid] = [];
-        membersMap[gid].push({ ...m, guest: (m as Record<string, unknown>).guests as GuestInfo | null } as unknown as SeatingGroupMember & { guest: GuestInfo | null });
+        membersMap[gid].push({ ...m, guest: (m as unknown as Record<string, unknown>).guests as GuestInfo | null } as unknown as SeatingGroupMember & { guest: GuestInfo | null });
       });
 
       const merged = (groupsData || []).map((g: Record<string, unknown>) => ({

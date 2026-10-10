@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { sha256Hex } from "../_shared/guestAccess.ts";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,6 +26,7 @@ interface InvitationRecipientRow {
 }
 
 interface InvitationRow {
+  delivery_attempts?: number;
   id: string;
   wedding_id: string;
   internal_name: string;
@@ -60,13 +61,7 @@ interface WeddingRow {
   contact_information?: string;
 }
 
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
+
 
 function generateToken(): string {
   const arr = new Uint8Array(32);
@@ -74,13 +69,13 @@ function generateToken(): string {
   return Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function buildFingerprint(req: Request): string {
+async function buildFingerprint(req: Request): Promise<string> {
   const ip = req.headers.get("cf-connecting-ip") ||
     req.headers.get("x-real-ip") ||
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
   const ua = req.headers.get("user-agent") || "unknown";
-  return sha256(`${ip}:${ua.slice(0, 64)}`);
+  return await sha256Hex(`${ip}:${ua.slice(0, 64)}`);
 }
 
 function formatDate(dateStr?: string): string {
@@ -98,7 +93,7 @@ function buildInvitationHtml(
   token: string,
   recipients: InvitationRecipientRow[],
 ): string {
-  const inviteUrl = `${Deno.env.get("SITE_URL") || "https://vowora.uk"}/invite/${token}`;
+  const inviteUrl = `${Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk"}/invite/${token}`;
   const preset = invitation.template?.style_preset || "minimal";
   const isDark = preset === "editorial";
 
@@ -245,7 +240,7 @@ function buildPlainText(
   wedding: WeddingRow,
   token: string,
 ): string {
-  const inviteUrl = `${Deno.env.get("SITE_URL") || "https://vowora.uk"}/invite/${token}`;
+  const inviteUrl = `${Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk"}/invite/${token}`;
   const lines: string[] = [];
   lines.push(`${wedding.partner_one_name} & ${wedding.partner_two_name}`);
   if (wedding.wedding_date) lines.push(formatDate(wedding.wedding_date));
@@ -278,7 +273,7 @@ Deno.serve(async (req: Request) => {
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
   const resendFromDomain = Deno.env.get("RESEND_FROM_DOMAIN");
 
-  const fingerprint = buildFingerprint(req);
+  const fingerprint = await buildFingerprint(req);
 
   try {
     // Verify JWT
@@ -352,7 +347,7 @@ Deno.serve(async (req: Request) => {
 });
 
 async function handleSendIndividual(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   invitationId: string,
   userId: string,
   fingerprint: string,
@@ -433,7 +428,7 @@ async function handleSendIndividual(
 
   // Generate token
   const rawToken = generateToken();
-  const tokenHash = sha256(rawToken);
+  const tokenHash = await sha256Hex(rawToken);
 
   // Store token
   const { error: tokenErr } = await supabase
@@ -479,7 +474,7 @@ async function handleSendIndividual(
 
     await logActivity(supabase, inv.wedding_id, invitationId, "token_generated", "Token generated (Resend not configured)", fingerprint);
 
-    const siteUrl = Deno.env.get("SITE_URL") || "https://vowora.uk";
+    const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk";
     const inviteUrl = `${siteUrl}/invite/${rawToken}`;
     return jsonResponse({
       success: true,
@@ -563,7 +558,7 @@ async function handleSendIndividual(
 }
 
 async function handleSendBulk(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   invitationIds: string[],
   userId: string,
   fingerprint: string,
@@ -611,7 +606,7 @@ async function handleSendBulk(
 }
 
 async function handleResend(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   invitationId: string,
   userId: string,
   fingerprint: string,
@@ -645,7 +640,7 @@ async function handleResend(
 }
 
 async function handleGenerateToken(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   invitationId: string,
   userId: string,
 ): Promise<Response> {
@@ -677,7 +672,7 @@ async function handleGenerateToken(
 
   // Generate new token
   const rawToken = generateToken();
-  const tokenHash = sha256(rawToken);
+  const tokenHash = await sha256Hex(rawToken);
 
   await supabase.from("invitation_access_tokens").insert({
     wedding_id: invitation.wedding_id,
@@ -690,7 +685,7 @@ async function handleGenerateToken(
     created_at: new Date().toISOString(),
   });
 
-  const siteUrl = Deno.env.get("SITE_URL") || "https://vowora.uk";
+  const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk";
   const inviteUrl = `${siteUrl}/invite/${rawToken}`;
 
   return jsonResponse({
@@ -701,7 +696,7 @@ async function handleGenerateToken(
 }
 
 async function logActivity(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseClient,
   weddingId: string,
   invitationId: string,
   eventType: string,

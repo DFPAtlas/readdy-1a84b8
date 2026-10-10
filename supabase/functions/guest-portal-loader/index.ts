@@ -1,19 +1,15 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { oneRelation } from "../_shared/relations.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
 
 
-function sha256(text: string): string {
-  const data = new TextEncoder().encode(text);
-  const hash = crypto.subtle.digestSync("SHA-256", data);
-  return Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 
-function buildFingerprint(req: Request): string {
+
+async function buildFingerprint(req: Request): Promise<string> {
   const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const ua = req.headers.get("user-agent") || "unknown";
-  return sha256(`${ip}:${ua.slice(0, 64)}`);
+  return await sha256Hex(`${ip}:${ua.slice(0, 64)}`);
 }
 
 function isEventVisibleToGuest(visibility: string, revealAt: string | null, eventType: string, recipients: Array<{ ceremony_included: boolean; reception_included: boolean; evening_included: boolean; welcome_event_included: boolean; day_after_event_included: boolean; invitation_group?: string }>): boolean {
@@ -48,7 +44,7 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const fingerprint = buildFingerprint(req);
+  const fingerprint = await buildFingerprint(req);
 
   try {
     const body = await req.json();
@@ -79,8 +75,9 @@ Deno.serve(async (req: Request) => {
     if (portalSettings?.portal_closes_at && new Date() >= new Date(portalSettings.portal_closes_at)) return new Response(JSON.stringify({ valid: false, error: "portal_closed" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     if (portalSettings && portalSettings.portal_enabled === false) return new Response(JSON.stringify({ valid: false, error: "portal_disabled" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const guestRecipients = (recipients || []).map((r) => {
-      const guest = r.guest || {};
+    const guestRecipients = (recipients || []).flatMap((r) => {
+      const guest = oneRelation(r.guest);
+      if (!guest) return [];
       return { guest_id: r.guest_id, guest_name: guest.full_name || "Guest", preferred_name: guest.preferred_name || null, recipient_role: r.recipient_role, ceremony_included: r.ceremony_included, reception_included: r.reception_included, evening_included: r.evening_included, welcome_event_included: r.welcome_event_included, day_after_event_included: r.day_after_event_included, plus_one_allowed: r.plus_one_allowed, plus_one_status: guest.plus_one_status || null, plus_one_name: guest.plus_one_name || null, approved_additional_children: guest.approved_additional_children || 0, age_band: guest.age_band || null, household_id: guest.household_id || null };
     });
     const guestIds = guestRecipients.map((r) => r.guest_id);
@@ -102,9 +99,9 @@ Deno.serve(async (req: Request) => {
     const updatesByEvent = new Map<string, Array<Record<string, unknown>>>();
     (publishedUpdates || []).forEach((u) => { if (u.related_itinerary_event_id) { const arr = updatesByEvent.get(u.related_itinerary_event_id as string) || []; arr.push(u); updatesByEvent.set(u.related_itinerary_event_id as string, arr); } });
 
-    const filteredEvents = (allEvents || []).filter((evt) => { if (!isEventVisibleToGuest(evt.visibility, evt.reveal_at, evt.event_type, guestRecipients)) return false; if (!hasAudienceAccess(evt.id)) return false; if (evt.status === "archived") return false; return true; }).map((evt) => {
+    const filteredEvents = (allEvents || []).filter((evt) => { if (!isEventVisibleToGuest(evt.visibility, evt.reveal_at, evt.event_type, guestRecipients)) return false; if (!hasAudienceAccess(evt.id)) return false; if (!["published","active"].includes(evt.status)) return false; return true; }).map((evt) => {
       const linkedUpdates = (updatesByEvent.get(evt.id) || []).map((u) => ({ id: u.id, title: u.title, content: u.content, update_date: u.update_date, created_at: u.created_at, category: u.category, priority: u.priority || "standard", is_important: !!(u.is_important), summary: u.summary || null, is_read: false, read_at: null, is_saved: false, image_url: null, related_itinerary_event_id: u.related_itinerary_event_id, related_travel_item_id: u.related_travel_item_id || null }));
-      return { id: evt.id, event_type: evt.event_type, name: evt.name, description: evt.description, guest_description: evt.guest_description, start_at: evt.start_at, end_at: evt.end_at, visibility: evt.visibility, reveal_at: evt.reveal_at, dress_code: evt.dress_code, arrival_notes: evt.arrival_notes, arrival_offset_minutes: evt.arrival_offset_minutes, parking_notes: evt.parking_notes, transport_notes: evt.transport_notes, accessibility_notes: evt.accessibility_notes, children_notes: evt.children_notes, status: evt.status, published_at: evt.published_at, venue: evt.venue ? { id: evt.venue.id, name: evt.venue.name, address_line_1: evt.venue.address_line_1, city: evt.venue.city, county_or_region: evt.venue.county_or_region, postcode: evt.venue.postcode, country: evt.venue.country } : null, linked_updates: linkedUpdates.length > 0 ? linkedUpdates : undefined };
+      return { id: evt.id, event_type: evt.event_type, name: evt.name, description: evt.guest_description || null, guest_description: evt.guest_description, start_at: evt.start_at, end_at: evt.end_at, visibility: evt.visibility, reveal_at: evt.reveal_at, dress_code: evt.dress_code, arrival_notes: evt.arrival_notes, arrival_offset_minutes: evt.arrival_offset_minutes, parking_notes: evt.parking_notes, transport_notes: evt.transport_notes, accessibility_notes: evt.accessibility_notes, children_notes: evt.children_notes, status: evt.status, published_at: evt.published_at, venue: evt.venue ? { id: evt.venue.id, name: evt.venue.name, address_line_1: evt.venue.address_line_1, city: evt.venue.city, county_or_region: evt.venue.county_or_region, postcode: evt.venue.postcode, country: evt.venue.country } : null, linked_updates: linkedUpdates.length > 0 ? linkedUpdates : undefined };
     });
 
     // RSVP
@@ -149,7 +146,8 @@ Deno.serve(async (req: Request) => {
             if (showCompanions && table && companionFormat !== "hidden") {
               const { data: tableAssignments } = await supabase.from("seating_assignments").select("guest_id, seating_seat_id, guest:guests!inner(id, full_name, preferred_name)").eq("plan_id", publication.seating_plan_id).eq("table_id", myAssignment.table_id);
               for (const ta of (tableAssignments || [])) {
-                const taGuest = ta.guest[0];
+                const taGuest = oneRelation(ta.guest);
+                if (!taGuest) continue;
                 if (ta.guest_id === myAssignment.guest_id) continue;
                 let cl: string | null = null;
                 if (showCompanionSeatLabels && ta.seating_seat_id) { const { data: cs } = await supabase.from("seating_seats").select("seat_label").eq("id", ta.seating_seat_id).maybeSingle(); cl = cs?.seat_label || null; }
@@ -160,7 +158,7 @@ Deno.serve(async (req: Request) => {
             if (showRoomMap) {
               const { data: plan } = await supabase.from("seating_plans").select("id, canvas_width, canvas_height, background_asset_id, background_opacity").eq("id", publication.seating_plan_id).maybeSingle();
               const { data: allTables } = await supabase.from("seating_tables").select("id, table_number, name, shape, position_x, position_y, width, height, rotation, colour, capacity, zone").eq("plan_id", publication.seating_plan_id).is("archived_at", null);
-              const gtId = table.id;
+              const gtId = table?.id;
               const { data: roomObjects } = await supabase.from("seating_room_objects").select("id, object_type, name, x_position, y_position, width, height, rotation, style_key, visible").eq("seating_plan_id", publication.seating_plan_id).is("archived_at", null).neq("visible", false);
               const { data: zones } = await supabase.from("seating_zones").select("id, name, description, style_key, visible").eq("seating_plan_id", publication.seating_plan_id).neq("visible", false);
               let backgroundAsset: Record<string, unknown> | null = null;
@@ -309,11 +307,11 @@ Deno.serve(async (req: Request) => {
       const visibleAssets = [...approvedAssets, ...myUploads];
       const signedUrlMap = new Map<string, string>(); const thumbUrlMap = new Map<string, string>();
       const B = 50;
-      for (let i = 0; i < visibleAssets.length; i += B) { const batch = visibleAssets.slice(i, i + B); const paths = batch.map((a) => a.storage_path as string).filter(Boolean); if (paths.length > 0) { const { data: su } = await supabase.storage.from("private").createSignedUrls(paths, 3600); if (su) for (const s of su) { if (s.signedUrl) signedUrlMap.set(s.path, s.signedUrl); } } }
-      for (let i = 0; i < visibleAssets.length; i += B) { const batch = visibleAssets.slice(i, i + B); const tps = batch.map((a) => a.thumbnail_path as string).filter(Boolean); if (tps.length > 0) { const { data: tu } = await supabase.storage.from("private").createSignedUrls(tps, 3600); if (tu) for (const t of tu) { if (t.signedUrl) thumbUrlMap.set(t.path, t.signedUrl); } } }
+      for (let i = 0; i < visibleAssets.length; i += B) { const batch = visibleAssets.slice(i, i + B); const paths = batch.map((a) => a.storage_path as string).filter(Boolean); if (paths.length > 0) { const { data: su } = await supabase.storage.from("private").createSignedUrls(paths, 3600); if (su) for (const s of su) { if (s.signedUrl && s.path) signedUrlMap.set(s.path, s.signedUrl); } } }
+      for (let i = 0; i < visibleAssets.length; i += B) { const batch = visibleAssets.slice(i, i + B); const tps = batch.map((a) => a.thumbnail_path as string).filter(Boolean); if (tps.length > 0) { const { data: tu } = await supabase.storage.from("private").createSignedUrls(tps, 3600); if (tu) for (const t of tu) { if (t.signedUrl && t.path) thumbUrlMap.set(t.path, t.signedUrl); } } }
       const coverPaths = visibleAlbums.map((a) => a.cover_image_path as string).filter(Boolean);
       const coverUrlMap = new Map<string, string>();
-      if (coverPaths.length > 0) { const { data: cu } = await supabase.storage.from("private").createSignedUrls(coverPaths, 3600); if (cu) for (const c of cu) { if (c.signedUrl) coverUrlMap.set(c.path, c.signedUrl); } }
+      if (coverPaths.length > 0) { const { data: cu } = await supabase.storage.from("private").createSignedUrls(coverPaths, 3600); if (cu) for (const c of cu) { if (c.signedUrl && c.path) coverUrlMap.set(c.path, c.signedUrl); } }
       const { data: favourites } = await supabase.from("gallery_favourites").select("asset_id").eq("invitation_id", session.invitation_id).in("guest_id", guestIds);
       const favIds = new Set((favourites || []).map((f) => f.asset_id));
       const primaryGuestId = guestIds[0];

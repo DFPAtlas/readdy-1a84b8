@@ -11,6 +11,9 @@ export function mapAuthError(error: unknown): string {
         ? error.message.toLowerCase()
         : String(error).toLowerCase();
 
+  if (msg.includes('session expired') || msg.includes('session not found') || msg.includes('jwt expired')) return 'Your session has expired. Please log in again.';
+  if (msg.includes('new password should be different')) return 'Your new password must be different from your current password.';
+
   // Invalid credentials
   if (msg.includes('invalid login credentials') || msg.includes('invalid email or password')) {
     return 'The email or password you entered is incorrect. Please check and try again.';
