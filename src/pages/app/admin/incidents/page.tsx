@@ -1,3 +1,4 @@
+import { usePlatformAdminAccess } from '@/context/PlatformAdminContext';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -57,7 +58,7 @@ function statusColor(st: IncidentStatus): string {
 export default function IncidentsPage() {
   const { profile } = useAuth();
   const { membership } = useActiveWedding();
-  const isAuthorised = membership?.role === 'owner' || membership?.role === 'partner';
+  const isAuthorised = usePlatformAdminAccess();
   const isDemo = isDemoMode;
 
   const [incidents, setIncidents] = useState<OperationalIncident[]>([]);

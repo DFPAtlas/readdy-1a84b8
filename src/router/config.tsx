@@ -1,3 +1,6 @@
+const CustomerSupportPage = lazy(() => import('@/pages/app/support/page'));
+const AfterWeddingPage = lazy(() => import('@/pages/app/after-wedding/page'));
+import type * as React from "react";
 import { lazy, Suspense } from "react";
 import type { RouteObject } from "react-router-dom";
 import AuthLayout from "@/components/feature/AuthLayout";
@@ -13,7 +16,10 @@ function LazyRoute({ comp: Comp }: { comp: React.LazyExoticComponent<React.Compo
   );
 }
 
+const RsvpSettingsPage = lazy(() => import("@/pages/app/rsvp-settings/page"));
+
 // ── Public pages ──
+const JoinWeddingPage = lazy(() => import("@/pages/join/page"));
 const Home = lazy(() => import("@/pages/home/page"));
 const FeaturesPage = lazy(() => import("@/pages/features/page"));
 const GuestExperiencePage = lazy(() => import("@/pages/guest-experience/page"));
@@ -303,6 +309,9 @@ const routes: RouteObject[] = [
 
       // Invitations
       { path: "invitations", element: <LazyRoute comp={InvitationsPage} /> },
+      { path: "support", element: <LazyRoute comp={CustomerSupportPage} /> },
+      { path: "after-wedding", element: <LazyRoute comp={AfterWeddingPage} /> },
+      { path: "rsvp-settings", element: <LazyRoute comp={RsvpSettingsPage} /> },
       { path: "invitations/responses", element: <LazyRoute comp={ResponseOverviewPage} /> },
       { path: "invitations/new", element: <LazyRoute comp={NewInvitationPage} /> },
       { path: "invitations/design/new", element: <LazyRoute comp={NewDesignPage} /> },
@@ -396,6 +405,7 @@ const routes: RouteObject[] = [
   },
 
   // 404
+  { path: "/join/:token", element: <LazyRoute comp={JoinWeddingPage} /> },
   { path: "*", element: <LazyRoute comp={NotFound} /> },
 ];
 

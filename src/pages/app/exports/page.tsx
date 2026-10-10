@@ -1,3 +1,4 @@
+import WorkspaceExports from '@/components/feature/WorkspaceExports';
 import { useState, useMemo } from 'react';
 import AppShell from '@/components/feature/AppShell';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
@@ -453,36 +454,9 @@ function DemoExportCentre() {
 // Normal Export Centre
 // ═══════════════════════════════════════════
 
-function NormalExportCentre() {
-  const { weddingId } = useActiveWedding();
-
-  return (
-    <AppShell>
-      <div className="max-w-5xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <p className="text-xs font-label text-foreground-400 uppercase tracking-widest mb-1">Reports and sharing</p>
-            <h1 className="font-heading text-2xl md:text-3xl text-foreground-900">Export Centre</h1>
-            <p className="text-sm text-foreground-500 mt-1">Download your wedding planning data in PDF, CSV and calendar formats.</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-secondary-200 p-6 text-center py-20">
-          <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-full bg-primary-50 text-primary-400 mb-4">
-            <i className="ri-download-cloud-2-line text-xl" />
-          </div>
-          <h2 className="font-heading text-lg text-foreground-700 mb-1">Export generation</h2>
-          <p className="text-sm text-foreground-500 mb-4">Production exports will use Supabase Edge Functions for secure server-side file generation.</p>
-          <p className="text-xs text-foreground-400">Connected to wedding: <code className="px-1.5 py-0.5 rounded bg-secondary-100 text-secondary-700 font-mono text-[11px]">{weddingId || '—'}</code></p>
-        </div>
-      </div>
-    </AppShell>
-  );
-}
-
 // ── Page export ──
 
 export default function ExportCentrePage() {
   if (isDemoMode) return <DemoExportCentre />;
-  return <NormalExportCentre />;
+  return <WorkspaceExports />;
 }

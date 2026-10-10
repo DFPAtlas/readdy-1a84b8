@@ -1,6 +1,5 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import Stripe from 'https://esm.sh/stripe@14.21.0';
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
+import Stripe from "npm:stripe@22.6.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,16 +7,16 @@ const corsHeaders = {
 };
 
 // Plan key mapping from Stripe product IDs
-async function resolvePlanKey(supabase: ReturnType<typeof createClient>, productId: string): Promise<string | null> {
+async function resolvePlanKey(supabase: SupabaseClient, productId: string): Promise<string | null> {
   const { data } = await supabase
     .from('wedora_subscription_plans')
     .select('plan_code')
     .eq('stripe_product_id', productId)
-    .maybeSingle();
+    .maybeSingle().throwOnError();
   return data?.plan_code || null;
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -42,7 +41,7 @@ serve(async (req: Request) => {
       });
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
     const signature = req.headers.get('stripe-signature');
 
     if (!signature) {
@@ -56,7 +55,7 @@ serve(async (req: Request) => {
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret, undefined, Stripe.createSubtleCryptoProvider());
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid signature' }), {
         status: 400,
@@ -73,11 +72,11 @@ serve(async (req: Request) => {
     // Idempotency check
     const { data: existingEvent } = await supabase
       .from('wedora_billing_events')
-      .select('id')
+      .select('id, processing_status')
       .eq('stripe_event_id', event.id)
-      .maybeSingle();
+      .maybeSingle().throwOnError();
 
-    if (existingEvent) {
+    if (existingEvent?.processing_status === 'processed') {
       return new Response(JSON.stringify({ received: true, duplicate: true }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -85,13 +84,14 @@ serve(async (req: Request) => {
     }
 
     // Record event
-    await supabase.from('wedora_billing_events').insert({
+    const { error: recordError } = await supabase.from('wedora_billing_events').upsert({
       stripe_event_id: event.id,
       event_type: event.type,
       processing_status: 'processing',
       payload_summary: { type: event.type },
       received_at: new Date().toISOString(),
-    });
+    }, { onConflict: 'stripe_event_id' }).throwOnError();
+    if (recordError) throw recordError;
 
     let weddingId: string | null = null;
     let userId: string | null = null;
@@ -110,6 +110,8 @@ serve(async (req: Request) => {
             // Get subscription details from Stripe
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
             const planId = await resolvePlanKey(supabase, subscription.items.data[0]?.price?.product as string);
+            if (!planId) throw new Error('Subscription product has no configured Vowora plan');
+            const {data:resolvedRow}=await supabase.from('wedora_subscription_plans').select('id').eq('plan_code',planId).single().throwOnError();
 
             await supabase.from('wedora_subscriptions').upsert({
               user_id: userId,
@@ -117,15 +119,18 @@ serve(async (req: Request) => {
               stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               stripe_checkout_session_id: session.id,
+              plan_key: planId,
+              plan_id: resolvedRow.id,
+              billing_interval: subscription.items.data[0].price.recurring?.interval || 'month',
               status: subscription.status,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              current_period_start: new Date(subscription.items.data[0].current_period_start * 1000).toISOString(),
+              current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
               trial_start: subscription.trial_start ? new Date(subscription.trial_start * 1000).toISOString() : null,
               trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null,
               cancel_at_period_end: subscription.cancel_at_period_end,
               cancelled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
               ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
-            }, { onConflict: 'stripe_subscription_id' });
+            }, { onConflict: 'wedding_id' }).throwOnError();
 
             // Also update subscription_records for backward compatibility
             await supabase.from('subscription_records').upsert({
@@ -135,26 +140,32 @@ serve(async (req: Request) => {
               status: subscription.status,
               stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              current_period_start: new Date(subscription.items.data[0].current_period_start * 1000).toISOString(),
+              current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
               cancel_at_period_end: subscription.cancel_at_period_end,
-            }, { onConflict: 'stripe_subscription_id' });
+            }, { onConflict: 'wedding_id' }).throwOnError();
           }
           break;
         }
 
         case 'customer.subscription.updated':
         case 'customer.subscription.deleted': {
-          const subscription = event.data.object as Stripe.Subscription;
+          const subscription = await stripe.subscriptions.retrieve((event.data.object as Stripe.Subscription).id);
           const metadata = subscription.metadata || {};
           userId = metadata.user_id || null;
           weddingId = metadata.wedding_id || null;
 
           if (subscription.id) {
+            const resolvedPlan = await resolvePlanKey(supabase, subscription.items.data[0]?.price?.product as string);
+            if (!resolvedPlan) throw new Error('Subscription product has no configured Vowora plan');
+            const {data:resolvedRow}=await supabase.from('wedora_subscription_plans').select('id').eq('plan_code',resolvedPlan).single().throwOnError();
             const updates: Record<string, unknown> = {
+              plan_key: resolvedPlan,
+              plan_id: resolvedRow.id,
+              billing_interval: subscription.items.data[0].price.recurring?.interval || 'month',
               status: subscription.status,
-              current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              current_period_start: new Date(subscription.items.data[0].current_period_start * 1000).toISOString(),
+              current_period_end: new Date(subscription.items.data[0].current_period_end * 1000).toISOString(),
               cancel_at_period_end: subscription.cancel_at_period_end,
               cancelled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
               ended_at: subscription.ended_at ? new Date(subscription.ended_at * 1000).toISOString() : null,
@@ -164,7 +175,7 @@ serve(async (req: Request) => {
 
             await supabase.from('wedora_subscriptions')
               .update(updates)
-              .eq('stripe_subscription_id', subscription.id);
+              .eq('stripe_subscription_id', subscription.id).throwOnError();
 
             // Sync subscription_records
             const planId = await resolvePlanKey(supabase, subscription.items.data[0]?.price?.product as string);
@@ -176,7 +187,7 @@ serve(async (req: Request) => {
                 current_period_end: updates.current_period_end as string,
                 cancel_at_period_end: subscription.cancel_at_period_end,
               })
-              .eq('stripe_subscription_id', subscription.id);
+              .eq('stripe_subscription_id', subscription.id).throwOnError();
           }
           break;
         }
@@ -184,12 +195,12 @@ serve(async (req: Request) => {
         case 'invoice.paid': {
           const invoice = event.data.object as Stripe.Invoice;
           // Mark billing event as linked if we have context
-          if (invoice.subscription) {
+          if (invoice.parent?.subscription_details?.subscription) {
             const { data: sub } = await supabase
               .from('wedora_subscriptions')
               .select('id, user_id, wedding_id')
-              .eq('stripe_subscription_id', invoice.subscription as string)
-              .maybeSingle();
+              .eq('stripe_subscription_id', invoice.parent?.subscription_details?.subscription as string)
+              .maybeSingle().throwOnError();
 
             if (sub) {
               await supabase.from('wedora_billing_events')
@@ -198,7 +209,7 @@ serve(async (req: Request) => {
                   wedding_id: sub.wedding_id,
                   subscription_id: sub.id,
                 })
-                .eq('stripe_event_id', event.id);
+                .eq('stripe_event_id', event.id).throwOnError();
             }
           }
           break;
@@ -206,12 +217,12 @@ serve(async (req: Request) => {
 
         case 'invoice.payment_failed': {
           const invoice = event.data.object as Stripe.Invoice;
-          if (invoice.subscription) {
+          if (invoice.parent?.subscription_details?.subscription) {
             const { data: sub } = await supabase
               .from('wedora_subscriptions')
               .select('id, user_id, wedding_id')
-              .eq('stripe_subscription_id', invoice.subscription as string)
-              .maybeSingle();
+              .eq('stripe_subscription_id', invoice.parent?.subscription_details?.subscription as string)
+              .maybeSingle().throwOnError();
 
             if (sub) {
               await supabase.from('wedora_billing_events')
@@ -220,7 +231,7 @@ serve(async (req: Request) => {
                   wedding_id: sub.wedding_id,
                   subscription_id: sub.id,
                 })
-                .eq('stripe_event_id', event.id);
+                .eq('stripe_event_id', event.id).throwOnError();
             }
           }
           break;
@@ -239,7 +250,7 @@ serve(async (req: Request) => {
           wedding_id: weddingId || undefined,
           processed_at: new Date().toISOString(),
         })
-        .eq('stripe_event_id', event.id);
+        .eq('stripe_event_id', event.id).throwOnError();
 
     } catch (processingErr) {
       console.error('Processing error:', processingErr);
@@ -248,7 +259,7 @@ serve(async (req: Request) => {
           processing_status: 'failed',
           error_message: processingErr instanceof Error ? processingErr.message : 'Unknown error',
         })
-        .eq('stripe_event_id', event.id);
+        .eq('stripe_event_id', event.id).throwOnError();
 
       return new Response(JSON.stringify({ error: 'Processing failed' }), {
         status: 500,

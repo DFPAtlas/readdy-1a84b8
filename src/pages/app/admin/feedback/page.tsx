@@ -1,3 +1,4 @@
+import { usePlatformAdminAccess } from '@/context/PlatformAdminContext';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -50,7 +51,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 export default function FeedbackCentrePage() {
   const { profile } = useAuth();
   const { membership } = useActiveWedding();
-  const isAuthorised = membership?.role === 'owner' || membership?.role === 'partner';
+  const isAuthorised = usePlatformAdminAccess();
   const isDemo = isDemoMode;
 
   const [items, setItems] = useState<FeedbackItem[]>([]);

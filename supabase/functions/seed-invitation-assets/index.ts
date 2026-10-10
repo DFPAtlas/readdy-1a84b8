@@ -1,5 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const BUCKET = 'invitation-assets';
 
@@ -88,7 +87,7 @@ function getThumbPath(fullPath: string): string {
   return fullPath.replace(/\.png$/, '-thumb.png');
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
@@ -111,6 +110,9 @@ serve(async (req: Request) => {
   if (authError || !user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
+
+  const { data: admin } = await supabase.from('platform_admins').select('user_id').eq('user_id', user.id).eq('active', true).maybeSingle();
+  if (!admin) return new Response(JSON.stringify({ error: 'Administrator access required' }), { status: 403 });
 
   const results: { path: string; status: 'uploaded' | 'skipped' | 'failed'; error?: string }[] = [];
 

@@ -1,6 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
-import Stripe from "npm:stripe@17";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import Stripe from "npm:stripe@22.6.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,7 +28,7 @@ Deno.serve(async (req: Request) => {
   // Separate anon client used only for verifying the caller's JWT; privileged
   // database operations must remain on the service-role client above.
   const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
-  const stripe = new Stripe(stripeKey, { apiVersion: "2025-06-15.basil" });
+  const stripe = new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
 
   try {
     const body = await req.json();
@@ -199,7 +198,7 @@ Deno.serve(async (req: Request) => {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      let stripeAccountId: string;
+      let stripeAccountId = "";
 
       if (account?.stripe_account_id) {
         stripeAccountId = account.stripe_account_id;

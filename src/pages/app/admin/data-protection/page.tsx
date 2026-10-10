@@ -1,3 +1,4 @@
+import { usePlatformAdminAccess } from '@/context/PlatformAdminContext';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -64,7 +65,7 @@ const DEMO_REQUESTS: PrivacyRequest[] = [
 
 export default function DataProtectionPage() {
   const { membership } = useActiveWedding();
-  const isAuthorised = membership?.role === 'owner' || membership?.role === 'partner';
+  const isAuthorised = usePlatformAdminAccess();
   const isDemo = isDemoMode;
 
   const [activeTab, setActiveTab] = useState<Tab>('requests');
@@ -392,7 +393,7 @@ function DeletionTab({ requests, isDemo }: { requests: PrivacyRequest[]; isDemo:
 
       {isDemo && (
         <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
-          <p className="text-xs text-amber-700"><i className="ri-alert-line mr-1" />Deletions never run from the browser. The <code className="text-[10px] bg-amber-200 px-1 rounded">process-data-deletion-request</code> Edge Function handles all deletions server-side with ownership verification and safe table ordering.</p>
+          <p className="text-xs text-amber-700"><i className="ri-alert-line mr-1" />Deletions never run from the browser. The <code className="text-[10px] bg-amber-200 px-1 rounded">process-data-deletion-request</code> Edge Function validates cancellation requests. Deletion fulfilment requires a staff review, billing checks, storage cleanup and a recorded retention decision.</p>
         </div>
       )}
     </div>

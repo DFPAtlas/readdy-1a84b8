@@ -1,3 +1,4 @@
+import { usePlatformAdminAccess } from '@/context/PlatformAdminContext';
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
@@ -81,7 +82,7 @@ function formatNumber(n: number): string {
 export default function PerformanceDashboardPage() {
   const { profile } = useAuth();
   const { membership } = useActiveWedding();
-  const isAuthorised = membership?.role === 'owner' || membership?.role === 'partner';
+  const isAuthorised = usePlatformAdminAccess();
   const isDemo = isDemoMode;
 
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
@@ -106,7 +107,6 @@ export default function PerformanceDashboardPage() {
         edgeFuncResult,
         realtimeResult,
         slowQueryResult,
-        tableSizeResult,
         guestCountResult,
         weddingCountResult,
         galleryCountResult,

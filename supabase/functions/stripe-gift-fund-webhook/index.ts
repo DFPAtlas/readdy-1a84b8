@@ -1,6 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
-import Stripe from "npm:stripe@17";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import Stripe from "npm:stripe@22.6.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -44,7 +43,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const stripe = new Stripe(stripeKey, { apiVersion: "2025-06-15.basil" });
+  const stripe = new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
 
   try {
     const signature = req.headers.get("stripe-signature");
@@ -58,7 +57,7 @@ Deno.serve(async (req: Request) => {
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret, undefined, Stripe.createSubtleCryptoProvider());
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
       return new Response(JSON.stringify({ error: "Invalid signature" }), {
@@ -71,7 +70,7 @@ Deno.serve(async (req: Request) => {
       .from("gift_fund_events")
       .select("id, processing_status")
       .eq("stripe_event_id", event.id)
-      .maybeSingle();
+      .maybeSingle().throwOnError();
 
     if (existingEvent) {
       if (existingEvent.processing_status === "processed") {
@@ -79,20 +78,14 @@ Deno.serve(async (req: Request) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (existingEvent.processing_status === "failed") {
-        // Retry processing
-      } else {
-        return new Response(JSON.stringify({ received: true, status: "already_received" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+
     }
 
     // ── Record event ──
     let contributionId: string | null = null;
 
     // Extract contribution_id from event object metadata
-    const obj = event.data.object as Record<string, unknown>;
+    const obj = event.data.object as unknown as Record<string, unknown>;
     const metadata = (obj?.metadata || {}) as Record<string, string>;
     contributionId = metadata?.contribution_id || null;
 
@@ -101,7 +94,7 @@ Deno.serve(async (req: Request) => {
       const account = event.data.object as Stripe.Account;
       const userId = account.metadata?.user_id;
 
-      if (userId) {
+      if (account.id) {
         const updated = {
           onboarding_complete: account.charges_enabled && account.payouts_enabled && !account.requirements?.currently_due?.length,
           charges_enabled: account.charges_enabled,
@@ -112,8 +105,7 @@ Deno.serve(async (req: Request) => {
         await supabase
           .from("gift_fund_accounts")
           .update(updated)
-          .eq("stripe_account_id", account.id)
-          .eq("user_id", userId);
+          .eq("stripe_account_id", account.id).throwOnError();
       }
 
       await supabase.from("gift_fund_events").insert({
@@ -121,7 +113,7 @@ Deno.serve(async (req: Request) => {
         stripe_event_id: event.id,
         event_type: event.type,
         processing_status: "processed",
-      });
+      }).throwOnError();
 
       return new Response(JSON.stringify({ received: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -131,26 +123,28 @@ Deno.serve(async (req: Request) => {
     // Record the event
     const { error: eventInsertErr } = await supabase
       .from("gift_fund_events")
-      .insert({
+      .upsert({
         contribution_id: contributionId || null,
         stripe_event_id: event.id,
         event_type: event.type,
         processing_status: "received",
-      });
+      }, {onConflict:"stripe_event_id"}).throwOnError();
 
     if (eventInsertErr) {
-      console.error("Failed to record event:", eventInsertErr);
+      throw eventInsertErr;
     }
 
     // ── Process by event type ──
 
     switch (event.type) {
+      case "checkout.session.async_payment_succeeded":
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") break;
         const cId = session.metadata?.contribution_id;
 
         if (!cId) {
-          await supabase.from("gift_fund_events").update({ processing_status: "skipped" }).eq("stripe_event_id", event.id);
+          await supabase.from("gift_fund_events").update({ processing_status: "skipped" }).eq("stripe_event_id", event.id).throwOnError();
           break;
         }
 
@@ -159,17 +153,17 @@ Deno.serve(async (req: Request) => {
           .from("gift_fund_contributions")
           .select("*")
           .eq("id", cId)
-          .maybeSingle();
+          .maybeSingle().throwOnError();
 
         if (!contribution) {
-          await supabase.from("gift_fund_events").update({ processing_status: "failed" }).eq("stripe_event_id", event.id);
+          await supabase.from("gift_fund_events").update({ processing_status: "failed" }).eq("stripe_event_id", event.id).throwOnError();
           break;
         }
 
         // Validate transition
         if (!isValidTransition(contribution.payment_status, "paid")) {
           console.warn(`Invalid transition for ${cId}: ${contribution.payment_status} -> paid`);
-          await supabase.from("gift_fund_events").update({ processing_status: "skipped" }).eq("stripe_event_id", event.id);
+          await supabase.from("gift_fund_events").update({ processing_status: "skipped" }).eq("stripe_event_id", event.id).throwOnError();
           break;
         }
 
@@ -179,7 +173,7 @@ Deno.serve(async (req: Request) => {
 
         if (verifyFundId !== contribution.fund_id || verifyWeddingId !== contribution.wedding_id) {
           console.error(`Metadata mismatch for contribution ${cId}`);
-          await supabase.from("gift_fund_events").update({ processing_status: "failed" }).eq("stripe_event_id", event.id);
+          await supabase.from("gift_fund_events").update({ processing_status: "failed" }).eq("stripe_event_id", event.id).throwOnError();
           break;
         }
 
@@ -188,7 +182,7 @@ Deno.serve(async (req: Request) => {
         const actualAmount = session.amount_total;
         if (actualAmount !== expectedAmount) {
           console.error(`Amount mismatch for ${cId}: expected ${expectedAmount}, got ${actualAmount}`);
-          await supabase.from("gift_fund_events").update({ processing_status: "failed" }).eq("stripe_event_id", event.id);
+          await supabase.from("gift_fund_events").update({ processing_status: "failed" }).eq("stripe_event_id", event.id).throwOnError();
           break;
         }
 
@@ -204,9 +198,9 @@ Deno.serve(async (req: Request) => {
             stripe_payment_intent_id: paymentIntentId,
             paid_at: new Date().toISOString(),
           })
-          .eq("id", cId);
+          .eq("id", cId).throwOnError();
 
-        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id);
+        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id).throwOnError();
         break;
       }
 
@@ -219,17 +213,17 @@ Deno.serve(async (req: Request) => {
             .from("gift_fund_contributions")
             .select("payment_status")
             .eq("id", cId)
-            .maybeSingle();
+            .maybeSingle().throwOnError();
 
           if (contribution && contribution.payment_status === "processing") {
             await supabase
               .from("gift_fund_contributions")
               .update({ payment_status: "cancelled" })
-              .eq("id", cId);
+              .eq("id", cId).throwOnError();
           }
         }
 
-        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id);
+        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id).throwOnError();
         break;
       }
 
@@ -242,17 +236,17 @@ Deno.serve(async (req: Request) => {
             .from("gift_fund_contributions")
             .select("payment_status")
             .eq("id", cId)
-            .maybeSingle();
+            .maybeSingle().throwOnError();
 
           if (contribution && ["pending", "processing"].includes(contribution.payment_status)) {
             await supabase
               .from("gift_fund_contributions")
               .update({ payment_status: "failed" })
-              .eq("id", cId);
+              .eq("id", cId).throwOnError();
           }
         }
 
-        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id);
+        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id).throwOnError();
         break;
       }
 
@@ -265,7 +259,7 @@ Deno.serve(async (req: Request) => {
             .from("gift_fund_contributions")
             .select("*")
             .eq("id", cId)
-            .maybeSingle();
+            .maybeSingle().throwOnError();
 
           if (contribution && contribution.payment_status === "paid") {
             const refundedAmount = charge.amount_refunded;
@@ -275,11 +269,11 @@ Deno.serve(async (req: Request) => {
                 payment_status: refundedAmount >= contribution.amount_minor ? "refunded" : "paid",
                 refunded_amount_minor: refundedAmount,
               })
-              .eq("id", cId);
+              .eq("id", cId).throwOnError();
           }
         }
 
-        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id);
+        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id).throwOnError();
         break;
       }
 
@@ -287,7 +281,7 @@ Deno.serve(async (req: Request) => {
         const dispute = event.data.object as Stripe.Dispute;
         const charge = dispute.charge as string;
         // Find contribution by payment intent from charge
-        const { data: chargeObj } = await stripe.charges.retrieve(charge);
+        const chargeObj = await stripe.charges.retrieve(charge);
         const cId = chargeObj.metadata?.contribution_id;
 
         if (cId) {
@@ -295,24 +289,24 @@ Deno.serve(async (req: Request) => {
             .from("gift_fund_contributions")
             .select("payment_status")
             .eq("id", cId)
-            .maybeSingle();
+            .maybeSingle().throwOnError();
 
           if (contribution && contribution.payment_status === "paid") {
             await supabase
               .from("gift_fund_contributions")
               .update({ payment_status: "disputed" })
-              .eq("id", cId);
+              .eq("id", cId).throwOnError();
           }
         }
 
-        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id);
+        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id).throwOnError();
         break;
       }
 
       case "charge.dispute.closed": {
         const dispute = event.data.object as Stripe.Dispute;
         const charge = dispute.charge as string;
-        const { data: chargeObj } = await stripe.charges.retrieve(charge);
+        const chargeObj = await stripe.charges.retrieve(charge);
         const cId = chargeObj.metadata?.contribution_id;
 
         if (cId) {
@@ -321,16 +315,16 @@ Deno.serve(async (req: Request) => {
             .from("gift_fund_contributions")
             .update({ payment_status: newStatus })
             .eq("id", cId)
-            .eq("payment_status", "disputed");
+            .eq("payment_status", "disputed").throwOnError();
         }
 
-        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id);
+        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id).throwOnError();
         break;
       }
 
       default: {
         // Unhandled event type — mark as processed but do nothing
-        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id);
+        await supabase.from("gift_fund_events").update({ processing_status: "processed" }).eq("stripe_event_id", event.id).throwOnError();
         break;
       }
     }

@@ -1,15 +1,9 @@
-title = "Vowora Gitleaks Config"
-
+title = "Vowora secret scan"
 [extend]
 useDefault = true
-
 [allowlist]
-description = "Generated files and documented examples"
+description = "Generated dependency lockfile and placeholder environment template"
 paths = [
-  '''package-lock\\.json''',
-  '''docs/.*''',
-  '''\\.env\\.example''',
-  '''vitest\\.config\\.ts''',
-  '''src/test/.*''',
-  '''src/demo/.*''',
+  '''^package-lock\.json$''',
+  '''^\.env\.example$''',
 ]

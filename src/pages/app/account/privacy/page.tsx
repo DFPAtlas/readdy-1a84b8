@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import type * as React from "react";
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { useAuth } from '@/context/AuthProvider';
@@ -104,6 +105,9 @@ function NormalPrivacyPage() {
   const [processing, setProcessing] = useState(false);
 
   const isOwner = membership?.role === 'owner';
+  const [deletionRequestId,setDeletionRequestId]=useState<string|null>(null);
+  useEffect(()=>{let cancelled=false;if(!user)return;supabase.from('privacy_requests').select('id').eq('user_id',user.id).eq('request_type','account_deletion').in('status',['submitted','pending','confirmed']).order('created_at',{ascending:false}).limit(1).then(({data,error})=>{if(!cancelled&&!error&&data?.[0]){setDeletionRequestId(data[0].id);setDeletionStep('completed');}});return()=>{cancelled=true;};},[user?.id]);
+
 
   const handleAccountExport = async () => {
     setExporting(true);
@@ -115,7 +119,7 @@ function NormalPrivacyPage() {
         status: 'submitted',
       });
       if (error) throw error;
-      setExportMsg('Account export request submitted. You will be notified when your export is ready.');
+      setExportMsg('Account export request submitted. Contact support with your account details to check the request status.');
     } catch (err: unknown) {
       setExportMsg(err instanceof Error ? err.message : 'Failed to submit export request. Please try again.');
     } finally {
@@ -135,7 +139,7 @@ function NormalPrivacyPage() {
         status: 'submitted',
       });
       if (error) throw error;
-      setExportMsg('Wedding export request submitted. You will be notified when your export is ready.');
+      setExportMsg('Wedding export request submitted. Contact support with your account details to check the request status.');
     } catch (err: unknown) {
       setExportMsg(err instanceof Error ? err.message : 'Failed to submit export request. Please try again.');
     } finally {
@@ -156,14 +160,15 @@ function NormalPrivacyPage() {
     setProcessing(true);
     setDeletionMsg('');
     try {
-      const { error } = await supabase.from('privacy_requests').insert({
+      const { data, error } = await supabase.from('privacy_requests').insert({
         request_type: 'account_deletion',
         user_id: user?.id,
         status: 'submitted',
         cooling_off_until: new Date(Date.now() + 30 * 86400000).toISOString(),
         safe_notes: `Confirmation phrase provided. ${weddingId ? 'User has active wedding — ownership transfer or wedding deletion required first.' : 'No active wedding.'}`,
-      });
+      }).select('id').single();
       if (error) throw error;
+      setDeletionRequestId(data?.id || null);
       setDeletionStep('completed');
       setDeletionMsg('Your account deletion request has been submitted. A 30-day cooling-off period is now active. You can cancel this request at any time during this period.');
     } catch (err: unknown) {
@@ -173,9 +178,13 @@ function NormalPrivacyPage() {
     }
   };
 
-  const handleCancelDeletion = () => {
-    setDeletionStep('confirm');
-    setDeletionMsg('Deletion request cancelled.');
+  const handleCancelDeletion = async () => {
+    if(!deletionRequestId){setDeletionStep('confirm');return;}
+    setProcessing(true);
+    try{const {data,error}=await supabase.functions.invoke('process-data-deletion-request',{body:{action:'cancel_deletion',request_id:deletionRequestId}});if(error||data?.error)throw new Error(data?.error||'Cancellation failed');setDeletionRequestId(null);setDeletionStep('confirm');setDeletionMsg('Deletion request cancelled.');}
+    catch(error){setDeletionMsg(error instanceof Error?error.message:'Cancellation failed. Please retry.');}
+    finally{setProcessing(false);}
+
   };
 
   return (
@@ -221,7 +230,7 @@ function NormalPrivacyPage() {
                   <h4 className="text-sm font-label font-semibold text-red-700 mb-2">Before you proceed:</h4>
                   <ul className="text-xs text-red-600 space-y-1.5 list-disc pl-4">
                     {isOwner && <li>You are the owner of an active wedding. You must transfer ownership or delete the wedding first.</li>}
-                    <li>All your profile data will be permanently deleted after the cooling-off period.</li>
+                    <li>Support will review the request after the 30-day cooling-off period and confirm what can be deleted.</li>
                     <li>Shared wedding data where you are a collaborator will NOT be deleted.</li>
                     <li>Active subscriptions must be cancelled separately.</li>
                     <li>Payment records required for tax purposes are retained for 6 years.</li>
@@ -289,7 +298,7 @@ function NormalPrivacyPage() {
                   <li>All tasks and planning data</li>
                 </ul>
               </div>
-              <p className="text-xs text-foreground-500 mb-4">Wedding deletion follows a staged workflow with a 30-day cooling-off period. You can cancel at any time before the scheduled deletion date.</p>
+              <p className="text-xs text-foreground-500 mb-4">Wedding deletion follows a staged workflow with a 30-day cooling-off period. You can cancel at any time before support begins processing it.</p>
               <button onClick={() => navigate('/app/admin/data-protection')} className="px-4 py-2.5 rounded-lg border border-red-300 bg-white text-red-600 text-sm font-label font-medium hover:bg-red-50 transition-colors cursor-pointer whitespace-nowrap">
                 <i className="ri-shield-check-line mr-2" />Go to Data Protection dashboard
               </button>

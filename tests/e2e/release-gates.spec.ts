@@ -16,6 +16,17 @@ import { test, expect } from '@playwright/test';
 
 const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
+// Keep route/JavaScript checks independent of third-party asset networks and a live backend.
+test.beforeEach(async ({page})=>{
+ await page.route('**/*',route=>{const request=route.request(),url=new URL(request.url());
+  if(url.hostname==='example.supabase.co')return route.fulfill({status:200,contentType:'application/json',body:'null'});
+  if(url.hostname!=='localhost'&&url.hostname!=='127.0.0.1'){
+   if(request.resourceType()==='image')return route.fulfill({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/>'});
+   return route.fulfill({status:200,contentType:request.resourceType()==='stylesheet'?'text/css':'text/plain',body:''});
+  }return route.continue();
+ });
+});
+
 // ── Public Routes ──
 
 test.describe('Public Routes', () => {
@@ -53,14 +64,14 @@ test.describe('Public Routes', () => {
     }
   });
 
-  test('public wedding page loads (demo)', async ({ page }) => {
+  test('unpublished wedding page shows no private content', async ({ page }) => {
     await page.goto(`${BASE_URL}/w/emma-and-james`);
-    await expect(page.locator('h1, h2').first()).toBeVisible();
+    await expect(page.getByRole('heading',{name:'Wedding website unavailable'})).toBeVisible();
   });
 
   test('404 page shows for unknown route', async ({ page }) => {
     await page.goto(`${BASE_URL}/this-route-does-not-exist-999`);
-    await expect(page.locator('text=404|text=not found|text=Not Found')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/404|not found/i).first()).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -179,7 +190,7 @@ test.describe('Console Error Detection', () => {
       });
 
       await page.goto(`${BASE_URL}${path}`);
-      await page.waitForLoadState('networkidle');
+      await expect(page.locator('h1,h2,form').first()).toBeVisible();
 
       // Filter out known benign errors (third-party fonts, etc.)
       const realErrors = consoleErrors.filter(
@@ -197,6 +208,7 @@ test.describe('Accessibility Basics', () => {
   test('skip-to-content link exists on homepage', async ({ page }) => {
     await page.goto(BASE_URL);
     const skipLink = page.locator('a[href="#main-content"]');
+    await skipLink.focus();
     await expect(skipLink).toBeVisible();
   });
 
@@ -210,4 +222,12 @@ test.describe('Accessibility Basics', () => {
     const lang = await page.locator('html').getAttribute('lang');
     expect(lang).toBeTruthy();
   });
+});
+ test('invited collaborators keep their destination through signup',async({page})=>{await page.goto(`${BASE_URL}/join/example-token`);await page.getByRole('link',{name:'Create an account'}).click();await expect(page).toHaveURL(/signup\?redirect=%2Fjoin%2Fexample-token/);await expect(page.locator('form')).toBeVisible();});
+ test('free plan starts signup for a new customer',async({page})=>{await page.goto(`${BASE_URL}/pricing`);await page.getByRole('button',{name:'Get started',exact:true}).first().click();await expect(page).toHaveURL(/signup\?plan=free/);});
+
+test('a personal invitation renders its saved design',async({page})=>{
+ await page.route('https://example.supabase.co/functions/v1/validate-invitation',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({valid:true,session_hash:'a'.repeat(64),wedding_id:'20000000-0000-4000-8000-000000000001',data:{wedding:{id:'20000000-0000-4000-8000-000000000001',title:'Alex & Sam',partner_one_name:'Alex',partner_two_name:'Sam',wedding_date:null},invitation:{id:'30000000-0000-4000-8000-000000000001',status:'sent',invitation_type:'individual',design_document:{canvas:{width:400,height:600,background:{color:'#faf5ef',pattern:'dots'}},layers:[]}},recipients:[],events:[],portal_settings:{portal_enabled:true}}})}));
+ await page.goto(`${BASE_URL}/invite/${'b'.repeat(64)}`);
+ await expect(page.locator('[aria-label="Your invitation design"]')).toBeVisible();
 });

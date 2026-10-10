@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
@@ -39,6 +40,7 @@ const guestSubLinks = [
 const invitationSubLinks = [
   { label: 'All invitations', href: '/app/invitations', icon: 'ri-mail-send-line' },
   { label: 'Create design', href: '/app/invitations/design/new', icon: 'ri-paint-brush-line' },
+  { label: 'RSVP settings', href: '/app/rsvp-settings', icon: 'ri-settings-3-line' },
   { label: 'Templates', href: '/app/invitations/templates', icon: 'ri-layout-line' },
 ];
 
@@ -373,6 +375,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 isActive={isActive('/app/exports')}
                 onClick={() => setSidebarOpen(false)}
               />
+              <SidebarNavLink href="/app/after-wedding" icon="ri-heart-line" label="After the wedding" isActive={isActive('/app/after-wedding')} onClick={() => setSidebarOpen(false)} />
+              <SidebarNavLink href="/app/support" icon="ri-customer-service-2-line" label="Support" isActive={isActive('/app/support')} onClick={() => setSidebarOpen(false)} />
               {isDemoMode ? (
                 <>
                   <SidebarNavLink

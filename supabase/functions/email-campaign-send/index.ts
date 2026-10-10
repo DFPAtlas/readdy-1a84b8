@@ -1,5 +1,5 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { unsubscribeUrl } from "../_shared/unsubscribe.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
 
@@ -112,7 +112,7 @@ function buildPlainText(campaign: Record<string, unknown>, recipientName: string
   return text;
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
@@ -133,14 +133,14 @@ serve(async (req: Request) => {
 
     // Verify membership
     const { data: membership } = await supabaseClient.from('wedding_members')
-      .select('role').eq('wedding_id', wedding_id).eq('user_id', user.id).maybeSingle();
-    if (!membership || !['owner','partner','planner','collaborator'].includes(membership.role)) {
+      .select('role').eq('wedding_id', wedding_id).eq('user_id', user.id).eq('status','active').maybeSingle().throwOnError();
+    if (!membership || !['owner','partner','planner'].includes(membership.role)) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     // Get campaign
     const { data: campaign, error: campErr } = await supabaseClient.from('email_campaigns')
-      .select('*').eq('id', campaign_id).eq('wedding_id', wedding_id).maybeSingle();
+      .select('*').eq('id', campaign_id).eq('wedding_id', wedding_id).maybeSingle().throwOnError();
     if (campErr || !campaign) return new Response(JSON.stringify({ error: 'Campaign not found' }), { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
@@ -148,6 +148,7 @@ serve(async (req: Request) => {
 
     // ── ACTION: build_recipients ──
     if (action === 'build_recipients') {
+      if (!['draft','failed'].includes(campaign.status)) throw new Error('Create a new draft to change recipients after sending.');
       const filter = audience_filter || (campaign.audience_filter as Record<string, unknown>) || {};
       const guestIds = (filter.guest_ids as string[]) || [];
       const householdIds = (filter.household_ids as string[]) || [];
@@ -156,11 +157,11 @@ serve(async (req: Request) => {
       const excludeIds = (filter.exclude_ids as string[]) || [];
 
       // Delete existing recipients for this campaign
-      await supabaseClient.from('email_campaign_recipients').delete().eq('campaign_id', campaign_id);
+      await supabaseClient.from('email_campaign_recipients').delete().eq('campaign_id', campaign_id).throwOnError();
 
       // Get suppressed emails
       const { data: suppressions } = await supabaseClient.from('email_suppressions')
-        .select('email').eq('wedding_id', wedding_id);
+        .select('email').eq('wedding_id', wedding_id).throwOnError();
       const suppressedEmails = new Set((suppressions || []).map((s: { email: string }) => s.email.toLowerCase()));
 
       // Build guest query
@@ -180,7 +181,7 @@ serve(async (req: Request) => {
       let householdGuests: Array<{ id: string; full_name: string; email: string; rsvp_status: string; household_id: string; ceremony_invited: boolean; reception_invited: boolean; evening_invited: boolean }> = [];
       if (householdIds.length > 0) {
         const { data: hg } = await supabaseClient.from('guests').select('id,full_name,email,rsvp_status,household_id,ceremony_invited,reception_invited,evening_invited')
-          .eq('wedding_id', wedding_id).in('household_id', householdIds).not('email', 'is', null).neq('email', '');
+          .eq('wedding_id', wedding_id).in('household_id', householdIds).not('email', 'is', null).neq('email', '').throwOnError();
         if (hg) householdGuests = hg as typeof householdGuests;
       }
 
@@ -210,12 +211,12 @@ serve(async (req: Request) => {
       }
 
       if (recipients.length > 0) {
-        const { error: insErr } = await supabaseClient.from('email_campaign_recipients').insert(recipients);
+        const { error: insErr } = await supabaseClient.from('email_campaign_recipients').insert(recipients).throwOnError();
         if (insErr) throw insErr;
       }
 
       // Update campaign recipient count
-      await supabaseClient.from('email_campaigns').update({ recipient_count: recipients.length }).eq('id', campaign_id);
+      await supabaseClient.from('email_campaigns').update({ recipient_count: recipients.length }).eq('id', campaign_id).throwOnError();
 
       return new Response(JSON.stringify({ recipient_count: recipients.length }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
@@ -227,7 +228,7 @@ serve(async (req: Request) => {
       }
 
       const fromAddress = `noreply@${RESEND_FROM_DOMAIN}`;
-      const senderEmail = (campaign.sender_email as string) || fromAddress;
+      const senderEmail = fromAddress; // The configured and verified provider domain controls the From address.
 
       const html = buildEmailHtml(campaign, user.email || 'Test Recipient');
       const text = buildPlainText(campaign, user.email || 'Test Recipient');
@@ -235,6 +236,7 @@ serve(async (req: Request) => {
       const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(15000),
         body: JSON.stringify({
           from: `${campaign.sender_name || 'Vowora'} <${senderEmail}>`,
           to: [user.email],
@@ -256,7 +258,7 @@ serve(async (req: Request) => {
         actor_id: user.id,
         action: 'test_sent',
         details: { to: user.email },
-      });
+      }).throwOnError();
 
       return new Response(JSON.stringify({ success: true, message: `Test email sent to ${user.email}` }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
@@ -269,7 +271,7 @@ serve(async (req: Request) => {
 
       // Get pending recipients
       const { data: recipients, error: recErr } = await supabaseClient.from('email_campaign_recipients')
-        .select('*').eq('campaign_id', campaign_id).in('status', ['pending', 'queued']);
+        .select('*').eq('campaign_id', campaign_id).in('status', ['pending', 'queued']).throwOnError();
       if (recErr) throw recErr;
 
       if (!recipients || recipients.length === 0) {
@@ -277,10 +279,10 @@ serve(async (req: Request) => {
       }
 
       // Update status to sending
-      await supabaseClient.from('email_campaigns').update({ status: 'sending' }).eq('id', campaign_id);
+      await supabaseClient.from('email_campaigns').update({ status: 'sending' }).eq('id', campaign_id).throwOnError();
 
       const fromAddress = `noreply@${RESEND_FROM_DOMAIN}`;
-      const senderEmail = (campaign.sender_email as string) || fromAddress;
+      const senderEmail = fromAddress; // The configured and verified provider domain controls the From address.
       const stats = { accepted: 0, delivered: 0, bounced: 0, complained: 0, failed: 0 };
 
       // Send to each recipient (batch via Resend)
@@ -290,13 +292,14 @@ serve(async (req: Request) => {
           const text = buildPlainText(campaign, rec.recipient_name || 'Guest');
 
           // Replace unsubscribe placeholder with actual unsubscribe URL
-          const unsubUrl = `${req.headers.get('origin') || ''}/unsubscribe?wedding=${wedding_id}&email=${encodeURIComponent(rec.recipient_email)}`;
+          const unsubUrl = await unsubscribeUrl(wedding_id, rec.recipient_email);
           const finalHtml = html.replace(/\{\{unsubscribe_url\}\}/g, unsubUrl);
           const finalText = text.replace(/\{\{unsubscribe_url\}\}/g, unsubUrl);
 
           const resendRes = await fetch('https://api.resend.com/emails', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+            headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json', 'Idempotency-Key': `campaign/${campaign_id}/${rec.id}` },
+            signal: AbortSignal.timeout(15000),
             body: JSON.stringify({
               from: `${campaign.sender_name || 'Vowora'} <${senderEmail}>`,
               to: [rec.recipient_email],
@@ -304,7 +307,7 @@ serve(async (req: Request) => {
               html: finalHtml,
               text: finalText,
               reply_to: (campaign.reply_to_email as string) || senderEmail,
-              headers: { 'X-Wedding-Id': wedding_id, 'X-Campaign-Id': campaign_id, 'X-Recipient-Id': rec.id },
+              headers: { 'List-Unsubscribe': `<${unsubUrl}>`, 'X-Wedding-Id': wedding_id, 'X-Campaign-Id': campaign_id, 'X-Recipient-Id': rec.id },
             }),
           });
 
@@ -313,7 +316,7 @@ serve(async (req: Request) => {
             await supabaseClient.from('email_campaign_recipients').update({
               status: 'accepted',
               resend_email_id: resendData.id || null,
-            }).eq('id', rec.id);
+            }).eq('id', rec.id).throwOnError();
             stats.accepted++;
           } else {
             const errText = await resendRes.text();
@@ -321,7 +324,7 @@ serve(async (req: Request) => {
               status: 'failed',
               last_error: errText.slice(0, 500),
               retry_count: (rec.retry_count || 0) + 1,
-            }).eq('id', rec.id);
+            }).eq('id', rec.id).throwOnError();
             stats.failed++;
           }
         } catch (sendErr: unknown) {
@@ -330,7 +333,7 @@ serve(async (req: Request) => {
             status: 'failed',
             last_error: msg.slice(0, 500),
             retry_count: (rec.retry_count || 0) + 1,
-          }).eq('id', rec.id);
+          }).eq('id', rec.id).throwOnError();
           stats.failed++;
         }
       }
@@ -340,7 +343,7 @@ serve(async (req: Request) => {
         status: finalStatus,
         sent_at: new Date().toISOString(),
         delivery_stats: stats,
-      }).eq('id', campaign_id);
+      }).eq('id', campaign_id).throwOnError();
 
       await supabaseClient.from('email_activity_log').insert({
         wedding_id,
@@ -348,7 +351,7 @@ serve(async (req: Request) => {
         actor_id: user.id,
         action: 'campaign_sent',
         details: { recipient_count: recipients.length, stats },
-      });
+      }).throwOnError();
 
       return new Response(JSON.stringify({ success: true, status: finalStatus, stats }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
