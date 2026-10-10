@@ -19,6 +19,8 @@ Set these server-only secrets in Supabase, never with a VITE_ prefix:
 
 Supabase provides SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY to deployed functions. Authenticated functions verify their caller; guest functions validate wedding-scoped guest secrets; webhooks verify provider signatures. Therefore endpoint-level verify_jwt is false in the function configuration.
 
+Rotate or confirm API and website restrictions for the historical Google Maps browser key identified by the full-history scan (see BUILD-VALIDATION.md). It is absent from current source but remains in Git history.
+
 Keep ENABLE_DEMO_SEEDING unset in production. Stock invitation asset seeding and demo seeding require a platform-admin account. Uploaded galleries and supplier documents use the private storage bucket; stock invitation assets use the public invitation-assets bucket. Review and remove any pre-existing permissive storage policies before launch, since adding restrictive policies cannot override a separate permissive policy.
 
 ## 2. Email and billing configuration

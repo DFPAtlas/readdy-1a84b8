@@ -1,0 +1,9 @@
+# Reviewed historical findings only; new occurrences remain blocked.
+# See docs/BUILD-VALIDATION.md for classification and Google key remediation.
+208b1ba7850347c424135d6f288453c8f90d1188:.env:generic-api-key:3
+4ca4d0296580af31cb0b0ac8c3c8ffa53362c1e8:.env:gcp-api-key:2
+4ca4d0296580af31cb0b0ac8c3c8ffa53362c1e8:.env:generic-api-key:3
+4ca4d0296580af31cb0b0ac8c3c8ffa53362c1e8:src/lib/__tests__/authErrors.test.ts:generic-api-key:103
+584161ea86587c1f5e993cc73b7b7b73703169aa:.env:generic-api-key:3
+584161ea86587c1f5e993cc73b7b7b73703169aa:src/lib/__tests__/environmentValidation.test.ts:generic-api-key:103
+584161ea86587c1f5e993cc73b7b7b73703169aa:src/lib/__tests__/environmentValidation.test.ts:generic-api-key:96

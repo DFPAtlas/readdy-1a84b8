@@ -19,3 +19,9 @@ This is a code-release report. Supabase production migrations, provider configur
 Run the staging acceptance checks in RELEASE-HANDOFF.md with real Supabase Auth, Resend and Stripe sandbox configuration. In particular, prove email confirmation, invitation delivery and opt-out, paid entitlements after signed webhooks, connected-account gifts, storage uploads, RSVP persistence and the single Readdy import/publication. Local tests cannot substitute for these provider-dependent checks.
 
 The CI workflow now gates frontend checks, database/Edge checks, browser smoke tests and security scans. The release workflow creates a reviewable handoff package; it does not print a simulated deployment or verification success.
+
+## GitHub CI and historical secret findings
+
+The first integrated GitHub run passed frontend, browser and backend jobs. Its full-history secret scan reported seven pre-existing findings: three intentionally public Supabase publishable keys, three synthetic test literals, and one historical Google Maps browser API key. The exact commit/path/rule/line fingerprints are recorded in `.gitleaksignore`; no blanket credential or test-file exclusion was added. New occurrences still fail the scan, and a synthetic canary verifies scanner detection before each history scan.
+
+The historical Google Maps key is absent from the current tree but remains in Git history. Rotate it or confirm appropriate API and website restrictions in Google Cloud before launch. Removing a file cannot revoke a key. No credential rotation was performed by this build.
