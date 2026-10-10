@@ -1,5 +1,6 @@
+import { selectedPlan } from '@/lib/signupIntent';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useAuth } from '@/context/AuthProvider';
@@ -126,8 +127,11 @@ function formatDateUK(dateStr: string): string {
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+
   const demoData = useDemoDataSafe();
-  const { profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
+  const chosenPlan = selectedPlan(params.get("plan")) || selectedPlan(user?.user_metadata?.selected_plan);
   const { weddings, weddingState, refreshWeddings } = useActiveWedding();
 
   // ── Existing wedding check ──
@@ -214,14 +218,12 @@ export default function OnboardingPage() {
     switch (currentStep) {
       case 0: return true;
       case 1: return (
-        partnerOneFirst.trim() !== '' && partnerOneLast.trim() !== '' &&
-        partnerTwoFirst.trim() !== '' && partnerTwoLast.trim() !== ''
+        partnerOneFirst.trim() !== '' && partnerTwoFirst.trim() !== ''
       );
       case 2: return (
-        weddingDate !== '' && location.trim() !== '' &&
-        ceremonyVenue.trim() !== '' && receptionVenue.trim() !== ''
+        true
       );
-      case 3: return guestEstimate > 0 && priorities.length > 0;
+      case 3: return guestEstimate > 0;
       case 4: return true;
       default: return false;
     }
@@ -290,7 +292,7 @@ export default function OnboardingPage() {
       setLoading(false);
       setSubmitted(false);
       setToast('Wedding workspace created!');
-      setTimeout(() => { setToast(''); navigate('/app/dashboard'); }, 1200);
+      setTimeout(() => { setToast(''); navigate(chosenPlan && chosenPlan !== 'free' ? `/app/billing?selected_plan=${chosenPlan}` : '/app/getting-started'); }, 1200);
       return;
     }
 
@@ -347,7 +349,7 @@ export default function OnboardingPage() {
         ? 'Workspace found — taking you to your dashboard.'
         : 'Wedding workspace created!');
       setLoading(false);
-      setTimeout(() => { setToast(''); navigate('/app/dashboard'); }, 1200);
+      setTimeout(() => { setToast(''); navigate(chosenPlan && chosenPlan !== 'free' ? `/app/billing?selected_plan=${chosenPlan}` : '/app/getting-started'); }, 1200);
     } catch {
       setError("We couldn't reach the server. Please check your connection and try again.");
       setLoading(false);
@@ -594,9 +596,10 @@ export default function OnboardingPage() {
           {/* ── Step 2: Wedding details ── */}
           {currentStep === 2 && (
             <div className="space-y-4">
+              <p className="text-sm text-foreground-600">Still deciding? Leave the date and venues blank and complete them later. Your wedding stays private until you publish it.</p>
               <div>
                 <label className="block text-xs font-label font-medium text-foreground-700 mb-1.5">
-                  Wedding date <span className="text-foreground-400">*</span>
+                  Wedding date (optional)
                 </label>
                 <input
                   type="date"
@@ -630,7 +633,7 @@ export default function OnboardingPage() {
 
               <div>
                 <label className="block text-xs font-label font-medium text-foreground-700 mb-1.5">
-                  Main location <span className="text-foreground-400">*</span>
+                  Main location (optional)
                 </label>
                 <input
                   type="text"
@@ -644,7 +647,7 @@ export default function OnboardingPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-label font-medium text-foreground-700 mb-1.5">
-                    Ceremony venue <span className="text-foreground-400">*</span>
+                    Ceremony venue (optional)
                   </label>
                   <input
                     type="text"
@@ -670,7 +673,7 @@ export default function OnboardingPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-label font-medium text-foreground-700 mb-1.5">
-                    Reception venue <span className="text-foreground-400">*</span>
+                    Reception venue (optional)
                   </label>
                   <input
                     type="text"

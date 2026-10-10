@@ -781,7 +781,6 @@ export default function CanvasWorkspace({
 
     ws.addEventListener('wheel', handleWheel, { passive: false });
     return () => ws.removeEventListener('wheel', handleWheel);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Ctrl/Cmd + = / - keyboard shortcuts ──

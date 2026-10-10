@@ -1,46 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { edgeGuestCorsHeaders, sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
-// ── CORS allowlist (environment-driven) ──
-// Replaces the previous wildcard. Configure additional origins with the
-// GUEST_ALLOWED_ORIGINS env var (comma-separated); local development origins
-// are included by default (or alongside an explicit list with ALLOW_LOCAL_ORIGINS=true).
-const VOWORA_PRODUCTION_ORIGINS = ["https://vowora.uk", "https://www.vowora.uk"];
-const GUEST_LOCAL_ORIGINS = [
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-  "http://localhost:4173",
-  "http://127.0.0.1:4173",
-];
 
-function normalizeOrigin(origin: string): string {
-  return origin.trim().replace(/\/+$/, "");
-}
-
-function allowedGuestOrigins(): string[] {
-  const configured = (Deno.env.get("GUEST_ALLOWED_ORIGINS") ?? "")
-    .split(",")
-    .map(normalizeOrigin)
-    .filter(Boolean);
-  const base = configured.length > 0 ? configured : [...VOWORA_PRODUCTION_ORIGINS];
-  const includeLocal = configured.length === 0 || Deno.env.get("ALLOW_LOCAL_ORIGINS") === "true";
-  return Array.from(new Set(includeLocal ? [...base, ...GUEST_LOCAL_ORIGINS] : base));
-}
-
-function buildCorsHeaders(req: Request): Record<string, string> {
-  const requestOrigin = normalizeOrigin(req.headers.get("origin") ?? "");
-  const allowed = allowedGuestOrigins();
-  const allowOrigin = requestOrigin && allowed.includes(requestOrigin)
-    ? requestOrigin
-    : (allowed[0] ?? VOWORA_PRODUCTION_ORIGINS[0]);
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Cache-Control": "private, no-store, no-cache, max-age=0",
-    "Vary": "Origin",
-  };
-}
 
 function sha256(text: string): string {
   const data = new TextEncoder().encode(text);
@@ -80,9 +42,10 @@ function formatCompanionName(guest: { full_name: string; preferred_name: string 
 }
 
 Deno.serve(async (req: Request) => {
-  const corsHeaders = buildCorsHeaders(req);
+  const corsHeaders = edgeGuestCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
+  if (req.method !== "POST") return new Response(null, { status: 405, headers: corsHeaders });
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
   const fingerprint = buildFingerprint(req);
@@ -90,16 +53,16 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json();
     const { session_hash } = body || {};
-    if (!session_hash || typeof session_hash !== "string" || session_hash.length < 32) {
+    if (!validGuestSessionSecret(session_hash)) {
       return new Response(JSON.stringify({ valid: false, error: "session_invalid" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    const { data: session, error: sessionErr } = await supabase.from("guest_access_sessions").select("*, access_token:invitation_access_tokens(id, status)").eq("session_hash", sha256(session_hash)).eq("status", "active").maybeSingle();
+    const { data: session, error: sessionErr } = await supabase.from("guest_access_sessions").select("*, access_token:invitation_access_tokens(id, wedding_id, invitation_id, status, expires_at)").eq("session_hash", await sha256Hex(session_hash)).eq("status", "active").maybeSingle();
     if (sessionErr || !session) return new Response(JSON.stringify({ valid: false, error: "session_invalid" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     if (session.expires_at && new Date(session.expires_at) < new Date()) {
       await supabase.from("guest_access_sessions").update({ status: "expired", ended_at: new Date().toISOString() }).eq("id", session.id);
       return new Response(JSON.stringify({ valid: false, error: "session_expired" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-    if (session.access_token && (session.access_token as { status: string }).status === "revoked") {
+    if (!session.access_token || session.access_token.status !== "active" || session.access_token.wedding_id !== session.wedding_id || session.access_token.invitation_id !== session.invitation_id || (session.access_token.expires_at && new Date(session.access_token.expires_at) <= new Date())) {
       await supabase.from("guest_access_sessions").update({ status: "ended", ended_at: new Date().toISOString() }).eq("id", session.id);
       return new Response(JSON.stringify({ valid: false, error: "session_invalid" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -107,10 +70,10 @@ Deno.serve(async (req: Request) => {
     const { data: wedding } = await supabase.from("weddings").select("id, partner_one_name, partner_two_name, title, wedding_date, dress_code, welcome_message, contact_information, parking_notes, accessibility_notes, children_policy, plus_one_policy, hashtag, timezone").eq("id", session.wedding_id).maybeSingle();
     if (!wedding) return new Response(JSON.stringify({ valid: false, error: "session_invalid" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { data: invitation } = await supabase.from("invitations").select("id, formal_recipient_name, informal_greeting, invitation_type, rsvp_deadline, status, template:invitation_templates(id, name, style_preset, header_text, body_text, closing_text, footer_text)").eq("id", session.invitation_id).maybeSingle();
+    const { data: invitation } = await supabase.from("invitations").select("id, formal_recipient_name, informal_greeting, invitation_type, rsvp_deadline, status, template:invitation_templates(id, name, style_preset, header_text, body_text, closing_text, footer_text)").eq("id", session.invitation_id).eq("wedding_id", session.wedding_id).maybeSingle();
     if (!invitation) return new Response(JSON.stringify({ valid: false, error: "session_invalid" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { data: recipients } = await supabase.from("invitation_recipients").select("guest_id, guest:guests(id, full_name, preferred_name, household_id, plus_one_allowed, plus_one_name, plus_one_status, named_plus_one_guest_id, approved_additional_children, age_band, child_notes), recipient_role, ceremony_included, reception_included, evening_included, welcome_event_included, day_after_event_included, plus_one_allowed").eq("invitation_id", session.invitation_id);
+    const { data: recipients } = await supabase.from("invitation_recipients").select("guest_id, guest:guests(id, full_name, preferred_name, household_id, plus_one_allowed, plus_one_name, plus_one_status, named_plus_one_guest_id, approved_additional_children, age_band, child_notes), recipient_role, ceremony_included, reception_included, evening_included, welcome_event_included, day_after_event_included, plus_one_allowed").eq("invitation_id", session.invitation_id).eq("wedding_id", session.wedding_id);
 
     const { data: portalSettings } = await supabase.from("guest_portal_settings").select("*").eq("wedding_id", session.wedding_id).maybeSingle();
     if (portalSettings?.portal_closes_at && new Date() >= new Date(portalSettings.portal_closes_at)) return new Response(JSON.stringify({ valid: false, error: "portal_closed" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -148,10 +111,10 @@ Deno.serve(async (req: Request) => {
     const { data: rsvpData } = await supabase.from("rsvp_responses").select("*").eq("invitation_id", session.invitation_id);
     let customAnswers: Record<string, unknown>[] = [];
     if (rsvpData && rsvpData.length > 0) { const responseIds = rsvpData.map((r) => r.id); const { data: answers } = await supabase.from("rsvp_custom_answers").select("*").in("response_id", responseIds); customAnswers = answers || []; }
-    const { data: eventResponses } = guestIds.length > 0 ? await supabase.from("rsvp_event_responses").select("*").eq("invitation_id", session.invitation_id).in("guest_id", guestIds) : { data: [] };
+    const { data: eventResponses } = guestIds.length > 0 ? await supabase.from("rsvp_event_responses").select("*").eq("invitation_id", session.invitation_id).eq("wedding_id", session.wedding_id).in("guest_id", guestIds) : { data: [] };
     const eventResponsesByGuest = new Map<string, Array<Record<string, unknown>>>();
     (eventResponses || []).forEach((er) => { const arr = eventResponsesByGuest.get(er.guest_id as string) || []; arr.push(er); eventResponsesByGuest.set(er.guest_id as string, arr); });
-    const { data: rsvpSubmission } = await supabase.from("rsvp_submissions").select("*").eq("invitation_id", session.invitation_id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    const { data: rsvpSubmission } = await supabase.from("rsvp_submissions").select("*").eq("invitation_id", session.invitation_id).eq("wedding_id", session.wedding_id).order("created_at", { ascending: false }).limit(1).maybeSingle();
     const rsvpMap: Record<string, unknown> = {};
     (rsvpData || []).forEach((r) => {
       const guestEventResponses = (eventResponsesByGuest.get(r.guest_id as string) || []).map((er) => ({ id: er.id, event_id: er.event_id, attendance_status: er.attendance_status, meal_option_id: er.meal_option_id, created_at: er.created_at, updated_at: er.updated_at }));

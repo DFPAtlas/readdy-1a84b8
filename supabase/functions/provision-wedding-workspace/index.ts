@@ -1,6 +1,6 @@
+import { weddingLocalToUtc } from '../_shared/weddingTime.ts';
 
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -68,15 +68,15 @@ function validatePayload(p: unknown): { valid: false; error: string } | { valid:
   if (!data || typeof data !== "object") return { valid: false, error: "Invalid request body" };
   
   const pf = data.partner_one_first as string;
-  const pl = data.partner_one_last as string;
+  const pl = typeof data.partner_one_last === "string" ? data.partner_one_last as string : "";
   const tf = data.partner_two_first as string;
-  const tl = data.partner_two_last as string;
+  const tl = typeof data.partner_two_last === "string" ? data.partner_two_last as string : "";
   const dn = data.display_name as string;
-  const wd = data.wedding_date as string;
-  const loc = data.location as string;
-  const cv = data.ceremony_venue as string;
+  const wd = typeof data.wedding_date === "string" ? data.wedding_date as string : "";
+  const loc = typeof data.location === "string" ? data.location as string : "";
+  const cv = typeof data.ceremony_venue === "string" ? data.ceremony_venue as string : "";
   const ct = data.ceremony_time as string;
-  const rv = data.reception_venue as string;
+  const rv = typeof data.reception_venue === "string" ? data.reception_venue as string : "";
   const rt = data.reception_time as string;
   const ge = data.guest_estimate as number;
   const pr = data.priorities as string[];
@@ -84,13 +84,8 @@ function validatePayload(p: unknown): { valid: false; error: string } | { valid:
   const pub = data.publish_website === true;
 
   if (!pf || typeof pf !== "string" || pf.trim().length === 0) return { valid: false, error: "Partner one first name is required" };
-  if (!pl || typeof pl !== "string" || pl.trim().length === 0) return { valid: false, error: "Partner one last name is required" };
   if (!tf || typeof tf !== "string" || tf.trim().length === 0) return { valid: false, error: "Partner two first name is required" };
-  if (!tl || typeof tl !== "string" || tl.trim().length === 0) return { valid: false, error: "Partner two last name is required" };
-  if (!wd || typeof wd !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(wd)) return { valid: false, error: "A valid wedding date is required" };
-  if (!loc || typeof loc !== "string" || loc.trim().length === 0) return { valid: false, error: "Location is required" };
-  if (!cv || typeof cv !== "string" || cv.trim().length === 0) return { valid: false, error: "Ceremony venue is required" };
-  if (!rv || typeof rv !== "string" || rv.trim().length === 0) return { valid: false, error: "Reception venue is required" };
+  if (wd && !/^\d{4}-\d{2}-\d{2}$/.test(wd)) return { valid: false, error: "A valid wedding date is required" };
   if (typeof ge !== "number" || ge < 1 || ge > 9999) return { valid: false, error: "Guest estimate must be between 1 and 9,999" };
   if (!Array.isArray(pr)) return { valid: false, error: "Priorities must be an array" };
 
@@ -189,415 +184,14 @@ Deno.serve(async (req: Request) => {
     }
 
     const p = validation.payload;
-    const now = new Date().toISOString();
-
-    // ── 3. Idempotency check — request ID dedup ──
-    const provisionReqId = p.provisioning_request_id;
-    
-    if (provisionReqId) {
-      const { data: existingReq } = await supabase
-        .from("provisioning_requests")
-        .select("id, wedding_id, status")
-        .eq("request_id", provisionReqId)
-        .maybeSingle();
-
-      if (existingReq && existingReq.status === "completed" && existingReq.wedding_id) {
-        // Already provisioned — return the existing wedding
-        const { data: existingWedding } = await supabase
-          .from("weddings")
-          .select("id, title, slug, partner_one_name, partner_two_name, wedding_date, status")
-          .eq("id", existingReq.wedding_id)
-          .maybeSingle();
-
-        return new Response(
-          JSON.stringify({
-            success: true,
-            already_provisioned: true,
-            wedding_id: existingReq.wedding_id,
-            summary: {
-              wedding_id: existingReq.wedding_id,
-              title: existingWedding?.title || "",
-              slug: existingWedding?.slug || "",
-              partner_one_name: existingWedding?.partner_one_name || "",
-              partner_two_name: existingWedding?.partner_two_name || "",
-              wedding_date: existingWedding?.wedding_date || null,
-              status: existingWedding?.status || "",
-            },
-          }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-
-      if (existingReq && existingReq.status === "pending") {
-        // Request in progress — return conflict
-        return new Response(
-          JSON.stringify({ success: false, error: "A provisioning request is already in progress. Please wait." }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-    }
-
-    // ── 4. Check existing owner membership ──
-    const { data: existingMembership } = await supabase
-      .from("wedding_members")
-      .select("wedding_id, weddings!inner(id, title, slug, partner_one_name, partner_two_name, wedding_date, status)")
-      .eq("user_id", userId)
-      .eq("role", "owner")
-      .eq("status", "active")
-      .maybeSingle();
-
-    if (existingMembership) {
-      const w = existingMembership.weddings as unknown as Record<string, unknown>;
-      return new Response(
-        JSON.stringify({
-          success: true,
-          already_provisioned: true,
-          wedding_id: existingMembership.wedding_id,
-          summary: {
-            wedding_id: existingMembership.wedding_id,
-            title: w?.title || "",
-            slug: w?.slug || "",
-            partner_one_name: w?.partner_one_name || "",
-            partner_two_name: w?.partner_two_name || "",
-            wedding_date: w?.wedding_date || null,
-          },
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    // ── 5. Insert pending provisioning request ──
-    if (provisionReqId) {
-      await supabase.from("provisioning_requests").insert({
-        request_id: provisionReqId,
-        user_id: userId,
-        status: "pending",
-        payload_summary: {
-          display_name: p.display_name,
-          wedding_date: p.wedding_date,
-          location: p.location,
-          guest_estimate: p.guest_estimate,
-        },
-        created_at: now,
-      });
-    }
-
-    // ── 6. Upsert profile ──
-    const { error: profileErr } = await supabase
-      .from("profiles")
-      .upsert({
-        id: userId,
-        email: user.email,
-        first_name: p.partner_one_first,
-        last_name: p.partner_one_last,
-        display_name: p.display_name,
-        updated_at: now,
-      }, { onConflict: "id" });
-
-    if (profileErr) {
-      console.error("profile upsert error:", profileErr);
-      if (provisionReqId) {
-        await supabase.from("provisioning_requests").update({ status: "failed", error_message: "Profile upsert failed", completed_at: now }).eq("request_id", provisionReqId);
-      }
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to save profile details. Please try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    // ── 7. Generate unique slug ──
-    const baseSlug = generateSlug(p.display_name);
-    const { data: existingSlugs } = await supabase
-      .from("weddings")
-      .select("slug");
-
-    const usedSlugs = (existingSlugs || []).map((w: { slug: string }) => w.slug).filter(Boolean);
-    const slug = generateUniqueSlug(baseSlug, usedSlugs);
-
-    // ── 8. Create wedding ──
-    const { data: wedding, error: weddingErr } = await supabase
-      .from("weddings")
-      .insert({
-        partner_one_name: p.partner_one_first,
-        partner_two_name: p.partner_two_first,
-        title: p.display_name,
-        wedding_date: p.wedding_date,
-        date_confirmed: false,
-        location: p.location,
-        estimated_guest_count: p.guest_estimate,
-        status: "planning",
-        slug,
-        timezone: p.timezone,
-        created_by: userId,
-        created_at: now,
-        updated_at: now,
-      })
-      .select("id, title, slug, partner_one_name, partner_two_name, wedding_date, status, timezone")
-      .single();
-
-    if (weddingErr || !wedding) {
-      console.error("wedding create error:", weddingErr);
-      if (provisionReqId) {
-        await supabase.from("provisioning_requests").update({ status: "failed", error_message: "Wedding creation failed", completed_at: now }).eq("request_id", provisionReqId);
-      }
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to create wedding. Please try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    const weddingId = wedding.id;
-
-    // ── 9. Create owner membership ──
-    const { error: memberErr } = await supabase
-      .from("wedding_members")
-      .insert({
-        wedding_id: weddingId,
-        user_id: userId,
-        role: "owner",
-        status: "active",
-        accepted_at: now,
-        created_at: now,
-        updated_at: now,
-      });
-
-    if (memberErr) {
-      console.error("membership create error:", memberErr);
-      await supabase.from("weddings").delete().eq("id", weddingId);
-      if (provisionReqId) {
-        await supabase.from("provisioning_requests").update({ status: "failed", error_message: "Membership creation failed", completed_at: now }).eq("request_id", provisionReqId);
-      }
-      return new Response(
-        JSON.stringify({ success: false, error: "Failed to set up wedding access. Please try again." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    // ── 10. Create ceremony venue ──
-    let ceremonyVenueId: string | null = null;
-    const { data: ceremonyVenue, error: ceremonyVErr } = await supabase
-      .from("wedding_venues")
-      .insert({
-        wedding_id: weddingId,
-        venue_type: "ceremony",
-        name: p.ceremony_venue,
-        city: p.location,
-        country: "United Kingdom",
-        created_at: now,
-      })
-      .select("id")
-      .single();
-
-    if (ceremonyVErr) {
-      console.error("ceremony venue error:", ceremonyVErr);
-    } else {
-      ceremonyVenueId = ceremonyVenue.id;
-    }
-
-    // ── 11. Create reception venue ──
-    let receptionVenueId: string | null = null;
-    const sameVenue = p.ceremony_venue.toLowerCase() === p.reception_venue.toLowerCase();
-    
-    if (sameVenue && ceremonyVenueId) {
-      await supabase
-        .from("wedding_venues")
-        .update({ venue_type: "ceremony_reception" })
-        .eq("id", ceremonyVenueId);
-      receptionVenueId = ceremonyVenueId;
-    } else {
-      const { data: receptionVenue, error: receptionVErr } = await supabase
-        .from("wedding_venues")
-        .insert({
-          wedding_id: weddingId,
-          venue_type: "reception",
-          name: p.reception_venue,
-          city: p.location,
-          country: "United Kingdom",
-          created_at: now,
-        })
-        .select("id")
-        .single();
-
-      if (receptionVErr) {
-        console.error("reception venue error:", receptionVErr);
-      } else {
-        receptionVenueId = receptionVenue.id;
-      }
-    }
-
-    // ── 12. Create wedding events (visibility: public for guest portal compatibility) ──
-    const ceremonyStartAt = p.wedding_date && p.ceremony_time
-      ? `${p.wedding_date}T${p.ceremony_time}:00.000Z`
-      : null;
-
-    await supabase.from("wedding_events").insert({
-      wedding_id: weddingId,
-      event_type: "ceremony",
-      name: "Wedding Ceremony",
-      start_at: ceremonyStartAt || undefined,
-      venue_id: ceremonyVenueId || undefined,
-      visibility: "public",
-      status: "draft",
-      created_at: now,
-      updated_at: now,
-    });
-
-    const receptionStartAt = p.wedding_date && p.reception_time
-      ? `${p.wedding_date}T${p.reception_time}:00.000Z`
-      : null;
-
-    await supabase.from("wedding_events").insert({
-      wedding_id: weddingId,
-      event_type: "reception",
-      name: "Wedding Reception",
-      start_at: receptionStartAt || undefined,
-      venue_id: receptionVenueId || undefined,
-      visibility: "public",
-      status: "draft",
-      created_at: now,
-      updated_at: now,
-    });
-
-    await supabase.from("wedding_events").insert({
-      wedding_id: weddingId,
-      event_type: "evening",
-      name: "Evening Celebration",
-      visibility: "public",
-      status: "draft",
-      created_at: now,
-      updated_at: now,
-    });
-
-    // ── 13. Create default budget categories ──
-    const budgetCategories = [
-      { name: "Venue", key: "venue", pct: 35, sort: 1 },
-      { name: "Catering", key: "catering", pct: 20, sort: 2 },
-      { name: "Photography", key: "photography", pct: 8, sort: 3 },
-      { name: "Entertainment", key: "entertainment", pct: 8, sort: 4 },
-      { name: "Flowers & Décor", key: "flowers_decor", pct: 7, sort: 5 },
-      { name: "Attire", key: "attire", pct: 5, sort: 6 },
-      { name: "Transport", key: "transport", pct: 4, sort: 7 },
-      { name: "Stationery", key: "stationery", pct: 3, sort: 8 },
-      { name: "Accommodation", key: "accommodation", pct: 5, sort: 9 },
-      { name: "Contingency", key: "contingency", pct: 5, sort: 10 },
-    ];
-
-    for (const cat of budgetCategories) {
-      await supabase.from("budget_categories").insert({
-        wedding_id: weddingId,
-        name: cat.name,
-        category_key: cat.key,
-        suggested_percentage: cat.pct,
-        planned_amount: 0,
-        quoted_amount: 0,
-        committed_amount: 0,
-        paid_amount: 0,
-        is_locked: false,
-        is_default: true,
-        sort_order: cat.sort,
-        status: "active",
-        created_at: now,
-        updated_at: now,
-      });
-    }
-
-    // ── 14. Create guest portal settings ──
-    const portalEnabled = p.publish_website;
-    await supabase.from("guest_portal_settings").insert({
-      wedding_id: weddingId,
-      portal_enabled: portalEnabled,
-      guest_account_optional: true,
-      show_countdown: portalEnabled,
-      show_travel: portalEnabled,
-      show_updates: portalEnabled,
-      show_contact_details: portalEnabled,
-      show_gallery: portalEnabled,
-      show_registry: portalEnabled,
-      show_questions: portalEnabled,
-      show_contacts: portalEnabled,
-      show_settings: portalEnabled,
-      venue_visibility_default: portalEnabled ? "public" : "private",
-      itinerary_enabled: portalEnabled,
-      seating_enabled: portalEnabled,
-      settings_enabled: portalEnabled,
-      show_location: portalEnabled,
-      rsvp_enabled: portalEnabled,
-      household_rsvp_enabled: false,
-      require_meal_choices: false,
-      allow_guest_questions: false,
-      allow_song_requests: false,
-      allow_messages: false,
-      show_transport: false,
-      show_accommodation: false,
-      registry_enabled: false,
-      sms_configured: false,
-      allow_late_rsvp: false,
-      allow_rsvp_updates: true,
-      created_at: now,
-      updated_at: now,
-    });
-
-    // ── 15. Store planning priorities as wedding_elements ──
-    for (const priority of p.priorities) {
-      if (typeof priority === "string" && priority.trim().length > 0) {
-        await supabase.from("wedding_elements").insert({
-          wedding_id: weddingId,
-          section: "planning_priorities",
-          field_name: priority.trim(),
-          field_value: "selected",
-          created_at: now,
-          updated_at: now,
-        });
-      }
-    }
-
-    // ── 16. Log audit entry ──
-    await supabase.from("guest_activity_log").insert({
-      wedding_id: weddingId,
-      activity_type: "workspace_provisioned",
-      description: "Wedding workspace created via onboarding",
-      metadata: { partner_one: p.partner_one_first, partner_two: p.partner_two_first, guest_estimate: p.guest_estimate, priorities: p.priorities.length },
-      created_at: now,
-    });
-
-    // ── 17. Mark profile onboarding complete ──
-    await supabase
-      .from("profiles")
-      .update({
-        onboarding_completed: true,
-        updated_at: now,
-      })
-      .eq("id", userId);
-
-    // ── 18. Mark provisioning request complete ──
-    if (provisionReqId) {
-      await supabase.from("provisioning_requests").update({ status: "completed", wedding_id: weddingId, completed_at: now }).eq("request_id", provisionReqId);
-    }
-
-    // ── 19. Return success ──
-    return new Response(
-      JSON.stringify({
-        success: true,
-        already_provisioned: false,
-        wedding_id: weddingId,
-        summary: {
-          wedding_id: weddingId,
-          title: wedding.title,
-          slug: wedding.slug,
-          partner_one_name: wedding.partner_one_name,
-          partner_two_name: wedding.partner_two_name,
-          wedding_date: wedding.wedding_date,
-          status: wedding.status,
-          timezone: wedding.timezone,
-          venues_created: sameVenue ? 1 : 2,
-          events_created: 3,
-          budget_categories_created: budgetCategories.length,
-          priorities_stored: p.priorities.length,
-          portal_enabled: portalEnabled,
-        },
-      }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    let ceremony: string | null = null, reception: string | null = null;
+    try {
+      Intl.DateTimeFormat('en-GB',{timeZone:p.timezone});
+      if (p.wedding_date) { ceremony=weddingLocalToUtc(p.wedding_date,p.ceremony_time,p.timezone); reception=weddingLocalToUtc(p.wedding_date,p.reception_time,p.timezone); }
+    } catch { return new Response(JSON.stringify({success:false,error:'Please check the wedding date, times and timezone.'}),{status:400,headers:{...corsHeaders,'Content-Type':'application/json'}}); }
+    const {data,error} = await supabase.rpc('provision_customer_workspace',{p_user:user.id,p_payload:p,p_ceremony:ceremony,p_reception:reception});
+    if (error) throw error;
+    return new Response(JSON.stringify(data),{headers:{...corsHeaders,'Content-Type':'application/json'}});
 
   } catch (err) {
     console.error("provision-wedding-workspace unexpected error:", err);

@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,7 +72,7 @@ Deno.serve(async (req: Request) => {
     const file = formData.get("file") as File | null;
     const consentMetadata = formData.get("consent_metadata") === "true";
 
-    if (!sessionHash || !albumId || !file) {
+    if (!validGuestSessionSecret(sessionHash) || !albumId || !file) {
       return new Response(JSON.stringify({ success: false, error: "Missing required fields" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -81,7 +82,7 @@ Deno.serve(async (req: Request) => {
     const { data: session } = await supabase
       .from("guest_access_sessions")
       .select("id, wedding_id, invitation_id")
-      .eq("session_hash", await sha256String(sessionHash))
+      .eq("session_hash", await sha256Hex(sessionHash))
       .eq("status", "active")
       .maybeSingle();
 

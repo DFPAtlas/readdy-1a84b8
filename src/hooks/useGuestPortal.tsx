@@ -228,8 +228,8 @@ export function useGuestPortal(): GuestPortalState {
 
 // ── Session storage helpers ──
 
-export function storeGuestSession(sessionHash: string): void {
-  try { sessionStorage.setItem(SESSION_KEY, sessionHash); } catch { /* ignore */ }
+export function storeGuestSession(sessionSecret: string): void {
+  try { sessionStorage.setItem(SESSION_KEY, sessionSecret); } catch { /* ignore */ }
 }
 
 export function getStoredSession(): string | null {

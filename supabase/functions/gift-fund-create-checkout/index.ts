@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 import Stripe from "npm:stripe@17";
 
 const corsHeaders = {
@@ -118,11 +119,11 @@ Deno.serve(async (req: Request) => {
     let guestId: string | null = null;
     let weddingId: string | null = null;
 
-    if (session_hash) {
+    if (session_hash && validGuestSessionSecret(session_hash)) {
       const { data: session } = await supabase
         .from("guest_access_sessions")
         .select("wedding_id, invitation_id")
-        .eq("session_hash", sha256(session_hash))
+        .eq("session_hash", await sha256Hex(session_hash))
         .eq("status", "active")
         .maybeSingle();
 

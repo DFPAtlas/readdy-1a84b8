@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -78,7 +79,7 @@ Deno.serve(async (req: Request) => {
     const { data: session, error: sessionErr } = await supabase
       .from("guest_access_sessions")
       .select("id, wedding_id, invitation_id")
-      .eq("session_hash", sha256(session_hash))
+      .eq("session_hash", await sha256Hex(session_hash))
       .eq("status", "active")
       .maybeSingle();
 
