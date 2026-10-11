@@ -5,6 +5,7 @@ import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { loadDemoState } from '@/demo/demoStorage';
 import { useAuth } from '@/context/AuthProvider';
 import { mapAuthError } from '@/lib/authErrors';
+import { supabase } from '@/lib/supabase';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
 
@@ -30,10 +31,15 @@ export default function LoginPage() {
 
   const { signIn, authError, clearAuthError } = useAuth();
 
-  const redirectAfterLogin = (): string => {
+  const redirectAfterLogin = async (): Promise<string> => {
     const redirect = searchParams.get('redirect');
     if (redirect && redirect.startsWith('/') && !redirect.startsWith('//') && redirect !== '/login') {
       return redirect;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data, error } = await supabase.from('platform_admins').select('user_id').eq('user_id', user.id).eq('active', true).maybeSingle();
+      if (!error && data) return '/app/admin/operations';
     }
     return '/app/dashboard';
   };
@@ -68,7 +74,7 @@ export default function LoginPage() {
     setLoading(false);
 
     if (ok) {
-      navigate(redirectAfterLogin(), { replace: true });
+      navigate(await redirectAfterLogin(), { replace: true });
     }
   };
 
