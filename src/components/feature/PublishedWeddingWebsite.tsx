@@ -5,6 +5,7 @@ import type { WebsiteConfig, WeddingPartyProfile } from "@/types/website";
 import { usePublicSeoMetadata } from "@/hooks/usePublicSeoMetadata";
 type Row = Record<string, string | null>;
 type Published = {
+  features?: { whiteLabel?: boolean };
   wedding: Row;
   config: WebsiteConfig;
   events: Row[];
@@ -264,9 +265,9 @@ function Website({ data }: { data: Published }) {
           );
         })}
       </main>
-      <footer className="p-8 text-center text-sm">
+      {!data.features?.whiteLabel && <footer className="p-8 text-center text-sm">
         <Link to="/">Made with Vowora</Link>
-      </footer>
+      </footer>}
     </div>
   );
 }
