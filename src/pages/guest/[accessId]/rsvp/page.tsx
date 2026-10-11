@@ -348,6 +348,7 @@ function NormalRSVPPage() {
   const eventFlags = getRecipientEventFlags(currentRecipient as unknown as unknown as Record<string, unknown>);
 
   const visibleSteps = STEPS.filter((s) => {
+    if (s.key === 'events') return isAttending;
     if (s.key === 'meals') return isAttending && mealOptions.length > 0;
     if (s.key === 'requirements') return isAttending;
     if (s.key === 'travel') return isAttending && (showTransport || showAccommodation);

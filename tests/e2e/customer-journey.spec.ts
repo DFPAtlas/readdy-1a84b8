@@ -77,3 +77,19 @@ test('personal invitation Respond opens RSVP without crashing',async({page})=>{
  await page.getByRole('button',{name:'Leave page',exact:true}).click();
  await expect(page).toHaveURL(new RegExp('/guest/'+guestSecret+'$'));
 });
+
+test('declining skips attendance-only steps and goes directly to review',async({page})=>{
+ await mockAccount(page);
+ await page.route('**/functions/v1/guest-portal-loader',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(guestData)}));
+ await page.goto('/guest/'+guestSecret+'/rsvp');
+ await page.getByRole('button',{name:'Get started',exact:false}).first().click();
+ await page.getByRole('button',{name:'Joyfully accept',exact:false}).click();
+ await expect(page.getByRole('button',{name:/Events/})).toBeVisible();
+ await page.getByRole('button',{name:'Regretfully decline',exact:false}).click();
+ await expect(page.getByRole('button',{name:/Events|Dietary|Travel|Extras/})).toHaveCount(0);
+ await expect(page.getByText('You can review and submit your response next.')).toBeVisible();
+ await page.getByRole('button',{name:'Next',exact:false}).click();
+ await expect(page.getByRole('heading',{name:'Review your response',exact:true})).toBeVisible();
+ await expect(page.getByText('Regretfully declined',{exact:false})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Submit RSVP',exact:false})).toBeEnabled();
+});

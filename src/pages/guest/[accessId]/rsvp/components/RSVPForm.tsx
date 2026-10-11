@@ -308,7 +308,7 @@ export function AttendanceStep({ gf, currentRecipient, canEdit, updateGuestField
         <div className="mt-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
           <p className="text-xs text-amber-700">
             <i className="ri-information-line mr-1" />
-            You can leave an optional message for the couple on the Extras step.
+            You can review and submit your response next.
           </p>
         </div>
       )}
