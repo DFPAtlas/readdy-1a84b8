@@ -1,3 +1,4 @@
+import { resolvePublicSiteOrigin } from "../_shared/publicSiteOrigin.ts";
 import { sha256Hex } from "../_shared/guestAccess.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 
@@ -93,7 +94,7 @@ function buildInvitationHtml(
   token: string,
   recipients: InvitationRecipientRow[],
 ): string {
-  const inviteUrl = `${Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk"}/invite/${token}`;
+  const inviteUrl = `${resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL"))}/invite/${token}`;
   const preset = invitation.template?.style_preset || "minimal";
   const isDark = preset === "editorial";
 
@@ -240,7 +241,7 @@ function buildPlainText(
   wedding: WeddingRow,
   token: string,
 ): string {
-  const inviteUrl = `${Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk"}/invite/${token}`;
+  const inviteUrl = `${resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL"))}/invite/${token}`;
   const lines: string[] = [];
   lines.push(`${wedding.partner_one_name} & ${wedding.partner_two_name}`);
   if (wedding.wedding_date) lines.push(formatDate(wedding.wedding_date));
@@ -472,7 +473,7 @@ async function handleSendIndividual(
 
     await logActivity(supabase, inv.wedding_id, invitationId, "token_generated", "Token generated (Resend not configured)", fingerprint);
 
-    const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk";
+    const siteUrl = resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL"));
     const inviteUrl = `${siteUrl}/invite/${rawToken}`;
     return jsonResponse({
       success: false,
@@ -684,7 +685,7 @@ async function handleGenerateToken(
     created_at: new Date().toISOString(),
   });
 
-  const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk";
+  const siteUrl = resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL"));
   const inviteUrl = `${siteUrl}/invite/${rawToken}`;
 
   return jsonResponse({

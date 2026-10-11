@@ -83,6 +83,19 @@ test('guest email edits survive rerenders and save the entered address',async({p
  expect(savedEmail).toBe('uat@example.com');
  await expect(page.getByText('uat@example.com',{exact:true})).toBeVisible();
 });
+test('checkout failure remains visible and can be retried',async({page})=>{
+ await mockAccount(page,true,true);
+ await page.route('**/functions/v1/create-subscription-checkout',route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:'Checkout unavailable'})}));
+ await signIn(page);
+ await expect(page).toHaveURL(/\/app\/dashboard$/);
+ await page.goto('/app/billing');
+ await page.getByRole('button',{name:'Upgrade plan',exact:true}).click();
+ await page.getByRole('button',{name:'Upgrade',exact:true}).nth(1).click();
+ await page.getByRole('button',{name:'Continue to checkout',exact:true}).click();
+ await expect(page.getByText('Edge Function returned a non-2xx status code',{exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Continue to checkout',exact:true})).toBeEnabled();
+ await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeVisible();
+});
 test('signup hides verification recovery until an account is created',async({page})=>{
  await page.goto('/signup');
  await expect(page.getByRole('button',{name:'Resend verification email'})).toHaveCount(0);
