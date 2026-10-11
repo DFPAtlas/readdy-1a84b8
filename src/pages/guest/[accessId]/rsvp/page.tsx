@@ -449,7 +449,7 @@ function NormalRSVPPage() {
 
       {/* Main card */}
       <div className="bg-white rounded-2xl border border-secondary-100 p-6 md:p-8">
-        {currentStepKey === 'welcome' && <WelcomeStep {...stepProps} />}
+        {currentStepKey === 'welcome' && <WelcomeStep {...stepProps} onStart={() => goToStep(1)} />}
         {currentStepKey === 'household' && <HouseholdStep {...stepProps} forms={forms} />}
         {currentStepKey === 'attendance' && <AttendanceStep {...stepProps} canEdit={canEdit} />}
         {currentStepKey === 'events' && isAttending && <EventsStep {...stepProps} />}

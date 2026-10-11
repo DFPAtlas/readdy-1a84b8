@@ -146,10 +146,10 @@ export default function InviteLandingPage() {
     })();
   }, [token]);
 
-  const handleViewDetails = () => {
+  const handleViewDetails = (respond = false) => {
     const sessionSecret = sessionStorage.getItem('vowora_guest_session');
     if (sessionSecret) {
-      navigate(`/guest/${sessionSecret}`);
+      navigate(`/guest/${sessionSecret}${respond ? "/rsvp" : ""}`);
     } else if (inviteData) {
       setError('Could not establish a secure session. Please try your invitation link again.');
     }
@@ -288,14 +288,14 @@ export default function InviteLandingPage() {
             {/* Actions */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
-                onClick={handleViewDetails}
+                onClick={() => handleViewDetails()}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-primary-500 text-white text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"
               >
                 <i className="ri-eye-line" /> View invitation details
               </button>
               <button
-                disabled
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-secondary-200 text-foreground-400 text-sm font-label cursor-not-allowed whitespace-nowrap opacity-50"
+                onClick={() => handleViewDetails(true)}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border border-secondary-200 text-primary-600 text-sm font-label cursor-pointer hover:bg-primary-50 whitespace-nowrap"
               >
                 <i className="ri-check-double-line" /> Respond to invitation
               </button>
