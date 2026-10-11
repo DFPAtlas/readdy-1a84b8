@@ -2,6 +2,7 @@ const CustomerSupportPage = lazy(() => import('@/pages/app/support/page'));
 const AfterWeddingPage = lazy(() => import('@/pages/app/after-wedding/page'));
 import type * as React from "react";
 import { lazy, Suspense } from "react";
+import { Navigate } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
 import AuthLayout from "@/components/feature/AuthLayout";
 import GuestPortalLayout from "@/components/feature/GuestPortalLayout";
@@ -216,6 +217,8 @@ const routes: RouteObject[] = [
   { path: "/pricing", element: <LazyRoute comp={PricingPage} /> },
   { path: "/about", element: <LazyRoute comp={AboutPage} /> },
   { path: "/contact", element: <LazyRoute comp={ContactPage} /> },
+  { path: "/admin", element: <Navigate to="/app/admin/operations" replace /> },
+  { path: "/admin/dashboard", element: <Navigate to="/app/admin/operations" replace /> },
   { path: "/login", element: <LazyRoute comp={LoginPage} /> },
   { path: "/signup", element: <LazyRoute comp={SignupPage} /> },
   { path: "/forgot-password", element: <LazyRoute comp={ForgotPasswordPage} /> },
@@ -383,6 +386,8 @@ const routes: RouteObject[] = [
       { path: "help/:articleSlug", element: <LazyRoute comp={HelpArticlePage} /> },
 
       // Admin
+      { path: "admin", element: <Navigate to="/app/admin/operations" replace /> },
+      { path: "admin/dashboard", element: <Navigate to="/app/admin/operations" replace /> },
       { path: "admin/system-readiness", element: <LazyRoute comp={SystemReadinessPage} /> },
       { path: "admin/operations", element: <LazyRoute comp={OperationsDashboardPage} /> },
       { path: "admin/incidents", element: <LazyRoute comp={IncidentsPage} /> },

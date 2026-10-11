@@ -56,7 +56,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  if (location.pathname.startsWith('/app/admin/')) return <PlatformAdminGuard>{children}</PlatformAdminGuard>;
+  if ((location.pathname === '/app/admin' || location.pathname.startsWith('/app/admin/'))) return <PlatformAdminGuard>{children}</PlatformAdminGuard>;
 
   if (['/app/support','/app/account/privacy'].includes(location.pathname)) return <>{children}</>;
 
