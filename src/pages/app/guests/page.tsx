@@ -672,6 +672,7 @@ function NormalGuestsListPage() {
   const navigate = useNavigate();
   const { weddingId } = useActiveWedding();
   const svc = useGuestService();
+  const { listGuests, listHouseholds, listTags, getStats } = svc;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(true);
@@ -721,10 +722,10 @@ function NormalGuestsListPage() {
     try {
       // Fetch guests, households, tags, and stats in parallel
       const [guestResult, hhs, tgs, gs] = await Promise.all([
-        svc.listGuests(filters),
-        svc.listHouseholds('active'),
-        svc.listTags(),
-        svc.getStats(),
+        listGuests(filters),
+        listHouseholds('active'),
+        listTags(),
+        getStats(),
       ]);
 
       setGuests(guestResult.guests);
@@ -765,7 +766,7 @@ function NormalGuestsListPage() {
     } finally {
       setLoading(false);
     }
-  }, [weddingId, filters, svc]);
+  }, [weddingId, filters, listGuests, listHouseholds, listTags, getStats]);
 
   // Re-fetch when filters or wedding changes
   useEffect(() => {

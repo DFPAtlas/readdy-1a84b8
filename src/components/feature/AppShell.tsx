@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthProvider';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -136,7 +137,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const demoData = useDemoDataSafe();
-  const { profile, signOut, isAuthenticated } = useAuth();
+  const { profile, user, signOut, isAuthenticated } = useAuth();
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
+  const accountUserId = user?.id;
+  useEffect(() => {
+    let cancelled = false;
+    setIsPlatformAdmin(false);
+    if (isDemoMode || !accountUserId) return;
+    supabase.from("platform_admins").select("user_id").eq("user_id", accountUserId).eq("active", true).maybeSingle().then(({data, error}) => {
+      if (!cancelled) setIsPlatformAdmin(!error && !!data);
+    });
+    return () => { cancelled = true; };
+  }, [accountUserId]);
   const { activeWedding } = useActiveWedding();
   const { unreadCount, notifications, markRead, markAllRead } = useNotifications();
   const menuRef = useRef<HTMLDivElement>(null);
@@ -464,6 +476,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   onClick={() => setSidebarOpen(false)}
                 />
                 <div className="border-t border-secondary-100 my-1" />
+                {isPlatformAdmin && <>
                 {/* Product Insights group */}
                 <div className="pt-1">
                   <div className="px-3 py-1 text-xs text-foreground-400 font-label tracking-wider uppercase">Product Insights</div>
@@ -531,6 +544,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   isActive={isActive('/app/admin/operations') || location.pathname.startsWith('/app/admin/')}
                   onClick={() => setSidebarOpen(false)}
                 />
+                </>}
               </div>
             )}
           </div>

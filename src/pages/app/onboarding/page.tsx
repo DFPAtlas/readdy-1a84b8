@@ -172,7 +172,7 @@ export default function OnboardingPage() {
   );
   const [receptionTime, setReceptionTime] = useState(savedDraft?.receptionTime ?? '15:00');
   const [timezone, setTimezone] = useState(savedDraft?.timezone ?? 'Europe/London');
-  const [publishWebsite, setPublishWebsite] = useState(savedDraft?.publishWebsite ?? false);
+  const publishWebsite = false;
 
   const [guestEstimate, setGuestEstimate] = useState(
     isDemoMode ? (demoData?.state.guestEstimate ?? 24) : (savedDraft?.guestEstimate ?? 80)
@@ -246,9 +246,10 @@ export default function OnboardingPage() {
       navigate('/app/dashboard');
       return;
     }
-    // Production: save current draft and continue to dashboard
+    // A dashboard requires a provisioned workspace. Save the draft without leaving setup.
     persistDraft();
-    navigate('/app/dashboard');
+    setToast('Setup progress saved. You can return later to finish creating your workspace.');
+    setTimeout(() => setToast(''), 5000);
   };
 
   // ── Reset Demo ──
@@ -745,32 +746,9 @@ export default function OnboardingPage() {
                 </div>
               </div>
 
-              {/* Publication toggle */}
               <div className="p-4 rounded-lg bg-background-50 border border-secondary-200">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1">
-                    <label className="block text-xs font-label font-medium text-foreground-700 mb-1">
-                      Publish wedding website
-                    </label>
-                    <p className="text-[11px] text-foreground-500">
-                      Make your wedding page and guest portal available immediately after setup. You can always change this later.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setPublishWebsite(!publishWebsite)}
-                    className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 cursor-pointer ${
-                      publishWebsite ? 'bg-primary-500' : 'bg-secondary-300'
-                    }`}
-                    role="switch"
-                    aria-checked={publishWebsite}
-                  >
-                    <span
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${
-                        publishWebsite ? 'translate-x-5' : 'translate-x-0'
-                      }`}
-                    />
-                  </button>
-                </div>
+                <p className="text-sm font-label font-medium">Your wedding starts private</p>
+                <p className="text-xs text-foreground-500 mt-1">After setup, review your website and RSVP settings before publishing and sharing invitations.</p>
               </div>
             </div>
           )}
@@ -828,7 +806,7 @@ export default function OnboardingPage() {
                 <div className="flex items-center justify-between py-2 border-b border-secondary-100">
                   <span className="text-sm text-foreground-500">Website</span>
                   <span className={`text-sm font-label font-semibold ${publishWebsite ? 'text-accent-600' : 'text-foreground-500'}`}>
-                    {publishWebsite ? 'Published on setup' : 'Private for now'}
+                    Private for now
                   </span>
                 </div>
                 <div className="py-2">
@@ -871,7 +849,7 @@ export default function OnboardingPage() {
                   disabled={loading}
                   className="text-xs text-foreground-400 hover:text-foreground-600 cursor-pointer transition-colors whitespace-nowrap px-2"
                 >
-                  {currentStep === 0 ? 'Skip for now' : 'Save & finish later'}
+                  {isDemoMode && currentStep === 0 ? 'Skip for now' : 'Save & finish later'}
                 </button>
               )}
 

@@ -192,9 +192,10 @@ interface StepProps {
   hasSubmitted: boolean;
   eventFlags: ReturnType<typeof getRecipientEventFlags>;
   householdMembers: GuestRecipientInfo[];
+  onStart?: () => void;
 }
 
-export function WelcomeStep({ hasSubmitted, canSubmit, deadline, householdMembers, recipients }: StepProps) {
+export function WelcomeStep({ hasSubmitted, canSubmit, deadline, householdMembers, recipients, onStart }: StepProps) {
   return (
     <div className="space-y-4">
       <div className="text-center py-8">
@@ -217,6 +218,7 @@ export function WelcomeStep({ hasSubmitted, canSubmit, deadline, householdMember
       <div className="flex justify-center">
         <button
           type="button"
+          onClick={onStart}
           disabled={!canSubmit && !hasSubmitted}
           className="px-6 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
         >

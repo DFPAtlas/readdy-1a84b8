@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { supabase } from '@/lib/supabase';
@@ -188,7 +188,9 @@ function NormalExportPage() {
   const { weddingId } = useActiveWedding();
   const svc = useGuestService();
   const [searchParams] = useSearchParams();
-  const selectedIds = searchParams.get('ids')?.split(',').filter(Boolean) || [];
+  const idsParam = searchParams.get('ids') || '';
+  const selectedIds = useMemo(() => idsParam.split(',').filter(Boolean), [idsParam]);
+  const { getExportCount } = svc;
   const [preset, setPreset] = useState<ExportPreset>(selectedIds.length > 0 ? 'selected' : 'all');
   const [selectedColumns, setSelectedColumns] = useState<Set<string>>(new Set(PRESETS.all));
   const [includeArchived, setIncludeArchived] = useState(false);
@@ -197,8 +199,8 @@ function NormalExportPage() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    svc.getExportCount(includeArchived, selectedIds.length > 0 ? selectedIds : undefined).then(setCount);
-  }, [includeArchived, selectedIds, svc]);
+    getExportCount(includeArchived, selectedIds.length > 0 ? selectedIds : undefined).then(setCount);
+  }, [includeArchived, selectedIds, getExportCount]);
 
   const toggleColumn = (key: string) => {
     setSelectedColumns((prev) => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; });

@@ -285,9 +285,6 @@ export default function SignupPage() {
                 <div className="mt-5 pt-5 border-t border-secondary-100 text-center">
                   <p className="text-sm text-foreground-600">
                     Already have an account?{' '}
-                    <button type="button" onClick={resend} className="btn-primary mb-4">Resend verification email</button>
-                <button type="button" onClick={() => setVerificationSent(false)} className="block underline mx-auto mb-4">Correct my email address</button>
-                {resendStatus && <p role="status" className="mb-4 text-sm">{resendStatus}</p>}
                 <Link to={`/login?redirect=${encodeURIComponent(next)}`} className="text-primary-600 hover:text-primary-700 font-medium cursor-pointer">
                       Log in
                     </Link>
