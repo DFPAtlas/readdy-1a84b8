@@ -1,3 +1,4 @@
+import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { unsubscribeUrl } from "../_shared/unsubscribe.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
@@ -137,6 +138,9 @@ Deno.serve(async (req: Request) => {
     if (!membership || !['owner','partner','planner'].includes(membership.role)) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
+
+    const privilegedDb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    await requireEntitlement(privilegedDb, wedding_id, 'communications');
 
     // Get campaign
     const { data: campaign, error: campErr } = await supabaseClient.from('email_campaigns')
@@ -357,7 +361,9 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-  } catch (err: unknown) {
+  } catch (err) {
+    const denied = entitlementErrorResponse(err, corsHeaders);
+    if (denied) return denied;
     const msg = err instanceof Error ? err.message : 'Internal error';
     return new Response(JSON.stringify({ error: msg }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }

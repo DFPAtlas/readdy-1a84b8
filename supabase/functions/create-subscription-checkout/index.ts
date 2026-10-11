@@ -72,8 +72,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { data: existingSubscription } = await supabase.from('wedora_subscriptions').select('status').eq('wedding_id', weddingId).maybeSingle();
-    if (existingSubscription && ['active','trialing','past_due','unpaid'].includes(existingSubscription.status)) return new Response(JSON.stringify({ error: 'Manage your existing subscription in the billing portal to change plans.' }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const { data: existingSubscription } = await supabase.from('wedora_subscriptions').select('status,stripe_subscription_id,trial_start').eq('wedding_id', weddingId).maybeSingle();
+    if (existingSubscription && ['active','trialing','past_due','unpaid','paused'].includes(existingSubscription.status)) return new Response(JSON.stringify({ error: 'Manage your existing subscription in the billing portal to change plans.' }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
     // Resolve plan from DB (server-side, never trust client price IDs)
     const { data: plan, error: planErr } = await supabase
@@ -132,6 +132,12 @@ Deno.serve(async (req: Request) => {
     const successUrl = `${origin}${pathPrefix}/app/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${origin}${pathPrefix}/app/billing?checkout=cancelled`;
 
+    // Trials are introductory: changing/restarting a subscription must not reset a paid trial.
+    const { data: previousTrials, error: trialHistoryError } = await supabase.from('wedora_subscriptions').select('id').eq('user_id', user.id).not('stripe_subscription_id', 'is', null).limit(1);
+    const { data: legacyTrials, error: legacyTrialError } = await supabase.from('subscription_records').select('id').eq('user_id', user.id).not('stripe_subscription_id', 'is', null).limit(1);
+    if (trialHistoryError || legacyTrialError) throw new Error('Unable to check introductory trial eligibility.');
+    const trialEligible = !previousTrials?.length && !legacyTrials?.length && !existingSubscription?.trial_start;
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       integration_identifier: "vowora_checkout_" + Array.from(crypto.getRandomValues(new Uint8Array(8)), byte => String.fromCharCode(97 + byte % 26)).join(""),
@@ -144,7 +150,7 @@ Deno.serve(async (req: Request) => {
           wedding_id: weddingId,
           plan_key: planKey,
         },
-        trial_period_days: plan.trial_days || undefined,
+        trial_period_days: trialEligible ? plan.trial_days || undefined : undefined,
       },
       success_url: successUrl,
       cancel_url: cancelUrl,

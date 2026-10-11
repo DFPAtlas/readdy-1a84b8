@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 const id = '10000000-0000-4000-8000-000000000001';
 const token = () => [btoa(JSON.stringify({alg:'HS256',typ:'JWT'})), btoa(JSON.stringify({sub:id,role:'authenticated',aud:'authenticated',exp:Math.floor(Date.now()/1000)+3600})), 'test-signature'].join('.');
-async function mockAccount(page: Page, completed = false, workspace = false) {
+async function mockAccount(page: Page, completed = false, workspace = false, accessPlan: 'free' | 'essential' | 'complete' | 'luxury' = 'complete') {
   const user = {id,aud:'authenticated',role:'authenticated',email:'fixture@example.com',email_confirmed_at:new Date().toISOString(),user_metadata:{selected_plan:'complete'},app_metadata:{provider:'email'},created_at:new Date().toISOString()};
   await page.route('**/*', async route => {
     const url = new URL(route.request().url());
@@ -12,6 +12,11 @@ async function mockAccount(page: Page, completed = false, workspace = false) {
       if (url.pathname.includes('/auth/v1/token') || url.pathname.includes('/auth/v1/verify')) body = {access_token:token(),refresh_token:'fixture-refresh',token_type:'bearer',expires_in:3600,user};
       if (url.pathname.includes('/rest/v1/profiles')) body = [{id,email:user.email,onboarding_completed:completed}];
       if (url.pathname.includes('/rest/v1/wedding_members') && workspace) body = [{id:'member',wedding_id:'20000000-0000-4000-8000-000000000001',user_id:id,role:'owner',status:'active',weddings:{id:'20000000-0000-4000-8000-000000000001',title:'Alex & Sam',partner_one_name:'Alex',partner_two_name:'Sam',slug:'alex-sam',status:'active',timezone:'Europe/London'}}];
+      if (url.pathname.includes('/rest/v1/rpc/get_wedding_entitlements')) body = {
+        planKey: accessPlan, accessUntil: accessPlan === 'free' ? null : new Date(Date.now()+86400000).toISOString(),
+        features: { invitations: accessPlan !== 'free', communications: accessPlan !== 'free', travel: accessPlan !== 'free', gallery: accessPlan !== 'free', planning: ['complete','luxury'].includes(accessPlan), suppliers: ['complete','luxury'].includes(accessPlan), budget: ['complete','luxury'].includes(accessPlan), seating: ['complete','luxury'].includes(accessPlan), weddingDay: accessPlan === 'luxury' },
+        usage: {maxGuests:4,maxCollaborators:0,maxAlbums:0,maxInvitations:0,maxEmailCampaigns:0,maxCustomSections:0,galleryStorageMb:0}
+      };
       if (url.pathname.includes('/rest/v1/platform_admins')) body = null;
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body),headers:{'content-range':'0-0/0'}});
     }
@@ -84,7 +89,7 @@ test('guest email edits survive rerenders and save the entered address',async({p
  await expect(page.getByText('uat@example.com',{exact:true})).toBeVisible();
 });
 test('checkout failure remains visible and can be retried',async({page})=>{
- await mockAccount(page,true,true);
+ await mockAccount(page,true,true,'free');
  await page.route('**/functions/v1/create-subscription-checkout',route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:'Checkout unavailable'})}));
  await signIn(page);
  await expect(page).toHaveURL(/\/app\/dashboard$/);
@@ -193,4 +198,33 @@ test('saving one household member preserves warnings for other unsaved answers',
  await expect(page.getByRole('button',{name:'Respond for another household member'})).toBeVisible();
  await page.getByRole('button',{name:'Respond for another household member'}).click();
  await expect(page.getByRole('heading',{name:'Your household'})).toBeVisible();
+});
+
+
+test('Free customer is blocked from paid routes while core pages remain usable', async ({page}) => {
+ await mockAccount(page,true,true,'free'); await signIn(page);
+ for (const path of ['/app/budget','/app/tasks','/app/invitations/new','/app/travel','/app/gallery','/app/gallery-control','/app/updates','/app/seating','/app/styleboard']) {
+  await page.goto(path);
+  await expect(page.getByRole('heading',{name:'Upgrade to unlock this feature'})).toBeVisible();
+  await expect(page.getByRole('link',{name:'View plans',exact:true})).toBeVisible();
+ }
+ await page.goto('/app/guests');
+ await expect(page.getByRole('heading',{name:'Upgrade to unlock this feature'})).toHaveCount(0);
+ await page.goto('/app/billing');
+ await expect(page.getByText('Vowora Free',{exact:true}).first()).toBeVisible();
+});
+test('Essential blocks Complete tools and subscription lookup errors fail closed',async({page})=>{
+ await mockAccount(page,true,true,'essential'); await signIn(page);
+ await page.goto('/app/budget');
+ await expect(page.getByRole('heading',{name:'Upgrade to unlock this feature'})).toBeVisible();
+ await page.route('**/rest/v1/rpc/get_wedding_entitlements',route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({message:'Temporary outage'})}));
+ await page.goto('/app/invitations');
+ await expect(page.getByRole('heading',{name:'Unable to check access'})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Retry',exact:true})).toBeVisible();
+});
+test('An expired paid snapshot cannot open a paid page even before a webhook',async({page})=>{
+ await mockAccount(page,true,true); await signIn(page);
+ await page.route('**/rest/v1/rpc/get_wedding_entitlements',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({planKey:'complete',accessUntil:new Date(Date.now()-1000).toISOString(),features:{budget:true},usage:{}})}));
+ await page.goto('/app/budget');
+ await expect(page.getByRole('heading',{name:'Upgrade to unlock this feature'})).toBeVisible();
 });

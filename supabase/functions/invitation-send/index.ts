@@ -1,3 +1,4 @@
+import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { resolvePublicSiteOrigin } from "../_shared/publicSiteOrigin.ts";
 import { sha256Hex } from "../_shared/guestAccess.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
@@ -314,6 +315,15 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const ids = Array.isArray(invitation_ids) ? invitation_ids : invitation_id ? [invitation_id] : [];
+    for (const id of ids) {
+      const { data: invitation } = await supabase.from('invitations').select('wedding_id').eq('id', id).maybeSingle();
+      if (!invitation) return new Response(JSON.stringify({ error: 'Invitation not found' }), { status: 404, headers: corsHeaders });
+      const { data: member } = await supabase.from('wedding_members').select('role').eq('wedding_id', invitation.wedding_id).eq('user_id', user.id).eq('status', 'active').maybeSingle();
+      if (!member || !['owner','partner','planner'].includes(member.role)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+      await requireEntitlement(supabase, invitation.wedding_id, 'invitations');
+    }
+
     // ── Send individual ──
     if (action === "send_individual" && invitation_id) {
       return await handleSendIndividual(supabase, invitation_id, user.id, fingerprint, resendApiKey, resendFromDomain);
@@ -339,6 +349,8 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
+    const denied = entitlementErrorResponse(err, corsHeaders);
+    if (denied) return denied;
     console.error("invitation-send error:", err);
     return new Response(JSON.stringify({ error: "internal_error", message: "An unexpected error occurred" }), {
       status: 500,

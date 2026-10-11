@@ -259,9 +259,9 @@ function GuestPortalContent() {
             </Link>
           )}
         </div>
-        <p className="text-[10px] text-foreground-300 text-center">
+        {!data.features?.whiteLabel && <p className="text-[10px] text-foreground-300 text-center">
           Powered by <span className="font-label font-medium text-foreground-400">Vowora</span>
-        </p>
+        </p>}
         {isDemoSession && (
           <Link
             to="/app/dashboard"

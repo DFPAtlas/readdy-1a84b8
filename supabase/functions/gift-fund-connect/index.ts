@@ -1,3 +1,4 @@
+import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import Stripe from "npm:stripe@22.6.0";
 
@@ -60,6 +61,9 @@ Deno.serve(async (req: Request) => {
         });
       }
     }
+
+    if (!wedding_id) return new Response(JSON.stringify({ error: 'Select a wedding.' }), { status: 400, headers: corsHeaders });
+    await requireEntitlement(supabase, wedding_id, 'budget');
 
     // ── GET STATUS ──
     if (action === "status") {
@@ -270,6 +274,8 @@ Deno.serve(async (req: Request) => {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
+    const denied = entitlementErrorResponse(err, corsHeaders);
+    if (denied) return denied;
     console.error("gift-fund-connect error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

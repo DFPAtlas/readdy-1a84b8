@@ -1,5 +1,6 @@
 import type * as React from "react";
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useWeddingEntitlements } from '@/hooks/useWeddingEntitlements';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useWeddingWebsiteBuilder } from '@/hooks/useWeddingWebsiteBuilder';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
@@ -116,6 +117,7 @@ export default function WeddingWebsiteBuilderPage() {
     saveDraft, publish, unpublish, discardChanges, retry,
   } = useWeddingWebsiteBuilder();
   const { activeWedding } = useActiveWedding();
+  const { data: access } = useWeddingEntitlements();
 
   const [activeTab, setActiveTab] = useState<BuilderTab>('pages');
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
@@ -417,13 +419,11 @@ export default function WeddingWebsiteBuilderPage() {
             />
           )}
 
-          {activeTab === 'design' && (
-            <DesignTab
+          {activeTab === 'design' && (access?.features.websiteCustomization ? <DesignTab
               theme={config.theme_config}
               onApplyPreset={applyPreset}
               onUpdateField={updateThemeField}
-            />
-          )}
+            /> : <div className="p-6"><h2 className="font-heading text-xl mb-3">Custom designs require Essential or above</h2><p className="mb-4">Your Free wedding page uses the classic design.</p><button onClick={() => navigate("/app/billing")} className="underline">View plans</button></div>) }
 
           {activeTab === 'navigation' && (
             <NavigationTab

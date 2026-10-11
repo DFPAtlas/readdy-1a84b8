@@ -1,3 +1,4 @@
+import { checkEntitlements } from './check-entitlements.mjs';
 import checkSchema from "./check-schema-contract.cjs";
 import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir, writeFile } from "node:fs/promises";
@@ -6,7 +7,7 @@ async function main() {
   const db = new PGlite();
   await db.exec(`create schema auth; create role anon; create role authenticated; create role service_role bypassrls;
 alter default privileges in schema public grant execute on functions to anon, authenticated;
-create schema storage; create table storage.buckets(id text primary key,name text,public boolean default false); create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets(id),name text); alter table storage.objects enable row level security;
+create schema storage; create table storage.buckets(id text primary key,name text,public boolean default false); create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets(id),name text,metadata jsonb); alter table storage.objects enable row level security;
 create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb default '{}');
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 create function auth.role() returns text language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claim.role',true),''),current_user::text) $$;`);
@@ -148,6 +149,8 @@ create function auth.role() returns text language sql stable as $$ select coales
   await db.exec(
     `reset role; select set_config('request.jwt.claim.role','',false)`,
   );
+  // Existing delivery/aftercare tests exercise a valid paid wedding.
+  await db.query("insert into public.wedora_subscriptions(wedding_id,user_id,plan_key,status,stripe_subscription_id,current_period_end) values($1,$2,'luxury','active','sub_fixture',now()+interval '1 month')", [wedding, owner]);
   await db.query(
     "insert into public.wedding_member_invitations(wedding_id,email,invited_email,role,status,token_hash,expires_at) values($1,'stranger@test.invalid','stranger@test.invalid','collaborator','pending',$2,now()+interval '1 day')",
     [wedding, "a".repeat(64)],
@@ -406,6 +409,7 @@ create function auth.role() returns text language sql stable as $$ select coales
     false,
     "New weddings start private",
   );
+  await checkEntitlements(db, owner, wedding, otherWedding);
   await db.close();
   console.log("Database migration and access boundary checks passed.");
 }

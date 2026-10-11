@@ -1,3 +1,4 @@
+import { getWeddingFeatures } from '../_shared/requireEntitlement.ts';
 import { oneRelation } from "../_shared/relations.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
@@ -71,6 +72,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: recipients } = await supabase.from("invitation_recipients").select("guest_id, guest:guests(id, full_name, preferred_name, household_id, plus_one_allowed, plus_one_name, plus_one_status, named_plus_one_guest_id, approved_additional_children, age_band, child_notes), recipient_role, ceremony_included, reception_included, evening_included, welcome_event_included, day_after_event_included, plus_one_allowed").eq("invitation_id", session.invitation_id).eq("wedding_id", session.wedding_id);
 
+    const features = await getWeddingFeatures(supabase, session.wedding_id);
     const { data: portalSettings } = await supabase.from("guest_portal_settings").select("*").eq("wedding_id", session.wedding_id).maybeSingle();
     if (portalSettings?.portal_closes_at && new Date() >= new Date(portalSettings.portal_closes_at)) return new Response(JSON.stringify({ valid: false, error: "portal_closed" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     if (portalSettings && portalSettings.portal_enabled === false) return new Response(JSON.stringify({ valid: false, error: "portal_disabled" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -97,10 +99,10 @@ Deno.serve(async (req: Request) => {
     const now = new Date();
     const { data: publishedUpdates } = await supabase.from("wedding_updates").select("id, title, content, update_date, created_at, category, is_important, priority, summary, related_itinerary_event_id, related_travel_item_id").eq("wedding_id", session.wedding_id).eq("status", "published").lte("publish_at", now.toISOString()).or("publish_at.is.null").order("created_at", { ascending: false });
     const updatesByEvent = new Map<string, Array<Record<string, unknown>>>();
-    (publishedUpdates || []).forEach((u) => { if (u.related_itinerary_event_id) { const arr = updatesByEvent.get(u.related_itinerary_event_id as string) || []; arr.push(u); updatesByEvent.set(u.related_itinerary_event_id as string, arr); } });
+    (features.communications ? publishedUpdates || [] : []).forEach((u) => { if (u.related_itinerary_event_id) { const arr = updatesByEvent.get(u.related_itinerary_event_id as string) || []; arr.push(u); updatesByEvent.set(u.related_itinerary_event_id as string, arr); } });
 
     const filteredEvents = (allEvents || []).filter((evt) => { if (!isEventVisibleToGuest(evt.visibility, evt.reveal_at, evt.event_type, guestRecipients)) return false; if (!hasAudienceAccess(evt.id)) return false; if (!["published","active"].includes(evt.status)) return false; return true; }).map((evt) => {
-      const linkedUpdates = (updatesByEvent.get(evt.id) || []).map((u) => ({ id: u.id, title: u.title, content: u.content, update_date: u.update_date, created_at: u.created_at, category: u.category, priority: u.priority || "standard", is_important: !!(u.is_important), summary: u.summary || null, is_read: false, read_at: null, is_saved: false, image_url: null, related_itinerary_event_id: u.related_itinerary_event_id, related_travel_item_id: u.related_travel_item_id || null }));
+      const linkedUpdates = (features.communications ? updatesByEvent.get(evt.id) || [] : []).map((u) => ({ id: u.id, title: u.title, content: u.content, update_date: u.update_date, created_at: u.created_at, category: u.category, priority: u.priority || "standard", is_important: !!(u.is_important), summary: u.summary || null, is_read: false, read_at: null, is_saved: false, image_url: null, related_itinerary_event_id: u.related_itinerary_event_id, related_travel_item_id: u.related_travel_item_id || null }));
       return { id: evt.id, event_type: evt.event_type, name: evt.name, description: evt.guest_description || null, guest_description: evt.guest_description, start_at: evt.start_at, end_at: evt.end_at, visibility: evt.visibility, reveal_at: evt.reveal_at, dress_code: evt.dress_code, arrival_notes: evt.arrival_notes, arrival_offset_minutes: evt.arrival_offset_minutes, parking_notes: evt.parking_notes, transport_notes: evt.transport_notes, accessibility_notes: evt.accessibility_notes, children_notes: evt.children_notes, status: evt.status, published_at: evt.published_at, venue: evt.venue ? { id: evt.venue.id, name: evt.venue.name, address_line_1: evt.venue.address_line_1, city: evt.venue.city, county_or_region: evt.venue.county_or_region, postcode: evt.venue.postcode, country: evt.venue.country } : null, linked_updates: linkedUpdates.length > 0 ? linkedUpdates : undefined };
     });
 
@@ -123,7 +125,7 @@ Deno.serve(async (req: Request) => {
     const seatingEmergencyDisabled = portalSettings?.seating_emergency_disabled === true;
     const isBeforeSeatingReveal = seatingRevealAt ? now < new Date(seatingRevealAt) : false;
     let seatingData: Record<string, unknown> | null = null;
-    if (!isBeforeSeatingReveal && !seatingEmergencyDisabled) {
+    if (features.seating && !isBeforeSeatingReveal && !seatingEmergencyDisabled) {
       const { data: publication } = await supabase.from("seating_publications").select("id, status, seating_plan_id, seating_plan_version_id, linked_event_id, audience_settings, lookup_settings, publication_revision, published_at").eq("wedding_id", session.wedding_id).eq("status", "published").is("disabled_at", null).order("published_at", { ascending: false }).limit(1).maybeSingle();
       if (publication) {
         const audience = (publication.audience_settings || {}) as Record<string, unknown>;
@@ -210,7 +212,7 @@ Deno.serve(async (req: Request) => {
       .eq("is_public", true)
       .order("created_at", { ascending: false });
 
-    if (activeFunds && activeFunds.length > 0) {
+    if (features.budget && activeFunds && activeFunds.length > 0) {
       const fundIds = activeFunds.map((f) => f.id);
 
       const CONFIRMED_STATUSES = ["paid", "partially_refunded", "dispute_won"];
@@ -285,7 +287,7 @@ Deno.serve(async (req: Request) => {
     // Gallery
     let galleryData: Record<string, unknown> | null = null;
     const { data: albums } = await supabase.from("gallery_albums").select("*").eq("wedding_id", session.wedding_id).in("publication_status", ["published", "scheduled"]).order("sort_order").order("created_at");
-    if (albums && albums.length > 0) {
+    if (features.gallery && albums && albums.length > 0) {
       const albumIds = albums.map((a) => a.id);
       const { data: gAudiences } = await supabase.from("gallery_album_audiences").select("*").eq("wedding_id", session.wedding_id).in("album_id", albumIds);
       const audMap = new Map<string, Array<Record<string, unknown>>>();
@@ -358,7 +360,7 @@ Deno.serve(async (req: Request) => {
 
     await supabase.from("guest_access_sessions").update({ last_seen_at: new Date().toISOString() }).eq("id", session.id);
 
-    return new Response(JSON.stringify({ valid: true, data: { wedding: { ...wedding, timezone: wedding.timezone || "Europe/London" }, invitation: { id: invitation.id, formal_recipient_name: invitation.formal_recipient_name, informal_greeting: invitation.informal_greeting, invitation_type: invitation.invitation_type, rsvp_deadline: invitation.rsvp_deadline, status: invitation.status, template: invitation.template }, recipients: guestRecipients, events: filteredEvents, portal_settings: portalSettings, rsvp_responses: rsvpMap, rsvp_submission: rsvpSubmission || null, seating: seatingData, registry: registryData, gift_funds: giftFundData, gallery: galleryData, questions: questionsData, contacts: contactsData, settings: settingsData, local_places: (localPlaces || []).map((lp) => ({ id: lp.id, name: lp.name, place_type: lp.place_type, address_line_1: lp.address_line_1, city: lp.city, postcode: lp.postcode, country: lp.country, description: lp.description, image_url: lp.image_url, website: lp.website, telephone: lp.telephone, sort_order: lp.sort_order })), travel_plans: (travelPlans || []).map((tp) => ({ id: tp.id, guest_id: tp.guest_id, plan_type: tp.plan_type, place_id: tp.place_id, check_in_date: tp.check_in_date, check_out_date: tp.check_out_date, notes: tp.notes, created_at: tp.created_at })), travel_venue_links: [], travel_updates: [] }, wedding_id: session.wedding_id }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ valid: true, data: { features, wedding: { ...wedding, timezone: wedding.timezone || "Europe/London" }, invitation: { id: invitation.id, formal_recipient_name: invitation.formal_recipient_name, informal_greeting: invitation.informal_greeting, invitation_type: invitation.invitation_type, rsvp_deadline: invitation.rsvp_deadline, status: invitation.status, template: invitation.template }, recipients: guestRecipients, events: filteredEvents, portal_settings: { ...portalSettings, show_gallery: features.gallery && portalSettings?.show_gallery, show_travel: features.travel && portalSettings?.show_travel, show_updates: features.communications && portalSettings?.show_updates, seating_enabled: features.seating && portalSettings?.seating_enabled, gallery_enabled: features.gallery && portalSettings?.gallery_enabled, allow_guest_uploads: features.gallery && portalSettings?.allow_guest_uploads, travel_enabled: features.travel && portalSettings?.travel_enabled, updates_enabled: features.communications && portalSettings?.updates_enabled }, rsvp_responses: rsvpMap, rsvp_submission: rsvpSubmission || null, seating: features.seating ? seatingData : null, registry: registryData, gift_funds: features.budget ? giftFundData : null, gallery: features.gallery ? galleryData : null, questions: questionsData, contacts: contactsData, settings: settingsData, local_places: (features.travel ? localPlaces || [] : []).map((lp) => ({ id: lp.id, name: lp.name, place_type: lp.place_type, address_line_1: lp.address_line_1, city: lp.city, postcode: lp.postcode, country: lp.country, description: lp.description, image_url: lp.image_url, website: lp.website, telephone: lp.telephone, sort_order: lp.sort_order })), travel_plans: (features.travel ? travelPlans || [] : []).map((tp) => ({ id: tp.id, guest_id: tp.guest_id, plan_type: tp.plan_type, place_id: tp.place_id, check_in_date: tp.check_in_date, check_out_date: tp.check_out_date, notes: tp.notes, created_at: tp.created_at })), travel_venue_links: [], travel_updates: [] }, wedding_id: session.wedding_id }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     console.error("guest-portal-loader error:", err);
     return new Response(JSON.stringify({ valid: false, error: "unavailable" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });

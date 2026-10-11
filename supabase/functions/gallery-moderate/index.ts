@@ -1,3 +1,4 @@
+import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
@@ -135,6 +136,16 @@ Deno.serve(async (req: Request) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const credential = (req.headers.get('Authorization') || '').replace(/^Bearer /i, '');
+    if (credential !== supabaseKey) {
+      const auth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
+      const { data: { user }, error: authError } = await auth.auth.getUser(credential);
+      if (authError || !user) return new Response(JSON.stringify({ error: 'Sign in to continue.' }), { status: 401, headers: corsHeaders });
+      const { data: member } = await supabase.from('wedding_members').select('role').eq('wedding_id', wedding_id).eq('user_id', user.id).eq('status', 'active').maybeSingle();
+      if (!member || !['owner','partner','planner'].includes(member.role)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+    }
+    await requireEntitlement(supabase, wedding_id, 'gallery');
 
     // Fetch the asset
     const { data: asset, error: fetchErr } = await supabase
@@ -301,6 +312,8 @@ Deno.serve(async (req: Request) => {
       reason: scanResult.reason_detail || null,
     }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
+    const denied = entitlementErrorResponse(err, corsHeaders);
+    if (denied) return denied;
     console.error("gallery-moderate error:", err);
     return new Response(JSON.stringify({ success: false, error: "An unexpected error occurred during moderation." }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
