@@ -40,6 +40,12 @@ test('completed customer dashboard and core planning routes render',async({page}
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await signIn(page);
  await expect(page).toHaveURL(/\/app\/dashboard$/);
+ await expect(page.getByText('Private draft', {exact:true})).toBeVisible();
+ await expect(page.getByText('Date not set', {exact:true})).toBeVisible();
+ await expect(page.getByText('Your guest page is live', {exact:true})).toHaveCount(0);
+ await expect(page.getByRole('link', {name:'Email your guests',exact:false})).toHaveCount(0);
+ await expect(page.getByRole('button', {name:'Notifications — 8 unread',exact:true})).toHaveCount(0);
+ await expect(page.getByText('70%', {exact:true})).toHaveCount(0);
  for(const path of ['/app/dashboard','/app/getting-started','/app/guests','/app/guests/export','/app/guests/new','/app/tasks','/app/budget','/app/invitations','/app/rsvp-settings','/app/billing','/app/support']) {
   await page.goto(path);
   await expect(page.locator('h1,h2').first(),path).toBeVisible();
