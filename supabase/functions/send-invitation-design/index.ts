@@ -189,7 +189,7 @@ Deno.serve(async (req: Request) => {
         { accepted: false, error: "Your role cannot send invitations" },
         403,
       );
-    await requireEntitlement(db, design.wedding_id, 'invitations');
+    await requireEntitlement(db, design.wedding_id, 'invitations', member.role);
     const { data: sender } = await db
       .from("verified_senders")
       .select("email,display_name")

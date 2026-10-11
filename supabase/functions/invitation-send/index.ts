@@ -321,7 +321,7 @@ Deno.serve(async (req: Request) => {
       if (!invitation) return new Response(JSON.stringify({ error: 'Invitation not found' }), { status: 404, headers: corsHeaders });
       const { data: member } = await supabase.from('wedding_members').select('role').eq('wedding_id', invitation.wedding_id).eq('user_id', user.id).eq('status', 'active').maybeSingle();
       if (!member || !['owner','partner','planner'].includes(member.role)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
-      await requireEntitlement(supabase, invitation.wedding_id, 'invitations');
+      await requireEntitlement(supabase, invitation.wedding_id, 'invitations', member.role);
     }
 
     // ── Send individual ──

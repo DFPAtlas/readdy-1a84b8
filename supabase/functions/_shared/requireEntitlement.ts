@@ -1,6 +1,7 @@
 interface EntitlementClient { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }>; }
 import type { PaidFeature } from './entitlementConfig.ts';
-export async function requireEntitlement(db: EntitlementClient, weddingId: string, feature: PaidFeature): Promise<void> {
+export async function requireEntitlement(db: EntitlementClient, weddingId: string, feature: PaidFeature, actorRole?: string): Promise<void> {
+  if (actorRole === 'planner' && feature !== 'premiumDesigns') await requireEntitlement(db, weddingId, 'premiumDesigns');
   const { data, error } = await db.rpc('require_wedding_feature', { p_wedding_id: weddingId, p_feature: feature });
   if (error || data !== true) throw new EntitlementError();
 }
