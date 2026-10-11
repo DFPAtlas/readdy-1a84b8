@@ -463,11 +463,9 @@ async function handleSendIndividual(
 
   // Send via Resend
   if (!resendApiKey || !resendFromDomain) {
-    // No Resend configured — mark as needs manual delivery
+    // No provider configured: retain invitation readiness and report the failed send.
     await supabase.from("invitations").update({
-      status: "sent",
-      delivery_status: "pending",
-      sent_at: new Date().toISOString(),
+      delivery_status: "failed",
       delivery_attempts: (inv.delivery_attempts || 0) + 1,
       last_delivery_error: "Resend not configured — token generated but email not sent",
     }).eq("id", invitationId);
@@ -477,7 +475,8 @@ async function handleSendIndividual(
     const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk";
     const inviteUrl = `${siteUrl}/invite/${rawToken}`;
     return jsonResponse({
-      success: true,
+      success: false,
+      error: "Email delivery is not configured. Add RESEND_API_KEY and RESEND_FROM_DOMAIN in Supabase.",
       warning: "resend_not_configured",
       message: "Invitation token generated but email could not be sent. Use the copy link feature to share manually.",
       invite_url: inviteUrl,
@@ -511,7 +510,7 @@ async function handleSendIndividual(
       // Success
       await supabase.from("invitations").update({
         status: "sent",
-        delivery_status: "delivered",
+        delivery_status: "pending",
         sent_at: new Date().toISOString(),
         delivery_attempts: (inv.delivery_attempts || 0) + 1,
         resend_email_id: resendBody.id,
