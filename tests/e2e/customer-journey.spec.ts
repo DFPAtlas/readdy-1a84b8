@@ -82,6 +82,7 @@ test('declining skips attendance-only steps and goes directly to review',async({
  await mockAccount(page);
  await page.route('**/functions/v1/guest-portal-loader',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(guestData)}));
  await page.goto('/guest/'+guestSecret+'/rsvp');
+ await page.getByRole('button',{name:'Reject all',exact:true}).waitFor({state:'visible',timeout:3000}).then(()=>page.getByRole('button',{name:'Reject all',exact:true}).click()).catch(()=>{});
  await page.getByRole('button',{name:'Get started',exact:false}).first().click();
  await page.getByRole('button',{name:'Joyfully accept',exact:false}).click();
  await expect(page.getByRole('button',{name:/Events/})).toBeVisible();
