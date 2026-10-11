@@ -1,15 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
-import { safeReturnPath, accountDestination } from '@/lib/signupIntent';
+import { confirmationDestination } from '@/lib/authCallback';
+import type { EmailOtpType } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode } from '@/demo/demoConfig';
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const next = safeReturnPath(params.get("next"));
+  const next = params.get("next");
+  const [destination, setDestination] = useState('/app/onboarding');
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
-  const [errorMsg, setErrorMsg] = useState('');
   const ranRef = useRef(false);
 
   useEffect(() => {
@@ -24,39 +25,37 @@ export default function AuthCallbackPage() {
 
     const handleCallback = async () => {
       try {
-        // Supabase handles the OAuth/callback code exchange automatically
-        // through the PKCE flow. Just verify we have a session.
-        const { data: { session }, error } = await supabase.auth.getSession();
-
-        if (error) throw error;
-
-        if (!session) {
-          // Try exchanging the code via hash params — Supabase sometimes
-          // redirects with the access token in the URL hash
-          const hash = window.location.hash;
-          if (hash) {
-            const { data: { session: hashSession }, error: hashErr } = await supabase.auth.getSession();
-            if (hashErr) throw hashErr;
-            if (hashSession) {
-              setStatus('success');
-              setTimeout(() => navigate(next || accountDestination(session?.user?.user_metadata), { replace: true }), 1200);
-              return;
-            }
-          }
-          throw new Error('No session established');
+        const fragment = new URLSearchParams(window.location.hash.slice(1));
+        if (params.get('error') || fragment.get('error')) throw new Error('Confirmation link unavailable');
+        const tokenHash = params.get('token_hash');
+        const type = params.get('type');
+        if (tokenHash) {
+          if (!type || !['signup', 'email', 'invite', 'magiclink'].includes(type)) throw new Error('Invalid confirmation type');
+          const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as EmailOtpType });
+          if (error) throw error;
         }
-
+        // getSession waits for the SDK's implicit-token / PKCE initialization.
+        let { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (!session && params.get('code')) {
+          const result = await supabase.auth.exchangeCodeForSession(params.get('code')!);
+          if (result.error) throw result.error;
+          session = result.data.session;
+        }
+        if (!session) throw new Error('No session established');
+        const { data: profile, error: profileError } = await supabase.from('profiles').select('onboarding_completed').eq('id', session.user.id).maybeSingle();
+        if (profileError) throw profileError;
+        const target = confirmationDestination(next, session.user.user_metadata, profile?.onboarding_completed === true);
+        setDestination(target);
         setStatus('success');
-        setTimeout(() => navigate(next || accountDestination(session?.user?.user_metadata), { replace: true }), 1200);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Verification failed';
-        setErrorMsg(message);
+        navigate(target, { replace: true });
+      } catch {
         setStatus('error');
       }
     };
 
     handleCallback();
-  }, [navigate, next]);
+  }, [navigate, next, params]);
 
   return (
     <div className="min-h-screen bg-background-50 flex items-center justify-center px-4">
@@ -81,9 +80,9 @@ export default function AuthCallbackPage() {
               <i className="ri-check-line text-2xl" />
             </div>
             <h1 className="font-heading text-xl text-foreground-900 mb-2">Email verified</h1>
-            <p className="text-sm text-foreground-500 mb-6">Your account has been confirmed. Redirecting you to the dashboard...</p>
-            <Link to="/app/dashboard" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap">
-              Go to dashboard <i className="ri-arrow-right-line" />
+            <p className="text-sm text-foreground-500 mb-6">Your account has been confirmed. Continuing to your account...</p>
+            <Link to={destination} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap">
+              Continue to your account <i className="ri-arrow-right-line" />
             </Link>
           </div>
         )}
