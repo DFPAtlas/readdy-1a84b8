@@ -45,25 +45,27 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    let actorRole: string | undefined;
     // Verify wedding membership
     if (wedding_id) {
       const { data: member } = await supabase
         .from("wedding_members")
-        .select("id")
+        .select("id,role")
         .eq("wedding_id", wedding_id)
         .eq("user_id", user.id)
         .eq("status", "active")
         .maybeSingle();
 
-      if (!member) {
+      if (!member || !['owner','partner','planner'].includes(member.role)) {
         return new Response(JSON.stringify({ error: "You are not a member of this wedding." }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      actorRole = member.role;
     }
 
     if (!wedding_id) return new Response(JSON.stringify({ error: 'Select a wedding.' }), { status: 400, headers: corsHeaders });
-    await requireEntitlement(supabase, wedding_id, 'budget');
+    await requireEntitlement(supabase, wedding_id, 'budget', actorRole);
 
     // ── GET STATUS ──
     if (action === "status") {

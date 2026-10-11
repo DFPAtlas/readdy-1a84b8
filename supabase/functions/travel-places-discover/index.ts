@@ -57,7 +57,7 @@ Deno.serve(async (req: Request) => {
     if (authError || !user) return new Response(JSON.stringify({ error: 'Sign in to continue.' }), { status: 401, headers: corsHeaders });
     const { data: membership } = await supabase.from('wedding_members').select('role').eq('wedding_id', wedding_id).eq('user_id', user.id).eq('status', 'active').maybeSingle();
     if (!membership || !['owner','partner','planner'].includes(membership.role)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
-    await requireEntitlement(supabase, wedding_id, 'travel');
+    await requireEntitlement(supabase, wedding_id, 'travel', membership.role);
 
     // ── ACTION: search nearby ──
     if (action === "search") {

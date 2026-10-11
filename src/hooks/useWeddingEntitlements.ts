@@ -15,30 +15,30 @@ export interface WeddingEntitlements {
 }
 export function useWeddingEntitlements() {
   const { weddingId } = useActiveWedding();
-  const { isDemoSession } = useAuth();
+  const { isDemoSession, user } = useAuth();
   const demo = useDemoDataSafe();
-  const [result, setResult] = useState<{ weddingId: string; data: WeddingEntitlements | null; error: string | null } | null>(null);
+  const [result, setResult] = useState<{ weddingId: string; userId: string; data: WeddingEntitlements | null; error: string | null } | null>(null);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision(n => n + 1), []);
   useEffect(() => {
-    if (isDemoMode || isDemoSession || !weddingId) return;
+    if (isDemoMode || isDemoSession || !weddingId || !user?.id) return;
     let cancelled = false;
-    setResult(previous => previous?.weddingId === weddingId ? previous : null);
+    setResult(previous => previous?.weddingId === weddingId && previous?.userId === user.id ? previous : null);
     supabase.rpc('get_wedding_entitlements', { p_wedding_id: weddingId }).then(({ data, error }) => {
       if (cancelled) return;
       if (error || !data || !Object.hasOwn(PLAN_LIMITS, data.planKey) || !data.features || !data.usage) {
-        setResult({ weddingId, data: null, error: 'Your subscription access could not be checked. Please retry.' });
-      } else setResult({ weddingId, data: data as WeddingEntitlements, error: null });
+        setResult({ weddingId, userId: user.id, data: null, error: 'Your subscription access could not be checked. Please retry.' });
+      } else setResult({ weddingId, userId: user.id, data: data as WeddingEntitlements, error: null });
     });
     return () => { cancelled = true; };
-  }, [weddingId, isDemoSession, revision]);
+  }, [weddingId, user?.id, isDemoSession, revision]);
   useEffect(() => {
     if (isDemoMode || isDemoSession || !weddingId) return;
     const timer = window.setInterval(refresh, 60000);
     window.addEventListener('focus', refresh);
     return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); };
   }, [weddingId, isDemoSession, refresh]);
-  const current = result?.weddingId === weddingId ? result : null;
+  const current = result?.weddingId === weddingId && result?.userId === user?.id ? result : null;
   useEffect(() => {
     if (!current?.data?.accessUntil) return;
     const delay = Date.parse(current.data.accessUntil) - Date.now();

@@ -26,5 +26,8 @@ describe('subscription authorization contract', () => {
     }
     const client={rpc:async(name:string,args:unknown)=>{ expect(name).toBe('require_wedding_feature'); expect(args).toEqual({p_wedding_id:'wedding',p_feature:'budget'}); return {data:true,error:null}; }} as unknown as SupabaseClient;
     await expect(requireEntitlement(client,'wedding','budget')).resolves.toBeUndefined();
+    const deniedPlanner={rpc:async(_name:string,args:Record<string,unknown>)=>({data:args.p_feature==='invitations',error:null})} as unknown as SupabaseClient;
+    await expect(requireEntitlement(deniedPlanner,'wedding','invitations','planner')).rejects.toBeInstanceOf(EntitlementError);
+
   });
 });

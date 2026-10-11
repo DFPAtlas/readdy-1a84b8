@@ -137,6 +137,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    let actorRole: string | undefined;
     const credential = (req.headers.get('Authorization') || '').replace(/^Bearer /i, '');
     if (credential !== supabaseKey) {
       const auth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!);
@@ -144,8 +145,9 @@ Deno.serve(async (req: Request) => {
       if (authError || !user) return new Response(JSON.stringify({ error: 'Sign in to continue.' }), { status: 401, headers: corsHeaders });
       const { data: member } = await supabase.from('wedding_members').select('role').eq('wedding_id', wedding_id).eq('user_id', user.id).eq('status', 'active').maybeSingle();
       if (!member || !['owner','partner','planner'].includes(member.role)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+      actorRole = member.role;
     }
-    await requireEntitlement(supabase, wedding_id, 'gallery');
+    await requireEntitlement(supabase, wedding_id, 'gallery', actorRole);
 
     // Fetch the asset
     const { data: asset, error: fetchErr } = await supabase

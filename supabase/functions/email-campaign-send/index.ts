@@ -140,7 +140,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const privilegedDb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    await requireEntitlement(privilegedDb, wedding_id, 'communications');
+    await requireEntitlement(privilegedDb, wedding_id, 'communications', membership.role);
 
     // Get campaign
     const { data: campaign, error: campErr } = await supabaseClient.from('email_campaigns')
