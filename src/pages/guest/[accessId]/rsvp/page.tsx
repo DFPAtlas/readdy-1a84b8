@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useNavigate, useParams, useBlocker } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import { useRsvpNavigationGuard } from '@/hooks/useRsvpNavigationGuard';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useGuestPortal } from '@/hooks/useGuestPortal';
@@ -29,7 +30,6 @@ const SUBMIT_URL = edgeFunctionUrl('submit-rsvp');
 
 function NormalRSVPPage() {
   const { data, refresh } = useGuestPortal();
-  const navigate = useNavigate();
   const { accessId } = useParams<{ accessId: string }>();
   const [step, setStep] = useState(0);
   const [activeGuestIdx, setActiveGuestIdx] = useState(0);
@@ -65,11 +65,7 @@ function NormalRSVPPage() {
     return () => window.removeEventListener('beforeunload', handler);
   }, []);
 
-  // useBlocker — in-app navigation guard
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      isDirty && currentLocation.pathname !== nextLocation.pathname
-  );
+  const { navigate, blocker } = useRsvpNavigationGuard(isDirty);
 
   const portal = data?.portal_settings;
   const recipients = data?.recipients || [];
@@ -532,7 +528,6 @@ const DEMO_STEPS = [
 const MEAL_OPTIONS = ['Roast chicken', 'Seasonal vegetarian', 'Vegan garden plate', "Children's meal"];
 
 function DemoRSVPPage() {
-  const navigate = useNavigate();
   const { accessId } = useParams<{ accessId: string }>();
   const demo = useDemoDataSafe();
 
@@ -597,10 +592,7 @@ function DemoRSVPPage() {
     return () => window.removeEventListener('beforeunload', handler);
   }, []);
 
-  const demoBlocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      isDemoDirty && currentLocation.pathname !== nextLocation.pathname
-  );
+  const { navigate, navigateAfterSave, blocker: demoBlocker } = useRsvpNavigationGuard(isDemoDirty);
 
   if (!demo || !state) {
     return (<div className="max-w-2xl mx-auto px-4 py-16 text-center"><div className="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-secondary-100 text-secondary-400 mb-6"><i className="ri-error-warning-line text-3xl" /></div><h1 className="font-heading text-2xl text-foreground-900 mb-3">Demo Not Available</h1><p className="text-sm text-foreground-500">Demo mode must be active to use this page.</p></div>);
@@ -646,7 +638,7 @@ function DemoRSVPPage() {
     });
     clearDemoDirty();
     setSubmitting(false);
-    navigate(`${basePath}/rsvp/confirmation`);
+    void navigateAfterSave(`${basePath}/rsvp/confirmation`);
   };
 
   const goToStep = (s: number) => { setStep(s); setServerError(''); };
