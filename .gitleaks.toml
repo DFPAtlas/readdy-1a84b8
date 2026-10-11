@@ -14,3 +14,10 @@ condition = "AND"
 paths = ['''^src/lib/publicSupabaseConfig\.ts$''']
 regexTarget = "secret"
 regexes = ['''^sb_publishable_[A-Za-z0-9_-]+$''']
+
+[[allowlists]]
+description = "Historical Readdy browser configuration contains only a public Supabase publishable key"
+condition = "AND"
+paths = ['''^\\.env$''']
+regexTarget = "secret"
+regexes = ['''^sb_publishable_[A-Za-z0-9_-]+$''']
