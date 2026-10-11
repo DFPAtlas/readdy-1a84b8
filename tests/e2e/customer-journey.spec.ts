@@ -53,6 +53,36 @@ test('completed customer dashboard and core planning routes render',async({page}
   await expect(page.locator('a[href="/app/admin/operations"]')).toHaveCount(0);
  }
 });
+test('guest email edits survive rerenders and save the entered address',async({page})=>{
+ await mockAccount(page,true,true);
+ const guestId='40000000-0000-4000-8000-000000000002';
+ let guest={id:guestId,wedding_id:'20000000-0000-4000-8000-000000000001',full_name:'Taylor',last_name:'Test',email:'',status:'active',guest_type:'adult'};
+ let reads=0;
+ let savedEmail='';
+ await page.route('**/rest/v1/guests?**',async route=>{
+  if(route.request().method()==='PATCH') {
+   const payload=route.request().postDataJSON(); savedEmail=payload.email;
+   guest={...guest,...payload};
+   return route.fulfill({status:200,contentType:'application/json',body:'[]'});
+  }
+  reads++;
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(guest)});
+ });
+ await signIn(page);
+ await expect(page).toHaveURL(/\/app\/dashboard$/);
+ await page.goto(`/app/guests/${guestId}/edit`);
+ const email=page.getByPlaceholder('guest@email.com');
+ await expect(email).toBeVisible();
+ const initialReads=reads;
+ await email.fill('uat@example.com');
+ await page.getByPlaceholder('e.g. Williams').fill('Updated');
+ await expect(email).toHaveValue('uat@example.com');
+ expect(reads).toBe(initialReads);
+ await page.getByRole('button',{name:'Save changes',exact:true}).click();
+ await expect(page).toHaveURL(new RegExp(`/app/guests/${guestId}$`));
+ expect(savedEmail).toBe('uat@example.com');
+ await expect(page.getByText('uat@example.com',{exact:true})).toBeVisible();
+});
 test('signup hides verification recovery until an account is created',async({page})=>{
  await page.goto('/signup');
  await expect(page.getByRole('button',{name:'Resend verification email'})).toHaveCount(0);
