@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useRsvpNavigationGuard } from '@/hooks/useRsvpNavigationGuard';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
@@ -42,16 +42,18 @@ function NormalRSVPPage() {
   const [isDirty, setIsDirty] = useState(false);
   const isDirtyRef = useRef(false);
 
-  const markDirty = useCallback(() => {
-    if (!isDirtyRef.current) {
-      isDirtyRef.current = true;
-      setIsDirty(true);
-    }
+  const dirtyGuests = useRef(new Map<string, number>());
+  const editVersion = useRef(0);
+  const markDirty = useCallback((guestId: string) => {
+    dirtyGuests.current.set(guestId, ++editVersion.current);
+    isDirtyRef.current = true;
+    setIsDirty(true);
   }, []);
 
-  const clearDirty = useCallback(() => {
-    isDirtyRef.current = false;
-    setIsDirty(false);
+  const clearDirty = useCallback((guestId: string, savedVersion: number | undefined) => {
+    if (dirtyGuests.current.get(guestId) === savedVersion) dirtyGuests.current.delete(guestId);
+    isDirtyRef.current = dirtyGuests.current.size > 0;
+    setIsDirty(isDirtyRef.current);
   }, []);
 
   // beforeunload — browser tab close / refresh
@@ -81,10 +83,10 @@ function NormalRSVPPage() {
   const showAccommodation = portal?.show_accommodation !== false;
   const allowSongRequests = portal?.allow_song_requests !== false;
   const allowMessages = portal?.allow_messages !== false;
-  const customQuestions = portal?.custom_questions || [];
+  const customQuestions = useMemo(() => portal?.custom_questions || [], [portal?.custom_questions]);
   const dietaryOptions: string[] = (portal?.dietary_options as string[]) || ['Vegetarian', 'Vegan', 'Pescatarian', 'Halal', 'Kosher', 'Gluten-free', 'Dairy-free', 'No specific preference'];
   const allergyLabels: string[] = (portal?.allergy_labels as string[]) || ['Peanuts', 'Tree nuts', 'Shellfish', 'Fish', 'Dairy', 'Eggs', 'Wheat/Gluten', 'Soy', 'Sesame'];
-  const mealOptions: string[] = (portal?.meal_options as string[]) || [];
+  const mealOptions: string[] = useMemo(() => (portal?.meal_options as string[]) || [], [portal?.meal_options]);
   const requireMealChoices = portal?.require_meal_choices === true;
   const allowRsvpUpdates = portal?.allow_rsvp_updates !== false;
 
@@ -146,7 +148,9 @@ function NormalRSVPPage() {
   }, [recipients]);
 
   const updateGuestField = useCallback((guestId: string, field: keyof GuestFormState, value: unknown) => {
-    markDirty();
+    markDirty(guestId);
+    setSubmissionResult(null);
+    setServerError('');
     setForms((prev) => {
       const gf = prev[guestId];
       if (!gf) return prev;
@@ -155,7 +159,9 @@ function NormalRSVPPage() {
   }, [markDirty]);
 
   const toggleAllergy = useCallback((guestId: string, allergy: string) => {
-    markDirty();
+    markDirty(guestId);
+    setSubmissionResult(null);
+    setServerError('');
     setForms((prev) => {
       const gf = prev[guestId];
       if (!gf) return prev;
@@ -168,7 +174,9 @@ function NormalRSVPPage() {
   }, [markDirty]);
 
   const setEventAttendance = useCallback((guestId: string, eventKey: string, val: boolean) => {
-    markDirty();
+    markDirty(guestId);
+    setSubmissionResult(null);
+    setServerError('');
     setForms((prev) => {
       const gf = prev[guestId];
       if (!gf) return prev;
@@ -210,7 +218,10 @@ function NormalRSVPPage() {
     const gf = forms[currentRecipient.guest_id];
     if (!gf) return;
 
-    if (!saveDraft && gf.response_status === 'attending') {
+    if (!saveDraft && gf.response_status === 'pending') {
+      setServerError('Please choose whether you can attend before submitting.'); return;
+    }
+    if (!saveDraft && (gf.response_status === 'attending' || gf.response_status === 'maybe')) {
       const eventFlags = getRecipientEventFlags(currentRecipient as unknown as unknown as Record<string, unknown>);
       const anySelected = eventFlags.some((ef) => getFormEventField(gf, ef.key));
       if (!anySelected) { setServerError('Please select at least one event you plan to attend.'); return; }
@@ -221,8 +232,8 @@ function NormalRSVPPage() {
 
     setSubmitStatus('submitting');
     setServerError('');
-    let sessionHash = '';
-    try { sessionHash = sessionStorage.getItem('vowora_guest_session') || ''; } catch { /* ignore */ }
+    const sessionHash = accessId || '';
+    const savedVersion = dirtyGuests.current.get(currentRecipient.guest_id);
 
     try {
       const dietaryText = buildDietaryText(gf);
@@ -285,11 +296,11 @@ function NormalRSVPPage() {
 
       if (res.ok && result.success) {
         if (saveDraft) {
-          clearDirty();
+          clearDirty(currentRecipient.guest_id, savedVersion);
           setSubmitStatus('idle');
           setSubmissionResult({ message: 'Your draft has been saved.', is_update: false, is_late: false });
         } else {
-          clearDirty();
+          clearDirty(currentRecipient.guest_id, savedVersion);
           setSubmitStatus('success');
           setSubmissionResult({ message: result.message || 'Thank you! Your RSVP has been received.', is_update: result.is_update || false, is_late: result.is_late || false });
           refresh();
@@ -302,7 +313,7 @@ function NormalRSVPPage() {
       setSubmitStatus('error');
       setServerError('Could not submit. Please try again.');
     }
-  }, [forms, currentRecipient, refresh]);
+  }, [forms, currentRecipient, refresh, accessId, clearDirty, requireMealChoices, mealOptions, customQuestions]);
 
   const goToStep = useCallback((s: number) => {
     setStep(s);
@@ -371,6 +382,7 @@ function NormalRSVPPage() {
           <div className="bg-background-50 rounded-xl p-5 mb-6">
             <p className="text-sm text-foreground-700">{isAttending ? <><i className="ri-check-line text-emerald-500 mr-1" /><strong>{currentRecipient.preferred_name || currentRecipient.guest_name}</strong> — Joyfully attending</> : <><i className="ri-close-line text-foreground-400 mr-1" /><strong>{currentRecipient.preferred_name || currentRecipient.guest_name}</strong> — Regretfully declined</>}</p>
           </div>
+          {householdEnabled && recipients.length > 1 && <button onClick={() => { setSubmitStatus('idle'); setSubmissionResult(null); setStep(1); }} className="mb-4 px-4 py-2 rounded-lg border border-secondary-200 text-sm cursor-pointer">Respond for another household member</button>}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button onClick={() => navigate(basePath)} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-primary-500 text-white text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"><i className="ri-home-4-line" /> Back to dashboard</button>
             {canEdit && <button onClick={() => { setSubmitStatus('idle'); setSubmissionResult(null); }} className="px-4 py-2 rounded-lg border border-secondary-200 text-sm text-foreground-600 hover:bg-background-50 transition-colors cursor-pointer whitespace-nowrap"><i className="ri-edit-line mr-1" /> Edit response</button>}
@@ -437,11 +449,15 @@ function NormalRSVPPage() {
       )}
 
       {/* Error */}
-      {submitStatus === 'error' && serverError && (
+      {serverError && (
         <div className="mb-6 p-3 bg-rose-50 border border-rose-100 rounded-lg flex items-start gap-2 text-sm text-rose-700">
           <i className="ri-error-warning-line flex-shrink-0 mt-0.5" /><span>{serverError}</span>
           <button onClick={() => { setServerError(''); setSubmitStatus('idle'); }} className="ml-auto flex-shrink-0 cursor-pointer text-rose-400 hover:text-rose-600"><i className="ri-close-line" /></button>
         </div>
+      )}
+
+      {submitStatus === 'idle' && submissionResult && (
+        <p role="status" className="mb-4 text-sm text-emerald-700">{submissionResult.message}</p>
       )}
 
       {/* Main card */}
@@ -496,7 +512,7 @@ function NormalRSVPPage() {
             <p className="text-sm text-foreground-500 text-center mb-6">You have unsaved changes to your RSVP. If you leave now, your changes will be lost.</p>
             <div className="flex flex-col sm:flex-row gap-2">
               <button
-                onClick={() => { clearDirty(); blocker.proceed?.(); }}
+                onClick={() => { dirtyGuests.current.clear(); isDirtyRef.current = false; setIsDirty(false); blocker.proceed?.(); }}
                 className="flex-1 px-4 py-2.5 rounded-lg bg-rose-500 text-white text-sm font-label font-medium hover:bg-rose-600 transition-colors cursor-pointer whitespace-nowrap"
               >
                 Leave page

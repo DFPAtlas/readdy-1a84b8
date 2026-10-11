@@ -132,7 +132,7 @@ function GuestPortalContent() {
   const isDemoSession = isDemoMode && accessId === DEMO_CONFIG.guestSessionId;
 
   // ── LOADING ──
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="min-h-screen bg-background-50 flex items-center justify-center">
         <div className="text-center">

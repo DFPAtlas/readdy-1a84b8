@@ -94,3 +94,54 @@ test('declining skips attendance-only steps and goes directly to review',async({
  await expect(page.getByText('Regretfully declined',{exact:false})).toBeVisible();
  await expect(page.getByRole('button',{name:'Submit RSVP',exact:false})).toBeEnabled();
 });
+
+async function openGuestRsvp(page: Page, data = guestData) {
+ await mockAccount(page);
+ await page.route('**/functions/v1/guest-portal-loader',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)}));
+ await page.goto('/guest/'+guestSecret+'/rsvp');
+ await page.getByRole('button',{name:'Reject all',exact:true}).waitFor({state:'visible',timeout:3000}).then(()=>page.getByRole('button',{name:'Reject all',exact:true}).click()).catch(()=>{});
+}
+test('RSVP validation is visible and successful drafts show confirmation',async({page})=>{
+ await openGuestRsvp(page);
+ let submissions=0;
+ await page.route('**/functions/v1/submit-rsvp',async route=>{
+  const body=route.request().postDataJSON();
+  expect(body.session_hash).toBe(guestSecret);
+  expect(body.save_draft).toBe(true);
+  submissions++;
+  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true})});
+ });
+ await page.getByRole('button',{name:/Review/}).click();
+ await page.getByRole('button',{name:/Submit RSVP/}).click();
+ await expect(page.getByText('Please choose whether you can attend before submitting.')).toBeVisible();
+ expect(submissions).toBe(0);
+ await page.getByRole('button',{name:/Attendance/}).click();
+ await page.getByRole('button',{name:/Joyfully accept/}).click();
+ await page.getByRole('button',{name:/Review/}).click();
+ await page.getByRole('button',{name:/Submit RSVP/}).click();
+ await expect(page.getByText('Please select at least one event you plan to attend.')).toBeVisible();
+ await page.getByRole('button',{name:'Save draft',exact:true}).click();
+ await expect(page.getByRole('status')).toHaveText('Your draft has been saved.');
+ expect(submissions).toBe(1);
+});
+test('saving one household member preserves warnings for other unsaved answers',async({page})=>{
+ const household={...guestData,data:{...guestData.data,portal_settings:{...guestData.data.portal_settings,household_rsvp_enabled:true},recipients:[...guestData.data.recipients,{...guestData.data.recipients[0],guest_id:'40000000-0000-4000-8000-000000000002',guest_name:'Second Guest'}]}};
+ await openGuestRsvp(page,household);
+ await page.route('**/functions/v1/submit-rsvp',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true})}));
+ await page.getByRole('button',{name:/Attendance/}).click();
+ await page.getByRole('button',{name:/Regretfully decline/}).click();
+ await page.getByRole('button',{name:/Household/}).click();
+ await page.getByRole('button',{name:/Second Guest Not yet started/}).click();
+ await page.getByRole('button',{name:/Attendance/}).click();
+ await page.getByRole('button',{name:/Regretfully decline/}).click();
+ await page.getByRole('button',{name:/Review/}).click();
+ await page.getByRole('button',{name:'Save draft',exact:true}).click();
+ await expect(page.getByRole('status')).toHaveText('Your draft has been saved.');
+ await page.getByRole('button',{name:'Dashboard',exact:true}).first().click();
+ await expect(page.getByRole('button',{name:'Keep editing',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Keep editing',exact:true}).click();
+ await page.getByRole('button',{name:/Submit RSVP/}).click();
+ await expect(page.getByRole('button',{name:'Respond for another household member'})).toBeVisible();
+ await page.getByRole('button',{name:'Respond for another household member'}).click();
+ await expect(page.getByRole('heading',{name:'Your household'})).toBeVisible();
+});
