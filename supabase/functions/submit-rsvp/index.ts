@@ -539,7 +539,7 @@ Deno.serve(async (req: Request) => {
 
       // ── Update guest rsvp_status ──
       if (!save_draft) {
-        await supabase.from("guests").update({ rsvp_status: rsvp.response_status, updated_at: new Date().toISOString() }).eq("id", gId);
+        await supabase.from("guests").update({ rsvp_status: rsvp.response_status === "attending" ? "accepted" : rsvp.response_status === "not_attending" ? "declined" : "pending", updated_at: new Date().toISOString() }).eq("id", gId);
 
         // ── Create plus-one guest record ──
         if (rsvp.plus_one_confirmed && rsvp.plus_one_name?.trim() && guest?.plus_one_status === "approved_unnamed") {
@@ -558,7 +558,7 @@ Deno.serve(async (req: Request) => {
                 wedding_id: weddingId,
                 full_name: rsvp.plus_one_name.trim(),
                 guest_type: "plus_one",
-                rsvp_status: "attending",
+                rsvp_status: "accepted",
                 relationship_label: `Plus-one of ${guest.full_name || "guest"}`,
                 plus_one_allowed: false,
                 approved_additional_children: 0,
