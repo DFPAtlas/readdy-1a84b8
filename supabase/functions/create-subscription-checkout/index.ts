@@ -1,3 +1,4 @@
+import { resolvePublicSiteOrigin } from "../_shared/publicSiteOrigin.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import Stripe from "npm:stripe@22.6.0";
 
@@ -125,7 +126,7 @@ Deno.serve(async (req: Request) => {
 
     // Build success/cancel URLs
     const basePath = '';
-    const origin = new URL(Deno.env.get('PUBLIC_SITE_URL') || 'https://vowora.uk').origin;
+    const origin = resolvePublicSiteOrigin(Deno.env.get('PUBLIC_SITE_URL'));
     const pathPrefix = basePath ? `/${basePath}` : '';
 
     const successUrl = `${origin}${pathPrefix}/app/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`;

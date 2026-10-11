@@ -40,12 +40,61 @@ test('completed customer dashboard and core planning routes render',async({page}
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await signIn(page);
  await expect(page).toHaveURL(/\/app\/dashboard$/);
+ await expect(page.getByText('Private draft', {exact:true})).toBeVisible();
+ await expect(page.getByText('Date not set', {exact:true})).toBeVisible();
+ await expect(page.getByText('Your guest page is live', {exact:true})).toHaveCount(0);
+ await expect(page.getByRole('link', {name:'Email your guests',exact:false})).toHaveCount(0);
+ await expect(page.getByRole('button', {name:'Notifications — 8 unread',exact:true})).toHaveCount(0);
+ await expect(page.getByText('70%', {exact:true})).toHaveCount(0);
  for(const path of ['/app/dashboard','/app/getting-started','/app/guests','/app/guests/export','/app/guests/new','/app/tasks','/app/budget','/app/invitations','/app/rsvp-settings','/app/billing','/app/support']) {
   await page.goto(path);
   await expect(page.locator('h1,h2').first(),path).toBeVisible();
   expect(errors, path).toEqual([]);
   await expect(page.locator('a[href="/app/admin/operations"]')).toHaveCount(0);
  }
+});
+test('guest email edits survive rerenders and save the entered address',async({page})=>{
+ await mockAccount(page,true,true);
+ const guestId='40000000-0000-4000-8000-000000000002';
+ let guest={id:guestId,wedding_id:'20000000-0000-4000-8000-000000000001',full_name:'Taylor',last_name:'Test',email:'',status:'active',guest_type:'adult'};
+ let reads=0;
+ let savedEmail='';
+ await page.route('**/rest/v1/guests?**',async route=>{
+  if(route.request().method()==='PATCH') {
+   const payload=route.request().postDataJSON(); savedEmail=payload.email;
+   guest={...guest,...payload};
+   return route.fulfill({status:200,contentType:'application/json',body:'[]'});
+  }
+  reads++;
+  return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(guest)});
+ });
+ await signIn(page);
+ await expect(page).toHaveURL(/\/app\/dashboard$/);
+ await page.goto(`/app/guests/${guestId}/edit`);
+ const email=page.getByPlaceholder('guest@email.com');
+ await expect(email).toBeVisible();
+ const initialReads=reads;
+ await email.fill('uat@example.com');
+ await page.getByPlaceholder('e.g. Williams').fill('Updated');
+ await expect(email).toHaveValue('uat@example.com');
+ expect(reads).toBe(initialReads);
+ await page.getByRole('button',{name:'Save changes',exact:true}).click();
+ await expect(page).toHaveURL(new RegExp(`/app/guests/${guestId}$`));
+ expect(savedEmail).toBe('uat@example.com');
+ await expect(page.getByText('uat@example.com',{exact:true})).toBeVisible();
+});
+test('checkout failure remains visible and can be retried',async({page})=>{
+ await mockAccount(page,true,true);
+ await page.route('**/functions/v1/create-subscription-checkout',route=>route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:'Checkout unavailable'})}));
+ await signIn(page);
+ await expect(page).toHaveURL(/\/app\/dashboard$/);
+ await page.goto('/app/billing');
+ await page.getByRole('button',{name:'Upgrade plan',exact:true}).click();
+ await page.getByRole('button',{name:'Upgrade',exact:true}).nth(1).click();
+ await page.getByRole('button',{name:'Continue to checkout',exact:true}).click();
+ await expect(page.getByText('Edge Function returned a non-2xx status code',{exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Continue to checkout',exact:true})).toBeEnabled();
+ await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeVisible();
 });
 test('signup hides verification recovery until an account is created',async({page})=>{
  await page.goto('/signup');

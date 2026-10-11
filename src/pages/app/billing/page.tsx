@@ -134,12 +134,10 @@ export default function BillingPage() {
   const handleCheckout = useCallback(async (planKey: BillingPlanKey) => {
     setCheckoutLoading(true);
     setCheckoutError(null);
-    setShowUpgradeConfirm(null);
     try {
       const result = await startCheckout(planKey);
-      if (result?.url) {
-        window.location.href = result.url;
-      }
+      if (!result?.url) throw new Error('Checkout could not be started. Please try again.');
+      window.location.href = result.url;
     } catch (err: unknown) {
       setCheckoutError(err instanceof Error ? err.message : 'Failed to start checkout');
     } finally {
