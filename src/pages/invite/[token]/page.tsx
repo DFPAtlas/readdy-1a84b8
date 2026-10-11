@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { storeGuestSession } from '@/hooks/useGuestPortal';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { supabase } from '@/lib/supabase';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const DEMO_INVITE_FLAG = 'vowora_demo_invite';
 
@@ -50,6 +51,13 @@ interface InviteData {
 }
 
 export default function InviteLandingPage() {
+  usePageSeo({
+    title: 'Your Wedding Invitation — Vowora',
+    description: 'View your personal wedding invitation from the couple and respond with your RSVP details.',
+    path: '/invite',
+    noindex: true,
+  });
+
   const { token } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);

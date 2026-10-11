@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function ContentRulesPage() {
+  usePageSeo({
+    title: 'Community & Content Rules — Vowora',
+    description: 'What is and is not acceptable when sharing content on Vowora: photo and video uploads, prohibited content, how to report content and how we enforce these rules.',
+    path: '/content-rules',
+    keywords: 'Vowora content rules, community guidelines, report content, user-generated content policy',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

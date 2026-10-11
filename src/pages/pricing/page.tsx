@@ -8,10 +8,64 @@ import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getActivePlans, formatPrice, getComparisonFeatures, isUpgrade, isDowngrade } from '@/lib/plans';
 import type { BillingPlanKey } from '@/types/billing';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
 
 export default function PricingPage() {
+  usePageSeo({
+    title: 'Pricing & Plans — Vowora Wedding Planning',
+    description: 'Simple, transparent Vowora pricing. Start free and upgrade as your wedding grows. Compare Free, Essential, Complete and Luxury plans, all with no credit card to begin.',
+    path: '/pricing',
+    keywords: 'wedding planning pricing, wedding website cost, wedding planner subscription, Vowora plans',
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: [
+        {
+          '@type': 'Question',
+          name: 'Can I switch plans later?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Yes, you can upgrade or downgrade at any time. When upgrading, you get immediate access to new features. When downgrading, changes take effect at the end of your billing period.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'What happens to my data if I downgrade?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Your data is always safe. If you exceed a plan limit after downgrading, existing data remains accessible but you may not be able to add more until you upgrade again.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Is there a free trial?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'Essential, Complete, and Luxury plans come with a 14-day free trial. You can cancel anytime during the trial and will not be charged.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'How does billing work?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'All payments are processed securely through Stripe. You will be billed monthly and can view your invoices anytime from your billing dashboard.',
+          },
+        },
+        {
+          '@type': 'Question',
+          name: 'Can I get a refund?',
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: 'We do not offer refunds for partial months, but you can cancel anytime and keep access until the end of your billing period.',
+          },
+        },
+      ],
+    },
+  });
+
   const { user, isAuthenticated } = useAuth();
   const { weddingId } = useActiveWedding();
   const { subscription, startCheckout } = useSubscription(isAuthenticated ? weddingId : null);

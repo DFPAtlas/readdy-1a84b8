@@ -1,5 +1,4 @@
-import { useNavigate, type NavigateFunction } from "react-router-dom";
-import { createBrowserRouter, Outlet } from "react-router-dom";
+import { useNavigate, useRoutes, type NavigateFunction } from "react-router-dom";
 import { createElement, Fragment, useEffect } from "react";
 import { CookieConsentBanner } from "@/components/feature/CookieConsentBanner";
 import { ErrorBoundary } from "@/components/base/ErrorBoundary";
@@ -17,13 +16,18 @@ export const navigatePromise = new Promise<NavigateFunction>((resolve) => {
   navigateResolver = resolve;
 });
 
-function RouteFrame() {
+export function AppRoutes() {
   const navigate = useNavigate();
+  const element = useRoutes(routes);
+
   useEffect(() => {
     window.REACT_APP_NAVIGATE = navigate;
-    navigateResolver(window.REACT_APP_NAVIGATE);
+    navigateResolver(navigate);
   });
-  return createElement(ErrorBoundary, null, createElement(Fragment, null, createElement(CookieConsentBanner), createElement(Outlet)));
-}
 
-export const appRouter = createBrowserRouter([{ element: createElement(RouteFrame), children: routes }], { basename: __BASE_PATH__ });
+  return createElement(
+    ErrorBoundary,
+    null,
+    createElement(Fragment, null, createElement(CookieConsentBanner), element),
+  );
+}

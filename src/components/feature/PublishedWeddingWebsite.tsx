@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import type { WebsiteConfig, WeddingPartyProfile } from "@/types/website";
@@ -27,6 +27,25 @@ function safeLink(value: unknown): string | undefined {
 }
 function Website({ data }: { data: Published }) {
   const { wedding, config, events, venues, faqs, places } = data;
+  const sections = useMemo(
+    () =>
+      (config.sections_config || [])
+        .filter((section) => section.visible)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [config.sections_config],
+  );
+  // Only mark up FAQs that are actually shown on the page (Google requires
+  // structured-data content to be visible to users).
+  const visibleFaqs = useMemo(
+    () =>
+      sections.some((section) => section.type === "faqs")
+        ? faqs.map((faq) => ({
+            question: faq.question,
+            answer: faq.answer,
+          }))
+        : [],
+    [sections, faqs],
+  );
   usePublicSeoMetadata({
     seo: config.seo_config,
     siteTitle: wedding.title || "",
@@ -36,11 +55,10 @@ function Website({ data }: { data: Published }) {
       .join(" & "),
     weddingDate: wedding.wedding_date || undefined,
     location: wedding.location || undefined,
-    searchIndexing: config.seo_config?.search_indexing === true,
+    // Published wedding websites are always discoverable so guests can find them via Google.
+    searchIndexing: true,
+    faqs: visibleFaqs,
   });
-  const sections = (config.sections_config || [])
-    .filter((section) => section.visible)
-    .sort((a, b) => a.sort_order - b.sort_order);
   const date = wedding.wedding_date
     ? new Date(wedding.wedding_date + "T12:00:00").toLocaleDateString("en-GB", {
         day: "numeric",
@@ -76,6 +94,10 @@ function Website({ data }: { data: Published }) {
           const c = section.config || {};
           const image = safeLink(c.image_url);
           const button = safeLink(c.button_url || c.primary_button_dest);
+          const isHero = section.type === "hero";
+          const headingText =
+            text(c.title || c.heading || c.public_heading) ||
+            (isHero ? wedding.title : section.label);
           return (
             <section
               style={{ fontFamily: theme?.body_font }}
@@ -83,17 +105,21 @@ function Website({ data }: { data: Published }) {
               id={section.id}
               className="py-12 border-b border-secondary-100 scroll-mt-6"
             >
-              <h1
-                style={{ fontFamily: theme?.heading_font }}
-                className={
-                  section.type === "hero"
-                    ? "font-heading text-5xl text-center mb-5"
-                    : "font-heading text-3xl mb-5"
-                }
-              >
-                {text(c.title || c.heading || c.public_heading) ||
-                  (section.type === "hero" ? wedding.title : section.label)}
-              </h1>
+              {isHero ? (
+                <h1
+                  style={{ fontFamily: theme?.heading_font }}
+                  className="font-heading text-5xl text-center mb-5"
+                >
+                  {headingText}
+                </h1>
+              ) : (
+                <h2
+                  style={{ fontFamily: theme?.heading_font }}
+                  className="font-heading text-3xl mb-5"
+                >
+                  {headingText}
+                </h2>
+              )}
               {section.type === "hero" && (
                 <p className="text-center text-lg mb-5">
                   {text(c.subtitle) || date}{" "}
@@ -104,7 +130,7 @@ function Website({ data }: { data: Published }) {
                 <img
                   className="max-h-96 w-full object-cover rounded-xl mb-5"
                   src={image}
-                  alt=""
+                  alt={headingText}
                 />
               )}
               {text(c.introduction || c.body) && (
@@ -129,7 +155,7 @@ function Website({ data }: { data: Published }) {
                             alt={p.name}
                           />
                         )}
-                        <h2 className="font-semibold">{p.name}</h2>
+                        <h3 className="font-semibold">{p.name}</h3>
                         <p>{p.role}</p>
                         <p className="mt-2 whitespace-pre-wrap">{p.bio}</p>
                       </article>
@@ -141,7 +167,7 @@ function Website({ data }: { data: Published }) {
                 <ol className="space-y-4">
                   {events.map((event) => (
                     <li key={event.id!} className="border rounded-xl p-4">
-                      <h2 className="font-semibold">{event.name}</h2>
+                      <h3 className="font-semibold">{event.name}</h3>
                       {c.show_times !== false && event.start_at && (
                         <p className="text-sm mt-2">
                           {new Date(event.start_at).toLocaleString("en-GB", {
@@ -165,7 +191,7 @@ function Website({ data }: { data: Published }) {
                 <div className="grid md:grid-cols-2 gap-4">
                   {venues.map((venue) => (
                     <article key={venue.id!} className="border rounded-xl p-5">
-                      <h2 className="font-semibold">{venue.name}</h2>
+                      <h3 className="font-semibold">{venue.name}</h3>
                       {Boolean(c.show_full_address) && (
                         <p className="mt-2">
                           {[
@@ -186,7 +212,7 @@ function Website({ data }: { data: Published }) {
                 <ul className="space-y-4">
                   {places.map((place) => (
                     <li key={place.id!}>
-                      <h2 className="font-semibold">{place.name}</h2>
+                      <h3 className="font-semibold">{place.name}</h3>
                       <p>{place.description}</p>
                       {safeLink(place.website) && (
                         <a

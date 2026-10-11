@@ -810,12 +810,20 @@ Known limitations:
 - Reset to generated defaults button
 
 **Public Page SEO Metadata (`usePublicSeoMetadata` hook):**
-- Injects at runtime: `<title>`, `<meta name="description">`, `<meta name="robots">`, `<link rel="canonical">`
-- Open Graph: `og:title`, `og:description`, `og:type`, `og:url`, `og:site_name`, `og:image` (with width/height/alt)
+- Injects at runtime: `<title>`, `<meta name="description">`, `<meta name="keywords">`, `<meta name="robots">`, `<link rel="canonical">`
+- Open Graph: `og:title`, `og:description`, `og:type`, `og:url`, `og:site_name`, `og:locale`, `og:image` (with width/height/alt)
 - Twitter Card: `twitter:card` (summary_large_image), `twitter:title`, `twitter:description`, `twitter:image`, `twitter:image:alt`
-- Structured data: JSON-LD script with WebSite + Event schema, safe fields only
+- Structured data: JSON-LD script with WebPage + Event schema, safe fields only
 - Applied to both demo and production paths of the public wedding page (`/w/:slug`)
 - All injected elements tagged with `data-seo="true"` for cleanup on unmount
+
+**Guest-facing public wedding website SEO (2026-10-11):**
+- SEO-optimised fallback metadata when the couple has not customised their SEO settings: title `"{Names} Wedding — {Location}"` (kept under 60 chars), a descriptive 120–160 char meta description built from names, date and location, and auto-generated keywords
+- Couple-supplied `seo_title` / `meta_description` / social values always take precedence when present
+- Published wedding websites are always indexable (`index, follow`) so guests can find them via Google; drafts and guest/token routes stay `noindex, nofollow`
+- Fixed heading hierarchy on `/w/:slug`: a single `<h1>` for the hero (the couple's names), `<h2>` for every other section, and `<h3>` for sub-items (wedding party, schedule events, venues, travel places) — previously every section rendered its own `<h1>`
+- Section images now carry meaningful `alt` text (the section heading) instead of an empty `alt`
+- FAQ rich results (2026-10-11): the couple's real on-page FAQs are emitted as a `FAQPage` JSON-LD schema (`mainEntity` → `Question`/`acceptedAnswer`), so eligible questions and answers can appear directly in Google search. Only questions with a non-empty answer are included, duplicates are removed, and markup is emitted only when the FAQ section is actually visible on the page (Google requires marked-up content to be visible to users). Wired through the new `faqs` prop on `usePublicSeoMetadata`, populated from the published page's FAQ data in `PublishedWeddingWebsite.tsx`.
 
 **SeoConfig Extended:**
 - New fields: `seo_title`, `meta_description`, `social_image_alt`, `show_wedding_date_in_meta`, `show_location_in_meta`, `canonical_domain`

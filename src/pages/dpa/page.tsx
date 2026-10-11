@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function DPAPage() {
+  usePageSeo({
+    title: 'Data Processing Addendum — Vowora',
+    description: 'An outline of the Data Processing Addendum Vowora offers business customers under Article 28 of the UK GDPR, covering processor obligations, subprocessing, transfers and security.',
+    path: '/dpa',
+    keywords: 'Vowora DPA, data processing addendum, UK GDPR Article 28, business customer data protection',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

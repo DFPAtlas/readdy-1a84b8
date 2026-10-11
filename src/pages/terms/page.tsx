@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function TermsPage() {
+  usePageSeo({
+    title: 'Terms of Service — Vowora',
+    description: 'The terms governing your use of the Vowora wedding planning platform: accounts, acceptable use, user content, payments, availability, termination and liability.',
+    path: '/terms',
+    keywords: 'Vowora terms of service, wedding platform terms, acceptable use, user content policy',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

@@ -6,6 +6,7 @@ import { loadDemoState } from '@/demo/demoStorage';
 import { useAuth } from '@/context/AuthProvider';
 import { mapAuthError } from '@/lib/authErrors';
 import { supabase } from '@/lib/supabase';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
 
@@ -21,6 +22,13 @@ function isDemoOnboardingComplete(): boolean {
 }
 
 export default function LoginPage() {
+  usePageSeo({
+    title: 'Log in — Vowora',
+    description: 'Log in to your Vowora account to manage your wedding website, guest list, RSVPs and every detail in one calm workspace.',
+    path: '/login',
+    noindex: true,
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);

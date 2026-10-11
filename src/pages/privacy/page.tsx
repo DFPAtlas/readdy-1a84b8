@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function PrivacyPage() {
+  usePageSeo({
+    title: 'Privacy Notice — Vowora',
+    description: 'How Vowora collects, uses, shares and protects personal data for couples, wedding party members, guests and suppliers, following UK GDPR and the Data Protection Act 2018.',
+    path: '/privacy',
+    keywords: 'Vowora privacy notice, UK GDPR, data protection, wedding data privacy',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

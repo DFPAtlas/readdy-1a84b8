@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function AboutPage() {
+  usePageSeo({
+    title: 'About Vowora — Calm, Thoughtful Wedding Planning',
+    description: 'Vowora was built for the couples behind every celebration: one calm, beautiful space to plan your wedding, keep guests informed and protect everyone\u2019s privacy.',
+    path: '/about',
+    keywords: 'about Vowora, wedding planning platform, wedding technology, calm wedding planning',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

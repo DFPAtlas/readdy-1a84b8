@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function CookieNoticePage() {
+  usePageSeo({
+    title: 'Cookie Notice — Vowora',
+    description: 'Learn how Vowora uses essential, analytics and optional cookies, how you can manage your preferences, and which third parties may set cookies on our site.',
+    path: '/cookies',
+    keywords: 'Vowora cookie notice, cookie consent, analytics cookies, UK PECR',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

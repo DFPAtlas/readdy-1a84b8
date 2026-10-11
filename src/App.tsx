@@ -1,5 +1,5 @@
-import { RouterProvider } from "react-router-dom";
-import { appRouter } from "./router";
+import { BrowserRouter } from "react-router-dom";
+import { AppRoutes } from "./router";
 import { I18nextProvider } from "react-i18next";
 import i18n from "./i18n";
 import { isDemoMode } from "@/demo/demoConfig";
@@ -17,7 +17,9 @@ function App() {
         <DemoDataProvider>
           <I18nextProvider i18n={i18n}>
             <AuthProvider>
-              <RouterProvider router={appRouter} />
+              <BrowserRouter basename={__BASE_PATH__}>
+                <AppRoutes />
+              </BrowserRouter>
             </AuthProvider>
           </I18nextProvider>
         </DemoDataProvider>
@@ -30,7 +32,9 @@ function App() {
       <I18nextProvider i18n={i18n}>
         <AuthProvider>
           <ActiveWeddingProvider>
-            <RouterProvider router={appRouter} />
+            <BrowserRouter basename={__BASE_PATH__}>
+              <AppRoutes />
+            </BrowserRouter>
           </ActiveWeddingProvider>
         </AuthProvider>
       </I18nextProvider>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const guestFeatures = [
   {
@@ -61,6 +62,13 @@ const guestFeatures = [
 ];
 
 export default function GuestExperiencePage() {
+  usePageSeo({
+    title: 'Guest Experience — Vowora',
+    description: 'Every guest gets a personal wedding page with RSVP, meal choices, dietary and accessibility needs, travel and accommodation, plus the full wedding schedule. Mobile-first and effortless.',
+    path: '/guest-experience',
+    keywords: 'wedding guest experience, personal invitation links, RSVP form, wedding schedule, guest travel and accommodation',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

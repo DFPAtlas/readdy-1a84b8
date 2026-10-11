@@ -2,6 +2,7 @@ import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { Link } from 'react-router-dom';
 import { travelCategories } from '@/mocks/vowora';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const steps = [
   {
@@ -37,6 +38,13 @@ const steps = [
 ];
 
 export default function TravelConciergePage() {
+  usePageSeo({
+    title: 'Travel Concierge — Help Guests Find Their Way | Vowora',
+    description: 'Vowora Travel Concierge helps guests find hotels, restaurants, transport and local services near your venues. You approve every place before it appears on the guest map.',
+    path: '/travel-concierge',
+    keywords: 'wedding travel concierge, guest accommodation, wedding venue map, hotels near wedding venue, wedding transport',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

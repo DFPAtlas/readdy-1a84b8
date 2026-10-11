@@ -1,8 +1,16 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function RetentionPage() {
+  usePageSeo({
+    title: 'Data Retention & Deletion Schedule — Vowora',
+    description: 'How long Vowora keeps each category of personal data, from wedding and guest data to payment records, cookies and backups, plus how deletion requests are handled.',
+    path: '/retention',
+    keywords: 'Vowora data retention, deletion schedule, data minimisation, guest deletion rights',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

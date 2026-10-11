@@ -3,8 +3,16 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
 import { useActiveWedding } from "@/hooks/useActiveWedding";
 import { supabase } from "@/lib/supabase";
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function JoinWeddingPage() {
+  usePageSeo({
+    title: 'Join a Wedding Workspace — Vowora',
+    description: 'Accept a Vowora wedding workspace invitation and join the couple\u2019s planning space with the permissions they chose.',
+    path: '/join',
+    noindex: true,
+  });
+
   const { token } = useParams();
   const { user, loading, refreshProfile } = useAuth();
   const { refreshWeddings, selectWedding } = useActiveWedding();

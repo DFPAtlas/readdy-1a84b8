@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const features = [
   {
@@ -78,6 +79,13 @@ const features = [
 ];
 
 export default function FeaturesPage() {
+  usePageSeo({
+    title: 'Wedding Planning Features — Vowora',
+    description: 'Explore every Vowora feature: wedding website builder, guest list, digital invitations, RSVP collection, email updates, collaborators and more — in one calm workspace.',
+    path: '/features',
+    keywords: 'wedding planning features, wedding website builder, guest list management, digital invitations, RSVP collection',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />

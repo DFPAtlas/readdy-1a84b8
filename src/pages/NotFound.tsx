@@ -1,6 +1,14 @@
 import { useLocation } from "react-router-dom";
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function NotFound() {
+  usePageSeo({
+    title: 'Page Not Found — Vowora',
+    description: 'The page you are looking for could not be found.',
+    path: '/404',
+    noindex: true,
+  });
+
   const location = useLocation();
   
   return (

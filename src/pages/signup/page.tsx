@@ -5,10 +5,18 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { accountDestination, selectedPlan, safeReturnPath } from '@/lib/signupIntent';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthProvider';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
 
 export default function SignupPage() {
+  usePageSeo({
+    title: 'Create Your Account — Vowora',
+    description: 'Create your free Vowora account and bring every wedding detail together: website, guest list, invitations, RSVPs and updates in one calm place.',
+    path: '/signup',
+    keywords: 'create Vowora account, wedding website signup, free wedding planning account',
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);

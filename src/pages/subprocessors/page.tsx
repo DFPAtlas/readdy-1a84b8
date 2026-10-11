@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const SUBPROCESSORS = [
   {
@@ -62,6 +63,13 @@ const SUBPROCESSORS = [
 ];
 
 export default function SubprocessorsPage() {
+  usePageSeo({
+    title: 'Subprocessors — Vowora',
+    description: 'The third-party service providers Vowora relies on to run the platform, what data each processes, where they are based and the safeguards in place to protect your data.',
+    path: '/subprocessors',
+    keywords: 'Vowora subprocessors, data processors, third-party services, GDPR safeguards',
+  });
+
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />
