@@ -1,4 +1,3 @@
-import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
 import Stripe from "npm:stripe@22.6.0";
@@ -154,8 +153,6 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "Open the gift fund through your active wedding invitation." }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    await requireEntitlement(supabase, weddingId, 'budget');
-
     if (!fund.is_active) {
       return new Response(JSON.stringify({ error: "This fund is no longer accepting contributions." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -295,8 +292,6 @@ Deno.serve(async (req: Request) => {
       contribution_id: contributionId,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
-    const denied = entitlementErrorResponse(err, corsHeaders);
-    if (denied) return denied;
     console.error("gift-fund-create-checkout error:", err);
     return new Response(JSON.stringify({ error: "Could not create payment session. Please try again." }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

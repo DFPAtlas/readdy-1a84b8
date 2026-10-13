@@ -1,4 +1,3 @@
-import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { sha256Hex } from "../_shared/guestAccess.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 
@@ -81,7 +80,6 @@ Deno.serve(async (req: Request) => {
     }
 
     const weddingId = session.wedding_id as string;
-    await requireEntitlement(supabase, weddingId, 'travel');
     const invitationId = session.invitation_id as string;
 
     const { data: recipients } = await supabase
@@ -202,8 +200,6 @@ Deno.serve(async (req: Request) => {
 
     return jsonResponse({ success: true, message: "Plan saved.", plan_id: inserted?.id ?? null });
   } catch (err) {
-    const denied = entitlementErrorResponse(err, corsHeaders);
-    if (denied) return denied;
     console.error("save-travel-plan error:", err);
     return jsonResponse({ success: false, error: "Something went wrong. Please try again." });
   }

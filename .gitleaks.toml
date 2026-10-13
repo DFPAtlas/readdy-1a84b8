@@ -14,10 +14,3 @@ condition = "AND"
 paths = ['''^src/lib/publicSupabaseConfig\.ts$''']
 regexTarget = "secret"
 regexes = ['''^sb_publishable_[A-Za-z0-9_-]+$''']
-
-[[allowlists]]
-description = "Historical Readdy public Supabase browser configuration"
-condition = "AND"
-paths = ['''^\.env$''']
-regexTarget = "line"
-regexes = ['''VITE_PUBLIC_SUPABASE_ANON_KEY\s*=\s*["']?sb_publishable_[A-Za-z0-9_-]+''']

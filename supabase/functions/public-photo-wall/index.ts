@@ -1,4 +1,3 @@
-import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders } from "../_shared/guestAccess.ts";
 Deno.serve(async (req) => {
@@ -25,7 +24,6 @@ Deno.serve(async (req) => {
       .eq("slug", slug)
       .maybeSingle();
     if (!wedding) return reply({ error: "Wall unavailable" }, 404);
-    await requireEntitlement(db, wedding.id, 'weddingDay');
     const [{ data: rules }, { data: portal }] = await Promise.all([
       db
         .from("gallery_moderation_rules")
@@ -91,9 +89,7 @@ Deno.serve(async (req) => {
       ),
       photos: photos.filter((photo) => photo.url),
     });
-  } catch (entitlementFailure) {
-    const denied = entitlementErrorResponse(entitlementFailure, headers);
-    if (denied) return denied;
+  } catch {
     return reply({ error: "The photo wall could not be loaded." }, 503);
   }
 });

@@ -6,7 +6,6 @@ import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useAuth } from '@/context/AuthProvider';
 import { useSubscription } from '@/hooks/useSubscription';
-import { useWeddingEntitlements } from '@/hooks/useWeddingEntitlements';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { getActivePlans, formatPrice, getComparisonFeatures, isUpgrade } from '@/lib/plans';
 import type { BillingPlanKey, BillingInvoice, UsageSummary } from '@/types/billing';
@@ -68,8 +67,7 @@ export default function BillingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { subscription, loading, error, fetch, startCheckout, openBillingPortal, getInvoices } = useSubscription(weddingId);
-  const access = useWeddingEntitlements();
-  const currentPlanKey = access.data?.planKey || 'free';
+  const currentPlanKey = subscription?.planKey || 'free';
   const entitlements = useEntitlements(currentPlanKey);
 
   const [invoices, setInvoices] = useState<BillingInvoice[]>([]);
@@ -90,7 +88,6 @@ export default function BillingPage() {
     const checkoutStatus = searchParams.get('checkout');
     if (checkoutStatus === 'success') {
       fetch();
-      access.refresh();
       setToast({ type: 'success', message: 'Your subscription is being activated. This may take a moment.' });
       // Clean URL
       const newParams = new URLSearchParams(searchParams);
@@ -137,10 +134,12 @@ export default function BillingPage() {
   const handleCheckout = useCallback(async (planKey: BillingPlanKey) => {
     setCheckoutLoading(true);
     setCheckoutError(null);
+    setShowUpgradeConfirm(null);
     try {
       const result = await startCheckout(planKey);
-      if (!result?.url) throw new Error('Checkout could not be started. Please try again.');
-      window.location.href = result.url;
+      if (result?.url) {
+        window.location.href = result.url;
+      }
     } catch (err: unknown) {
       setCheckoutError(err instanceof Error ? err.message : 'Failed to start checkout');
     } finally {
@@ -166,9 +165,17 @@ export default function BillingPage() {
   const plans = useMemo(() => getActivePlans(), []);
   const comparisonRows = useMemo(() => getComparisonFeatures(), []);
   const currentPlan = plans.find((p) => p.planKey === currentPlanKey);
-  const isPaidPlan = !!subscription?.stripeSubscriptionId || currentPlanKey !== 'free';
+  const isPaidPlan = currentPlanKey !== 'free';
 
-  const usageSummaries = access.data ? entitlements.getUsageSummaries(access.data.usage) : [];
+  // Sample usage for demo
+  const sampleUsage: Partial<Record<string, number>> = {
+    maxGuests: currentPlanKey === 'free' ? 18 : 45,
+    maxCollaborators: 1,
+    maxAlbums: 2,
+    maxCustomSections: 0,
+    maxEmailCampaigns: 0,
+  };
+  const usageSummaries = entitlements.getUsageSummaries(sampleUsage);
 
   // Auto-dismiss toast
   useEffect(() => {
@@ -210,10 +217,10 @@ export default function BillingPage() {
           </p>
         </div>
 
-        {(error || access.error) && (
+        {error && (
           <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 mb-6 flex items-center justify-between">
-            <span>{error || access.error}</span>
-            <button onClick={() => { fetch(); access.refresh(); }} className="text-xs text-red-600 hover:underline cursor-pointer whitespace-nowrap">Retry</button>
+            <span>{error}</span>
+            <button onClick={fetch} className="text-xs text-red-600 hover:underline cursor-pointer whitespace-nowrap">Retry</button>
           </div>
         )}
 
@@ -495,7 +502,6 @@ export default function BillingPage() {
               </div>
             )}
             <div className="space-y-4">
-              {access.loading && <p role="status">Loading usage…</p>}
               {usageSummaries.map((item) => (
                 <div key={item.featureName}>
                   <div className="flex items-center justify-between mb-1.5">

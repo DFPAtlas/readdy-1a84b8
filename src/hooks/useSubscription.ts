@@ -17,7 +17,6 @@ export function useSubscription(weddingId: string | null) {
   const fetch = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setSubscription(null);
 
     if (isDemoSession || isDemoMode) {
       // Demo mode: return mock subscription

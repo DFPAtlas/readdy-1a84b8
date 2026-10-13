@@ -4,7 +4,7 @@ import { useWeddingWebsiteBuilder } from '@/hooks/useWeddingWebsiteBuilder';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { isDemoMode } from '@/demo/demoConfig';
 import { PUBLIC_SITE_HOST } from '@/lib/env';
-import { useWeddingEntitlements } from '@/hooks/useWeddingEntitlements';
+import { useSubscription } from '@/hooks/useSubscription';
 import type { BillingPlanKey } from '@/types/billing';
 
 // ── Domain status types ──
@@ -68,7 +68,7 @@ export default function WebsiteDomainPage() {
   const navigate = useNavigate();
   const { activeWedding } = useActiveWedding();
   const { draftConfig, slugAvailable, slugChecking, setSlug, checkSlug, saveDraft, publishStatus } = useWeddingWebsiteBuilder();
-  const { data: access } = useWeddingEntitlements();
+  const { subscription } = useSubscription(activeWedding?.id || null);
 
   const [domain, setDomain] = useState<DomainState>({
     type: 'vowora',
@@ -95,7 +95,7 @@ export default function WebsiteDomainPage() {
 
   const currentSlug = draftConfig?.slug || '';
   const hasCustomDomain = domain.type === 'custom' && domain.status === 'active';
-  const currentPlan = (access?.planKey || 'free') as BillingPlanKey;
+  const currentPlan = (subscription?.planKey || 'free') as BillingPlanKey;
   const canUseCustomDomain = currentPlan === 'luxury';
   const isPublished = publishStatus === 'published';
   const voworaUrl = currentSlug ? `/w/${currentSlug}` : '';

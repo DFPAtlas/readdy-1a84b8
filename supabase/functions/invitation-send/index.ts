@@ -1,5 +1,3 @@
-import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
-import { resolvePublicSiteOrigin } from "../_shared/publicSiteOrigin.ts";
 import { sha256Hex } from "../_shared/guestAccess.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 
@@ -95,7 +93,7 @@ function buildInvitationHtml(
   token: string,
   recipients: InvitationRecipientRow[],
 ): string {
-  const inviteUrl = `${resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL"))}/invite/${token}`;
+  const inviteUrl = `${Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk"}/invite/${token}`;
   const preset = invitation.template?.style_preset || "minimal";
   const isDark = preset === "editorial";
 
@@ -242,7 +240,7 @@ function buildPlainText(
   wedding: WeddingRow,
   token: string,
 ): string {
-  const inviteUrl = `${resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL"))}/invite/${token}`;
+  const inviteUrl = `${Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk"}/invite/${token}`;
   const lines: string[] = [];
   lines.push(`${wedding.partner_one_name} & ${wedding.partner_two_name}`);
   if (wedding.wedding_date) lines.push(formatDate(wedding.wedding_date));
@@ -315,15 +313,6 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const ids = Array.isArray(invitation_ids) ? invitation_ids : invitation_id ? [invitation_id] : [];
-    for (const id of ids) {
-      const { data: invitation } = await supabase.from('invitations').select('wedding_id').eq('id', id).maybeSingle();
-      if (!invitation) return new Response(JSON.stringify({ error: 'Invitation not found' }), { status: 404, headers: corsHeaders });
-      const { data: member } = await supabase.from('wedding_members').select('role').eq('wedding_id', invitation.wedding_id).eq('user_id', user.id).eq('status', 'active').maybeSingle();
-      if (!member || !['owner','partner','planner'].includes(member.role)) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
-      await requireEntitlement(supabase, invitation.wedding_id, 'invitations', member.role);
-    }
-
     // ── Send individual ──
     if (action === "send_individual" && invitation_id) {
       return await handleSendIndividual(supabase, invitation_id, user.id, fingerprint, resendApiKey, resendFromDomain);
@@ -349,8 +338,6 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    const denied = entitlementErrorResponse(err, corsHeaders);
-    if (denied) return denied;
     console.error("invitation-send error:", err);
     return new Response(JSON.stringify({ error: "internal_error", message: "An unexpected error occurred" }), {
       status: 500,
@@ -476,20 +463,21 @@ async function handleSendIndividual(
 
   // Send via Resend
   if (!resendApiKey || !resendFromDomain) {
-    // No provider configured: retain invitation readiness and report the failed send.
+    // No Resend configured — mark as needs manual delivery
     await supabase.from("invitations").update({
-      delivery_status: "failed",
+      status: "sent",
+      delivery_status: "pending",
+      sent_at: new Date().toISOString(),
       delivery_attempts: (inv.delivery_attempts || 0) + 1,
       last_delivery_error: "Resend not configured — token generated but email not sent",
     }).eq("id", invitationId);
 
     await logActivity(supabase, inv.wedding_id, invitationId, "token_generated", "Token generated (Resend not configured)", fingerprint);
 
-    const siteUrl = resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL"));
+    const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk";
     const inviteUrl = `${siteUrl}/invite/${rawToken}`;
     return jsonResponse({
-      success: false,
-      error: "Email delivery is not configured. Add RESEND_API_KEY and RESEND_FROM_DOMAIN in Supabase.",
+      success: true,
       warning: "resend_not_configured",
       message: "Invitation token generated but email could not be sent. Use the copy link feature to share manually.",
       invite_url: inviteUrl,
@@ -523,7 +511,7 @@ async function handleSendIndividual(
       // Success
       await supabase.from("invitations").update({
         status: "sent",
-        delivery_status: "pending",
+        delivery_status: "delivered",
         sent_at: new Date().toISOString(),
         delivery_attempts: (inv.delivery_attempts || 0) + 1,
         resend_email_id: resendBody.id,
@@ -697,7 +685,7 @@ async function handleGenerateToken(
     created_at: new Date().toISOString(),
   });
 
-  const siteUrl = resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL"));
+  const siteUrl = Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk";
   const inviteUrl = `${siteUrl}/invite/${rawToken}`;
 
   return jsonResponse({

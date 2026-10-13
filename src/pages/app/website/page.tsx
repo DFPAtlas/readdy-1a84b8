@@ -1,6 +1,5 @@
 import type * as React from "react";
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useWeddingEntitlements } from '@/hooks/useWeddingEntitlements';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useWeddingWebsiteBuilder } from '@/hooks/useWeddingWebsiteBuilder';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
@@ -117,7 +116,6 @@ export default function WeddingWebsiteBuilderPage() {
     saveDraft, publish, unpublish, discardChanges, retry,
   } = useWeddingWebsiteBuilder();
   const { activeWedding } = useActiveWedding();
-  const { data: access } = useWeddingEntitlements();
 
   const [activeTab, setActiveTab] = useState<BuilderTab>('pages');
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
@@ -419,11 +417,13 @@ export default function WeddingWebsiteBuilderPage() {
             />
           )}
 
-          {activeTab === 'design' && (access?.features.websiteCustomization ? <DesignTab
+          {activeTab === 'design' && (
+            <DesignTab
               theme={config.theme_config}
               onApplyPreset={applyPreset}
               onUpdateField={updateThemeField}
-            /> : <div className="p-6"><h2 className="font-heading text-xl mb-3">Custom designs require Essential or above</h2><p className="mb-4">Your Free wedding page uses the classic design.</p><button onClick={() => navigate("/app/billing")} className="underline">View plans</button></div>) }
+            />
+          )}
 
           {activeTab === 'navigation' && (
             <NavigationTab
@@ -756,9 +756,9 @@ function SectionEditor({
       {section.type === 'schedule' && (
         <div className="space-y-3 mt-3">
           <div className="grid grid-cols-2 gap-2">
-            {['show_date', 'show_times', 'show_venues', 'show_dress_code', 'show_arrival_notes', 'show_transport_notes'].map((f) => (
+            {['show_date', 'show_times', 'show_venues', 'show_dress_code', 'show_arrival_notes', 'show_parking_notes', 'show_transport_notes'].map((f) => (
               <label key={f} className="flex items-center gap-2 text-xs text-foreground-600 cursor-pointer">
-                <input type="checkbox" checked={!!cfg[f]} onChange={(e) => updateConfig(f, e.target.checked)} className="rounded" />
+                <input type="checkbox" checked={f === 'show_transport_notes' ? !!cfg[f] : cfg[f] !== false} onChange={(e) => updateConfig(f, e.target.checked)} className="rounded" />
                 {f.replace('show_', '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </label>
             ))}

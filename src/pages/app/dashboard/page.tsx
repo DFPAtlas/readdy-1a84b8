@@ -10,7 +10,6 @@ import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { listGiftFundsForWedding } from '@/lib/giftFundingRepository';
 import type { GiftFundListItem } from '@/types/giftFunding';
 import { PUBLIC_SITE_URL } from '@/lib/env';
-import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 
 // ═══════════════════════════════════════════
 // Shared helpers
@@ -743,8 +742,6 @@ function DemoDashboard() {
 
 function NormalDashboard() {
   const navigate = useNavigate();
-  const setupProgress = useOnboardingProgress();
-  const [websitePublished, setWebsitePublished] = useState(false);
   const { wedding, weddingId, weddingState, loading: weddingLoading, error: weddingError, refreshWeddings } = useActiveWedding();
   const svc = useGuestService();
   const [copied, setCopied] = useState(false);
@@ -814,7 +811,7 @@ function NormalDashboard() {
     }
     const fetchAll = async () => {
       try {
-        const [weddingRes, guestStats, allGuestsRes, householdsRes, invRes, draftInvRes, readyInvRes, tmplRes, allRecipientsRes, allInvRes, activeTokenRes, revokedTokenRes, portalRes, budgetRes, budgetExpRes, budgetPayRes, taskRes, websiteRes] = await Promise.all([
+        const [weddingRes, guestStats, allGuestsRes, householdsRes, invRes, draftInvRes, readyInvRes, tmplRes, allRecipientsRes, allInvRes, activeTokenRes, revokedTokenRes, portalRes, budgetRes, budgetExpRes, budgetPayRes, taskRes] = await Promise.all([
           supabase.from('weddings').select('title, partner_one_name, partner_two_name, wedding_date, slug').eq('id', weddingId).maybeSingle(),
           svc.getStats(),
           supabase.from('guests').select('id').eq('wedding_id', weddingId).eq('status', 'active'),
@@ -832,12 +829,10 @@ function NormalDashboard() {
           supabase.from('budget_expenses').select('agreed_amount, quoted_amount, payment_status').eq('wedding_id', weddingId).eq('status', 'active'),
           supabase.from('budget_payments').select('amount, status').eq('wedding_id', weddingId),
           supabase.from('wedding_tasks').select('id, title, priority, due_date, status').eq('wedding_id', weddingId).in('status', ['pending', 'in_progress']).order('due_date', { ascending: true, nullsFirst: false }).limit(5),
-          supabase.from('wedding_website_configs').select('status').eq('wedding_id', weddingId).maybeSingle(),
         ]);
 
         if (cancelled) return;
         if (weddingRes.error) throw weddingRes.error;
-        setWebsitePublished(!websiteRes.error && websiteRes.data?.status === 'published');
 
         const w = weddingRes.data;
         const totalInvited = guestStats.total;
@@ -1112,8 +1107,8 @@ function NormalDashboard() {
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-secondary-200">
-              <span className="font-heading text-2xl font-semibold text-primary-600">{wedding?.wedding_date ? stats.daysUntilWedding : 'Date not set'}</span>
-              <span className="text-xs font-label text-foreground-500">{wedding?.wedding_date ? countdownLabel(wedding.wedding_date) : ''}</span>
+              <span className="font-heading text-2xl font-semibold text-primary-600">{stats.daysUntilWedding}</span>
+              <span className="text-xs font-label text-foreground-500">days to go</span>
             </div>
           </div>
         </div>
@@ -1123,15 +1118,15 @@ function NormalDashboard() {
             <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary-50 text-primary-600 mb-3">
               <i className="ri-check-double-line text-sm" />
             </div>
-            <p className="text-2xl font-heading font-semibold text-foreground-900">{setupProgress.loading || setupProgress.error ? '—' : `${setupProgress.percentage}%`}</p>
+            <p className="text-2xl font-heading font-semibold text-foreground-900">{stats.planningProgress}%</p>
             <p className="text-xs text-foreground-500 font-label mt-1">Setup complete</p>
           </div>
-          <div onClick={() => navigate(websitePublished ? `/w/${slug}` : '/app/website')} className="bg-white border border-secondary-100 rounded-xl p-5 cursor-pointer hover:border-primary-300 transition-colors">
+          <div onClick={() => navigate(`/w/${slug}`)} className="bg-white border border-secondary-100 rounded-xl p-5 cursor-pointer hover:border-primary-300 transition-colors">
             <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-accent-50 text-accent-600 mb-3">
               <i className="ri-global-line text-sm" />
             </div>
-            <p className="text-sm font-label font-medium text-accent-600">{websitePublished ? 'Published' : 'Private draft'}</p>
-            <p className="text-xs text-foreground-500 mt-1">{websitePublished ? 'Your guest page is live' : 'Review your website before publishing'}</p>
+            <p className="text-sm font-label font-medium text-accent-600">Published</p>
+            <p className="text-xs text-foreground-500 mt-1">Your guest page is live</p>
           </div>
           <div className="bg-white border border-secondary-100 rounded-xl p-5">
             <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-secondary-50 text-secondary-600 mb-3">
@@ -1158,10 +1153,9 @@ function NormalDashboard() {
                 </div>
                 <div>
                   <h2 className="font-label text-sm font-semibold text-foreground-900">Your guest page</h2>
-                  <p className="text-xs text-foreground-500">{websitePublished ? 'Share this link with your guests' : 'Your website stays private until you publish it'}</p>
+                  <p className="text-xs text-foreground-500">Share this link with your guests</p>
                 </div>
               </div>
-              {websitePublished ? <>
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-lg bg-background-50 border border-secondary-200">
                   <i className="ri-link text-foreground-400 text-sm flex-shrink-0" />
@@ -1177,7 +1171,6 @@ function NormalDashboard() {
                 <a href={facebookHref} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 rounded-lg border border-secondary-200 text-sm font-label text-foreground-600 hover:bg-background-100 transition-colors cursor-pointer whitespace-nowrap"><i className="ri-facebook-line text-sm" />Facebook</a>
                 <button onClick={() => navigate(`/w/${slug}`)} className="flex items-center gap-2 px-4 py-2 rounded-lg border border-secondary-200 text-sm font-label text-foreground-600 hover:bg-background-100 transition-colors cursor-pointer whitespace-nowrap"><i className="ri-eye-line text-sm" />Preview</button>
               </div>
-              </> : <button onClick={() => navigate('/app/website')} className="btn-outline text-sm cursor-pointer">Review wedding website</button>}
             </div>
 
             <div className="bg-white border border-secondary-100 rounded-xl p-5">
@@ -1255,9 +1248,9 @@ function NormalDashboard() {
 
             <div className="bg-white border border-secondary-100 rounded-xl p-5 text-center">
               <div className="w-10 h-10 mx-auto flex items-center justify-center rounded-full bg-primary-50 text-primary-600 mb-3"><i className="ri-megaphone-line text-lg" /></div>
-              <h3 className="font-label text-sm font-semibold text-foreground-900 mb-1">{websitePublished ? 'Ready to share?' : 'Prepare your guest page'}</h3>
-              <p className="text-xs text-foreground-500 mb-4">{websitePublished ? 'Your guest page is published. Copy the link above or use the share buttons to send it to your guests.' : 'Review your website and RSVP settings before publishing and sharing with guests.'}</p>
-              {websitePublished ? (<a href={emailHref} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-500 text-background-50 rounded-lg text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"><i className="ri-mail-send-line text-sm" />Email your guests</a>) : <Link to="/app/website" className="btn-outline text-sm">Review website</Link>}
+              <h3 className="font-label text-sm font-semibold text-foreground-900 mb-1">Ready to share?</h3>
+              <p className="text-xs text-foreground-500 mb-4">Your guest page is published. Copy the link above or use the share buttons to send it to your guests.</p>
+              <a href={emailHref} className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary-500 text-background-50 rounded-lg text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"><i className="ri-mail-send-line text-sm" />Email your guests</a>
             </div>
 
             <div className="bg-white border border-secondary-100 rounded-xl p-5">

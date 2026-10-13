@@ -6,6 +6,14 @@ export interface PublicFaqItem {
   answer?: string | null;
 }
 
+export interface PublicVenue {
+  name?: string | null;
+  addressLine1?: string | null;
+  city?: string | null;
+  postcode?: string | null;
+  country?: string | null;
+}
+
 interface UsePublicSeoMetadataParams {
   seo: SeoConfig;
   siteTitle: string;
@@ -15,6 +23,8 @@ interface UsePublicSeoMetadataParams {
   location?: string;
   searchIndexing: boolean;
   faqs?: PublicFaqItem[];
+  venues?: PublicVenue[];
+  venueAddressVisible?: boolean;
 }
 
 const SITE_NAME = 'Vowora';
@@ -94,6 +104,49 @@ function buildFaqEntities(faqs?: PublicFaqItem[]): Record<string, unknown>[] {
   return entities;
 }
 
+/** Build a PostalAddress from the venue address parts that are visible on the page. */
+function buildPostalAddress(venue: PublicVenue): Record<string, unknown> | null {
+  const streetAddress = (venue.addressLine1 || '').trim();
+  const addressLocality = (venue.city || '').trim();
+  const postalCode = (venue.postcode || '').trim();
+  const addressCountry = (venue.country || '').trim();
+  if (!streetAddress && !addressLocality && !postalCode && !addressCountry) {
+    return null;
+  }
+  const address: Record<string, unknown> = { '@type': 'PostalAddress' };
+  if (streetAddress) address.streetAddress = streetAddress;
+  if (addressLocality) address.addressLocality = addressLocality;
+  if (postalCode) address.postalCode = postalCode;
+  if (addressCountry) address.addressCountry = addressCountry;
+  return address;
+}
+
+/**
+ * Build an EventVenue node for the couple's primary venue so search engines can
+ * surface the place and its address (Google Maps / local-style results). Only
+ * venue facts that are actually visible on the page are included.
+ */
+function buildVenueNode(
+  venues: PublicVenue[] | undefined,
+  includeAddress: boolean,
+  canonicalUrl: string,
+): Record<string, unknown> | null {
+  if (!Array.isArray(venues)) return null;
+  const venue = venues.find((v) => (v?.name || '').trim());
+  if (!venue) return null;
+  const node: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'EventVenue',
+    '@id': `${canonicalUrl}#venue`,
+    name: (venue.name || '').trim(),
+  };
+  if (includeAddress) {
+    const address = buildPostalAddress(venue);
+    if (address) node.address = address;
+  }
+  return node;
+}
+
 export function usePublicSeoMetadata({
   seo,
   siteTitle,
@@ -103,6 +156,8 @@ export function usePublicSeoMetadata({
   location,
   searchIndexing,
   faqs,
+  venues,
+  venueAddressVisible,
 }: UsePublicSeoMetadataParams): void {
   useEffect(() => {
     const head = document.head;
@@ -232,7 +287,17 @@ export function usePublicSeoMetadata({
     if (seo.show_wedding_date_in_meta && weddingDate) {
       eventSchema.startDate = weddingDate;
     }
-    if (seo.show_location_in_meta && location) {
+    // ── Venue location schema: the couple's actual venue, so search engines can
+    //    surface the place + address (Google Maps & local-style results) ──
+    const venueNode = buildVenueNode(
+      venues,
+      Boolean(venueAddressVisible),
+      canonicalUrl,
+    );
+    if (venueNode) {
+      structuredData.push(venueNode);
+      eventSchema.location = { '@id': venueNode['@id'] };
+    } else if (seo.show_location_in_meta && location) {
       eventSchema.location = { '@type': 'Place', name: location };
     }
     structuredData.push(eventSchema);
@@ -256,5 +321,16 @@ export function usePublicSeoMetadata({
       const tags = head.querySelectorAll('[data-seo="true"]');
       tags.forEach((t) => t.remove());
     };
-  }, [seo, siteTitle, siteUrl, coupleNames, weddingDate, location, searchIndexing, faqs]);
+  }, [
+    seo,
+    siteTitle,
+    siteUrl,
+    coupleNames,
+    weddingDate,
+    location,
+    searchIndexing,
+    faqs,
+    venues,
+    venueAddressVisible,
+  ]);
 }

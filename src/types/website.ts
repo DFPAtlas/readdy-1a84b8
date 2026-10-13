@@ -64,6 +64,7 @@ export interface ScheduleSectionConfig extends Record<string, unknown> {
   show_venues: boolean;
   show_dress_code: boolean;
   show_arrival_notes: boolean;
+  show_parking_notes: boolean;
   show_transport_notes: boolean;
   layout: 'timeline' | 'cards' | 'compact';
 }
@@ -471,7 +472,8 @@ export function defaultScheduleConfig(): ScheduleSectionConfig {
     show_times: true,
     show_venues: true,
     show_dress_code: true,
-    show_arrival_notes: false,
+    show_arrival_notes: true,
+    show_parking_notes: true,
     show_transport_notes: false,
     layout: 'timeline',
   };

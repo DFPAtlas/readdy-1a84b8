@@ -1,4 +1,3 @@
-import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { unsubscribeUrl } from "../_shared/unsubscribe.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, sha256Hex } from "../_shared/guestAccess.ts";
@@ -189,7 +188,6 @@ Deno.serve(async (req: Request) => {
         { accepted: false, error: "Your role cannot send invitations" },
         403,
       );
-    await requireEntitlement(db, design.wedding_id, 'invitations', member.role);
     const { data: sender } = await db
       .from("verified_senders")
       .select("email,display_name")
@@ -357,8 +355,6 @@ Deno.serve(async (req: Request) => {
       acceptedCount ? 200 : 422,
     );
   } catch (error) {
-    const denied = entitlementErrorResponse(error, headers);
-    if (denied) return denied;
     console.error("Invitation send failed", error);
     return reply(
       {

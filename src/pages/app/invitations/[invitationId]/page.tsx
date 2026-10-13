@@ -49,7 +49,7 @@ function NormalInvitationDetailPage() {
     const result = await sendInvitation(invitation.id);
     if (result.success) {
       setFeedback({ type: 'success', message: result.message || 'Invitation sent!' });
-      setInvitation((prev) => prev ? { ...prev, status: 'sent', delivery_status: 'pending', sent_at: new Date().toISOString() } : null);
+      setInvitation((prev) => prev ? { ...prev, status: 'sent', delivery_status: result.warning ? 'pending' : 'delivered', sent_at: new Date().toISOString() } : null);
     } else {
       setFeedback({ type: 'error', message: result.error || result.message || 'Send failed' });
     }
@@ -60,7 +60,7 @@ function NormalInvitationDetailPage() {
     const result = await resendInvitation(invitation.id);
     if (result.success) {
       setFeedback({ type: 'success', message: 'Invitation resent!' });
-      setInvitation((prev) => prev ? { ...prev, status: 'sent', delivery_status: 'pending', sent_at: new Date().toISOString() } : null);
+      setInvitation((prev) => prev ? { ...prev, status: 'sent', delivery_status: result.warning ? 'pending' : 'delivered', sent_at: new Date().toISOString() } : null);
     } else {
       setFeedback({ type: 'error', message: result.error || 'Resend failed' });
     }

@@ -79,7 +79,6 @@ export const SAFE_PORTAL_DEFAULTS: GuestPortalSettingsSafe = {
 };
 
 export interface GuestPortalData {
-  features?: { whiteLabel?: boolean };
   wedding: GuestAccessResponse['wedding'];
   invitation: GuestAccessResponse['invitation'];
   recipients: GuestRecipientInfo[];

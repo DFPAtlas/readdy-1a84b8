@@ -425,6 +425,7 @@ Deno.serve(async (req: Request) => {
         wedding_id: weddingId,
         invitation_id: invitationId,
         guest_id: gId,
+        household_id: guest?.household_id || null,
         submission_id: submissionId,
         response_status: rsvp.response_status,
         ceremony_attending: rsvp.ceremony_attending ?? false,
@@ -444,6 +445,7 @@ Deno.serve(async (req: Request) => {
         accommodation_status: rsvp.accommodation_status || null,
         song_request: rsvp.song_request || null,
         message_to_couple: rsvp.message_to_couple || null,
+        submitted_by: submittingGuestId,
         updated_at: new Date().toISOString(),
         is_draft: save_draft ?? false,
         submitted_at: save_draft ? (existingRes?.submitted_at || null) : (existingRes?.submitted_at || new Date().toISOString()),
@@ -539,7 +541,7 @@ Deno.serve(async (req: Request) => {
 
       // ── Update guest rsvp_status ──
       if (!save_draft) {
-        await supabase.from("guests").update({ rsvp_status: rsvp.response_status === "attending" ? "accepted" : rsvp.response_status === "not_attending" ? "declined" : "pending", updated_at: new Date().toISOString() }).eq("id", gId);
+        await supabase.from("guests").update({ rsvp_status: rsvp.response_status, updated_at: new Date().toISOString() }).eq("id", gId);
 
         // ── Create plus-one guest record ──
         if (rsvp.plus_one_confirmed && rsvp.plus_one_name?.trim() && guest?.plus_one_status === "approved_unnamed") {
@@ -558,7 +560,7 @@ Deno.serve(async (req: Request) => {
                 wedding_id: weddingId,
                 full_name: rsvp.plus_one_name.trim(),
                 guest_type: "plus_one",
-                rsvp_status: "accepted",
+                rsvp_status: "attending",
                 relationship_label: `Plus-one of ${guest.full_name || "guest"}`,
                 plus_one_allowed: false,
                 approved_additional_children: 0,

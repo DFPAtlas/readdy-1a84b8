@@ -1,4 +1,3 @@
-import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import Stripe from "npm:stripe@22.6.0";
 
@@ -45,27 +44,22 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    let actorRole: string | undefined;
     // Verify wedding membership
     if (wedding_id) {
       const { data: member } = await supabase
         .from("wedding_members")
-        .select("id,role")
+        .select("id")
         .eq("wedding_id", wedding_id)
         .eq("user_id", user.id)
         .eq("status", "active")
         .maybeSingle();
 
-      if (!member || !['owner','partner','planner'].includes(member.role)) {
+      if (!member) {
         return new Response(JSON.stringify({ error: "You are not a member of this wedding." }), {
           status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      actorRole = member.role;
     }
-
-    if (!wedding_id) return new Response(JSON.stringify({ error: 'Select a wedding.' }), { status: 400, headers: corsHeaders });
-    await requireEntitlement(supabase, wedding_id, 'budget', actorRole);
 
     // ── GET STATUS ──
     if (action === "status") {
@@ -276,8 +270,6 @@ Deno.serve(async (req: Request) => {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    const denied = entitlementErrorResponse(err, corsHeaders);
-    if (denied) return denied;
     console.error("gift-fund-connect error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },

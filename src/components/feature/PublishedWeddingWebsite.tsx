@@ -5,7 +5,6 @@ import type { WebsiteConfig, WeddingPartyProfile } from "@/types/website";
 import { usePublicSeoMetadata } from "@/hooks/usePublicSeoMetadata";
 type Row = Record<string, string | null>;
 type Published = {
-  features?: { whiteLabel?: boolean };
   wedding: Row;
   config: WebsiteConfig;
   events: Row[];
@@ -25,6 +24,55 @@ function safeLink(value: unknown): string | undefined {
   } catch {
     return;
   }
+}
+/**
+ * Build the search text for a venue. Only the venue facts that are actually
+ * visible to guests are used, so a hidden full address is never leaked through
+ * the directions link or the embedded map.
+ */
+function venueLocationQuery(
+  venue: Row,
+  includeFullAddress: boolean,
+): string | undefined {
+  const parts = includeFullAddress
+    ? [
+        venue.name,
+        venue.address_line_1,
+        venue.city,
+        venue.postcode,
+        venue.country,
+      ]
+    : [venue.name];
+  const query = parts
+    .filter(
+      (part): part is string =>
+        typeof part === "string" && part.trim().length > 0,
+    )
+    .map((part) => part.trim())
+    .join(", ");
+  return query || undefined;
+}
+/** Google Maps "get directions" deep link for a venue. */
+function venueDirectionsUrl(
+  venue: Row,
+  includeFullAddress: boolean,
+): string | undefined {
+  const query = venueLocationQuery(venue, includeFullAddress);
+  if (!query) return undefined;
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+    query,
+  )}`;
+}
+/** Google Maps embed (iframe) preview URL — works without an API key. */
+function venueMapEmbedUrl(
+  venue: Row,
+  includeFullAddress: boolean,
+): string | undefined {
+  const query = venueLocationQuery(venue, includeFullAddress);
+  if (!query) return undefined;
+  return `https://www.google.com/maps?q=${encodeURIComponent(
+    query,
+  )}&output=embed`;
 }
 function Website({ data }: { data: Published }) {
   const { wedding, config, events, venues, faqs, places } = data;
@@ -47,6 +95,33 @@ function Website({ data }: { data: Published }) {
         : [],
     [sections, faqs],
   );
+  // Venue location schema: only include venue facts that are visible to guests,
+  // either in the dedicated venue section or listed against the schedule.
+  const visibleVenues = useMemo(
+    () =>
+      sections.some((section) => section.type === "venue") ||
+      sections.some(
+        (section) =>
+          section.type === "schedule" && section.config?.show_venues !== false,
+      )
+        ? venues.map((venue) => ({
+            name: venue.name,
+            addressLine1: venue.address_line_1,
+            city: venue.city,
+            postcode: venue.postcode,
+            country: venue.country,
+          }))
+        : [],
+    [sections, venues],
+  );
+  const venueAddressVisible = useMemo(
+    () =>
+      Boolean(
+        sections.find((section) => section.type === "venue")?.config
+          ?.show_full_address,
+      ),
+    [sections],
+  );
   usePublicSeoMetadata({
     seo: config.seo_config,
     siteTitle: wedding.title || "",
@@ -59,6 +134,8 @@ function Website({ data }: { data: Published }) {
     // Published wedding websites are always discoverable so guests can find them via Google.
     searchIndexing: true,
     faqs: visibleFaqs,
+    venues: visibleVenues,
+    venueAddressVisible,
   });
   const date = wedding.wedding_date
     ? new Date(wedding.wedding_date + "T12:00:00").toLocaleDateString("en-GB", {
@@ -166,47 +243,143 @@ function Website({ data }: { data: Published }) {
               {section.type === "dress_code" && <p>{wedding.dress_code}</p>}
               {section.type === "schedule" && (
                 <ol className="space-y-4">
-                  {events.map((event) => (
-                    <li key={event.id!} className="border rounded-xl p-4">
-                      <h3 className="font-semibold">{event.name}</h3>
-                      {c.show_times !== false && event.start_at && (
-                        <p className="text-sm mt-2">
-                          {new Date(event.start_at).toLocaleString("en-GB", {
-                            timeZone: wedding.timezone || "Europe/London",
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          })}
-                        </p>
-                      )}
-                      <p className="mt-2">{event.description}</p>
-                      {Boolean(c.show_venues) && (
-                        <p className="text-sm mt-2">
-                          {venues.find((v) => v.id === event.venue_id)?.name}
-                        </p>
-                      )}
-                    </li>
-                  ))}
+                  {events.map((event) => {
+                    const eventVenue = venues.find(
+                      (v) => v.id === event.venue_id,
+                    );
+                    const eventMapEmbed =
+                      Boolean(c.show_venues) && eventVenue
+                        ? venueMapEmbedUrl(eventVenue, venueAddressVisible)
+                        : undefined;
+                    const arrivalLead =
+                      Number(event.arrival_offset_minutes) || 0;
+                    const showArrival =
+                      c.show_arrival_notes !== false &&
+                      Boolean(event.arrival_notes || arrivalLead > 0);
+                    const showParking =
+                      c.show_parking_notes !== false &&
+                      Boolean(event.parking_notes);
+                    return (
+                      <li key={event.id!} className="border rounded-xl p-4">
+                        <h3 className="font-semibold">{event.name}</h3>
+                        {c.show_times !== false && event.start_at && (
+                          <p className="text-sm mt-2 flex items-center gap-2">
+                            <span className="w-4 h-4 flex items-center justify-center">
+                              <i className="ri-time-line" aria-hidden="true"></i>
+                            </span>
+                            {new Date(event.start_at).toLocaleString("en-GB", {
+                              timeZone: wedding.timezone || "Europe/London",
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </p>
+                        )}
+                        {c.show_dress_code !== false &&
+                          (event.dress_code || wedding.dress_code) && (
+                            <p className="text-sm mt-2 flex items-center gap-2">
+                              <span className="w-4 h-4 flex items-center justify-center">
+                                <i className="ri-shirt-line" aria-hidden="true"></i>
+                              </span>
+                              {event.dress_code || wedding.dress_code}
+                            </p>
+                          )}
+                        <p className="mt-2">{event.description}</p>
+                        {Boolean(c.show_venues) && eventVenue?.name && (
+                          <p className="text-sm mt-2">{eventVenue.name}</p>
+                        )}
+                        {showArrival && (
+                          <p className="text-sm mt-2 flex items-start gap-2">
+                            <span className="w-4 h-4 flex items-center justify-center mt-0.5">
+                              <i className="ri-door-open-line" aria-hidden="true"></i>
+                            </span>
+                            <span>
+                              {arrivalLead > 0 &&
+                                `Please arrive ${arrivalLead} minutes before the start time. `}
+                              {event.arrival_notes}
+                            </span>
+                          </p>
+                        )}
+                        {showParking && (
+                          <p className="text-sm mt-2 flex items-start gap-2">
+                            <span className="w-4 h-4 flex items-center justify-center mt-0.5">
+                              <i className="ri-parking-box-line" aria-hidden="true"></i>
+                            </span>
+                            <span>{event.parking_notes}</span>
+                          </p>
+                        )}
+                        {eventMapEmbed && (
+                          <div className="mt-4 w-full h-56 rounded-lg overflow-hidden border border-secondary-100">
+                            <iframe
+                              className="w-full h-full border-0"
+                              src={eventMapEmbed}
+                              title={`Map showing ${eventVenue?.name}`}
+                              loading="lazy"
+                              referrerPolicy="no-referrer-when-downgrade"
+                              allowFullScreen
+                            ></iframe>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ol>
               )}
               {section.type === "venue" && (
                 <div className="grid md:grid-cols-2 gap-4">
-                  {venues.map((venue) => (
-                    <article key={venue.id!} className="border rounded-xl p-5">
-                      <h3 className="font-semibold">{venue.name}</h3>
-                      {Boolean(c.show_full_address) && (
-                        <p className="mt-2">
-                          {[
-                            venue.address_line_1,
-                            venue.city,
-                            venue.postcode,
-                            venue.country,
-                          ]
-                            .filter(Boolean)
-                            .join(", ")}
-                        </p>
-                      )}
-                    </article>
-                  ))}
+                  {venues.map((venue) => {
+                    const showFullAddress = Boolean(c.show_full_address);
+                    const directions = c.show_directions
+                      ? venueDirectionsUrl(venue, showFullAddress)
+                      : undefined;
+                    const mapEmbed = c.show_map
+                      ? venueMapEmbedUrl(venue, showFullAddress)
+                      : undefined;
+                    return (
+                      <article
+                        key={venue.id!}
+                        className="border rounded-xl p-5"
+                      >
+                        <h3 className="font-semibold">{venue.name}</h3>
+                        {showFullAddress && (
+                          <p className="mt-2">
+                            {[
+                              venue.address_line_1,
+                              venue.city,
+                              venue.postcode,
+                              venue.country,
+                            ]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                        )}
+                        {directions && (
+                          <a
+                            className="inline-flex items-center gap-2 mt-4 text-sm underline cursor-pointer"
+                            href={directions}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <span className="w-4 h-4 flex items-center justify-center">
+                              <i className="ri-map-pin-line" aria-hidden="true"></i>
+                            </span>
+                            Get directions
+                          </a>
+                        )}
+                        {mapEmbed && (
+                          <div className="mt-4 w-full h-56 rounded-lg overflow-hidden border border-secondary-100">
+                            <iframe
+                              className="w-full h-full border-0"
+                              src={mapEmbed}
+                              title={`Map showing ${venue.name}`}
+                              loading="lazy"
+                              referrerPolicy="no-referrer-when-downgrade"
+                              allowFullScreen
+                            ></iframe>
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })}
                 </div>
               )}
               {["travel", "accommodation"].includes(section.type) && (
@@ -265,9 +438,9 @@ function Website({ data }: { data: Published }) {
           );
         })}
       </main>
-      {!data.features?.whiteLabel && <footer className="p-8 text-center text-sm">
+      <footer className="p-8 text-center text-sm">
         <Link to="/">Made with Vowora</Link>
-      </footer>}
+      </footer>
     </div>
   );
 }

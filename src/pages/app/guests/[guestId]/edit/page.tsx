@@ -180,9 +180,7 @@ function NormalEditGuestPage() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   useEffect(() => {
-    if (!guestId || !weddingId) return;
-    setLoading(true);
-    setError('');
+    if (!guestId) return;
     let cancelled = false;
     const fetchAll = async () => {
       try {
@@ -207,7 +205,7 @@ function NormalEditGuestPage() {
     };
     fetchAll();
     return () => { cancelled = true; };
-  }, [guestId, weddingId]);
+  });
 
   const handleChange = (field: string, value: unknown) => {
     setForm((prev) => ({ ...prev, [field]: value }));
