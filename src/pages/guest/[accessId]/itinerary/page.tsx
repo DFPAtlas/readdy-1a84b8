@@ -92,7 +92,7 @@ export default function GuestItineraryPage() {
   const [selectedEvent, setSelectedEvent] = useState<WeddingEvent | null>(null);
   const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
 
-  const allEvents = data?.events || [];
+  const allEvents = useMemo(() => data?.events || [], [data?.events]);
   const wedding = data?.wedding;
   const settings = data?.portal_settings;
 

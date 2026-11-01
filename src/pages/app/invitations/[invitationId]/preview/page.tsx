@@ -6,7 +6,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import type { DemoGuest } from '@/demo/demoTypes';
 
 // ── Normal mode — preserve existing Supabase preview ──
-import { useState as useS, useEffect } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import type { Invitation, InvitationRecipient } from '@/types/invitation';
@@ -15,13 +15,13 @@ function NormalInvitationPreviewPage() {
   const { invitationId } = useParams();
   const navigate = useNavigate();
   const { weddingId } = useActiveWedding();
-  const [loading, setLoading] = useS(true);
-  const [error, setError] = useS('');
-  const [previewMode, setPreviewMode] = useS<'invitation' | 'desktop' | 'mobile'>('invitation');
-  const [invitation, setInvitation] = useS<Invitation | null>(null);
-  const [wedding, setWedding] = useS<{ partner_one_name: string; partner_two_name: string; title: string; wedding_date: string; dress_code?: string } | null>(null);
-  const [recipients, setRecipients] = useS<InvitationRecipient[]>([]);
-  useEffect(() => { if (!invitationId) return; (async () => { try { const [invRes, wedRes, recipRes] = await Promise.all([supabase.from('invitations').select('*, template:invitation_templates(id, name, style_preset, header_text, body_text, closing_text, footer_text)').eq('id', invitationId).eq('wedding_id', weddingId).maybeSingle(), supabase.from('weddings').select('partner_one_name, partner_two_name, title, wedding_date, dress_code').eq('id', weddingId).maybeSingle(), supabase.from('invitation_recipients').select('*, guest:guests(id, full_name)').eq('invitation_id', invitationId)]); if (!invRes.data) { setError('Invitation not found'); return; } setInvitation(invRes.data as Invitation); setWedding(wedRes.data as typeof wedding); setRecipients((recipRes.data || []) as InvitationRecipient[]); } catch (err: unknown) { setError(err instanceof Error ? err.message : 'Failed to load preview'); } finally { setLoading(false); } })(); }, [invitationId]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [previewMode, setPreviewMode] = useState<'invitation' | 'desktop' | 'mobile'>('invitation');
+  const [invitation, setInvitation] = useState<Invitation | null>(null);
+  const [wedding, setWedding] = useState<{ partner_one_name: string; partner_two_name: string; title: string; wedding_date: string; dress_code?: string } | null>(null);
+  const [recipients, setRecipients] = useState<InvitationRecipient[]>([]);
+  useEffect(() => { if (!invitationId) return; (async () => { try { const [invRes, wedRes, recipRes] = await Promise.all([supabase.from('invitations').select('*, template:invitation_templates(id, name, style_preset, header_text, body_text, closing_text, footer_text)').eq('id', invitationId).eq('wedding_id', weddingId).maybeSingle(), supabase.from('weddings').select('partner_one_name, partner_two_name, title, wedding_date, dress_code').eq('id', weddingId).maybeSingle(), supabase.from('invitation_recipients').select('*, guest:guests(id, full_name)').eq('invitation_id', invitationId)]); if (!invRes.data) { setError('Invitation not found'); return; } setInvitation(invRes.data as Invitation); setWedding(wedRes.data as typeof wedding); setRecipients((recipRes.data || []) as InvitationRecipient[]); } catch (err: unknown) { setError(err instanceof Error ? err.message : 'Failed to load preview'); } finally { setLoading(false); } })(); }, [invitationId, weddingId]);
   if (loading) return <AppShell><div className="max-w-4xl mx-auto flex items-center justify-center py-20"><div className="flex items-center gap-3 text-foreground-500"><i className="ri-loader-4-line animate-spin text-xl" /><span className="text-sm">Loading preview...</span></div></div></AppShell>;
   if (error || !invitation || !wedding) return <AppShell><div className="max-w-4xl mx-auto text-center py-20"><p className="text-sm text-red-600 mb-4">{error || 'Could not load preview'}</p><button onClick={() => navigate('/app/invitations')} className="btn-outline text-sm cursor-pointer">Back</button></div></AppShell>;
   const preset = invitation.template?.style_preset || 'minimal';

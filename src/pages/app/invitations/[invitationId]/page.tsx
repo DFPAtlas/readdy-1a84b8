@@ -40,7 +40,7 @@ function NormalInvitationDetailPage() {
         setActivity((actRes.data || []) as InvitationActivityLog[]);
       } catch { /* ignore */ } finally { setLoading(false); }
     })();
-  }, [invitationId]);
+  }, [invitationId, weddingId]);
 
   const handleSendNow = async () => {
     if (!invitation || isSending) return;

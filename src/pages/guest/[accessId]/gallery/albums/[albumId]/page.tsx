@@ -27,7 +27,7 @@ export default function GuestGalleryAlbumDetailPage() {
   const [reportSubmitted, setReportSubmitted] = useState(false);
 
   const gallery: GalleryData | null = data?.gallery ?? null;
-  const albums: GalleryAlbum[] = gallery?.albums ?? [];
+  const albums: GalleryAlbum[] = useMemo(() => gallery?.albums ?? [], [gallery?.albums]);
 
   const album = useMemo(() => albums.find((a) => a.id === albumId) || null, [albums, albumId]);
 

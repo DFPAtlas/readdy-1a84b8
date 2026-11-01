@@ -94,7 +94,7 @@ function NormalNewInvitationPage() {
       setDefaultTemplateId(def?.id || tmpls[0]?.id || '');
       setForm((prev) => ({ ...prev, template_id: def?.id || tmpls[0]?.id || '' }));
     })();
-  }, []);
+  }, [weddingId]);
 
   useEffect(() => {
     if (recipientType === 'household') {
@@ -123,7 +123,7 @@ function NormalNewInvitationPage() {
         setGuests(gOpts);
       })();
     }
-  }, [recipientType, guestSearch, householdSearch]);
+  }, [recipientType, guestSearch, householdSearch, weddingId]);
 
   const toggleGuest = (id: string) => {
     setSelectedGuestIds((prev) => prev.includes(id) ? prev.filter((gid) => gid !== id) : [...prev, id]);

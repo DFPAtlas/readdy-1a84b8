@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { supabase } from '@/lib/supabase';
@@ -139,7 +139,7 @@ function NormalHouseholdsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('active');
 
-  const fetchHouseholds = async () => {
+  const fetchHouseholds = useCallback(async () => {
     setLoading(true);
     try {
       let q = supabase.from('guest_households').select('*').eq('wedding_id', weddingId).order('display_name');
@@ -166,9 +166,9 @@ function NormalHouseholdsPage() {
       });
       setHouseholds(enriched as typeof households);
     } catch { /* silent */ } finally { setLoading(false); }
-  };
+  }, [weddingId, statusFilter, search]);
 
-  useEffect(() => { fetchHouseholds(); }, [weddingId]);
+  useEffect(() => { fetchHouseholds(); }, [fetchHouseholds]);
 
   if (loading) return <AppShell><div className="max-w-6xl mx-auto flex items-center justify-center py-20"><div className="flex items-center gap-3 text-foreground-500"><i className="ri-loader-4-line animate-spin text-xl" /><span className="text-sm">Loading households...</span></div></div></AppShell>;
 

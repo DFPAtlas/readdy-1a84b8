@@ -274,7 +274,7 @@ function DemoSearchPage() {
     });
 
     return items;
-  }, [state]);
+  }, [state, WNAME]);
 
   // Filter results
   const results = useMemo(() => {

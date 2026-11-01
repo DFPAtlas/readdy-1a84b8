@@ -15,7 +15,7 @@ export default function GuestGalleryFavouritesPage() {
   const [interactLoading, setInteractLoading] = useState(false);
 
   const gallery: GalleryData | null = data?.gallery ?? null;
-  const albums: GalleryAlbum[] = gallery?.albums ?? [];
+  const albums: GalleryAlbum[] = useMemo(() => gallery?.albums ?? [], [gallery?.albums]);
   const basePath = `/guest/${accessId}`;
 
   const isFavourited = useCallback(

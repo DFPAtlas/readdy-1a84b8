@@ -69,7 +69,7 @@ function DemoSuppliersPage() {
   const [detailTab, setDetailTab] = useState<'overview' | 'quotes' | 'documents'>('overview');
   const [toast, setToast] = useState('');
 
-  const suppliers = demo?.state.suppliers ?? [];
+  const suppliers = useMemo(() => demo?.state.suppliers ?? [], [demo?.state.suppliers]);
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
   const stats = useMemo(() => ({

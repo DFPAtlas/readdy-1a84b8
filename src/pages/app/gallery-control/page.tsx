@@ -309,7 +309,7 @@ function DemoGalleryControl() {
   const [addWallAlbum, setAddWallAlbum] = useState('demo-album-reception');
   const [toast, setToast] = useState('');
 
-  const items = demo?.state.galleryItems ?? [];
+  const items = useMemo(() => demo?.state.galleryItems ?? [], [demo?.state.galleryItems]);
   const albums = demo?.state.galleryAlbums ?? [];
   const settings = demo?.state.gallerySettings;
 

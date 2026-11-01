@@ -66,7 +66,7 @@ function DemoExportPage() {
   const [searchParams] = useSearchParams();
   const demo = useDemoDataSafe()!;
   const { state } = demo;
-  const selectedIds = searchParams.get('ids')?.split(',').filter(Boolean) || [];
+  const selectedIds = useMemo(() => searchParams.get('ids')?.split(',').filter(Boolean) || [], [searchParams]);
   const [preset, setPreset] = useState<ExportPreset>(selectedIds.length > 0 ? 'selected' : 'all');
   const [selectedColumns, setSelectedColumns] = useState<Set<string>>(new Set(PRESETS.all));
   const [includeArchived, setIncludeArchived] = useState(false);

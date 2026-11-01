@@ -68,7 +68,7 @@ function NormalInvitationsPage() {
       ]);
       setStats({ draft: draftC.count || 0, ready: readyC.count || 0, sent: sentC.count || 0, failed: failedC.count || 0, delivered: deliveredC.count || 0, missingContact: 0 });
     } catch (err: unknown) { setError(err instanceof Error ? err.message : 'Failed to load invitations'); } finally { setLoading(false); }
-  }, []);
+  }, [weddingId, filters.search, filters.status, filters.delivery_method, filters.template_id, filters.type, filters.active_archived, filters.sort, filters.page]);
   useEffect(() => { fetchData(); }, [fetchData]);
   const toggleSelect = (id: string) => { setSelected((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; }); };
   const toggleSelectAll = () => { if (selected.size === invitations.length) { setSelected(new Set()); } else { setSelected(new Set(invitations.map((i) => i.id))); } };
@@ -223,7 +223,7 @@ function DemoInvitationsPage() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Pre-compute with fallback for when demo is null
-  const invitations = demo?.state.invitations || [];
+  const invitations = useMemo(() => demo?.state.invitations || [], [demo?.state.invitations]);
   const guests = demo?.state.guests || [];
   const recipients = demo?.state.invitationRecipients || [];
   const households = demo?.state.households || [];

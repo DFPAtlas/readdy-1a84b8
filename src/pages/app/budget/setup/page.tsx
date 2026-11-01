@@ -152,7 +152,9 @@ function NormalBudgetSetupPage() {
       }
     };
     fetchExisting();
-  }, []);
+    // Reads current planner defaults once per wedding; adding them would reload on every edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weddingId]);
 
   const buildDefaultCategories = (total: number, mode: string, cp: number) => {
     const contPct = mode === 'disabled' ? 0 : cp;

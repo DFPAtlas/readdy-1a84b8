@@ -64,7 +64,7 @@ export default function HouseholdDetailPage() {
       setMembers((mRes.data || []) as Guest[]);
       setLoading(false);
     })();
-  }, [householdId]);
+  }, [householdId, weddingId]);
 
   const displayName = (g: Guest) => g.preferred_name || g.full_name || 'Unnamed';
 

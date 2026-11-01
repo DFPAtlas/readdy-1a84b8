@@ -84,7 +84,7 @@ function NormalBudgetSettingsPage() {
       }
     };
     fetchBudget();
-  }, []);
+  }, [weddingId]);
 
   const handleSave = async () => {
     setSaving(true);

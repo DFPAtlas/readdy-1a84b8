@@ -197,8 +197,8 @@ function DemoTemplatesPage() {
   const navigate = useNavigate();
   const demo = useDemoDataSafe();
 
-  const templates = demo?.state.invitationTemplates ?? [];
-  const invitations = demo?.state.invitations ?? [];
+  const templates = useMemo(() => demo?.state.invitationTemplates ?? [], [demo?.state.invitationTemplates]);
+  const invitations = useMemo(() => demo?.state.invitations ?? [], [demo?.state.invitations]);
 
   // Compute usage count: how many invitations reference each template
   const templatesWithUsage = useMemo(() => {
