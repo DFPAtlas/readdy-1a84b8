@@ -86,7 +86,7 @@ function supplierToCalendarItem(s: WeddingSupplier): CalendarItem {
 
 // ── Demo helpers ──
 
-function demoEventToCalendarItem(e: { id: string; name: string; start_at?: string; end_at?: string; event_type?: string; status?: string; description?: string; venue_id?: string }, venues: { id: string; name: string }[]): CalendarItem {
+function demoEventToCalendarItem(e: { id: string; name: string; start_at?: string | null; end_at?: string | null; event_type?: string; status?: string; description?: string; venue_id?: string }, venues: { id: string; name: string }[]): CalendarItem {
   const venue = e.venue_id ? venues.find((v) => v.id === e.venue_id) : null;
   return {
     id: `evt-${e.id}`,

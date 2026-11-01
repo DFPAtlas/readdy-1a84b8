@@ -506,7 +506,7 @@ function DemoGuestsListPage() {
                           {g.rsvp_status === 'declined' ? (
                             <span className="text-xs text-foreground-400">—</span>
                           ) : seatTable ? (
-                            <span className="text-xs text-accent-600">{seatTable.name}{seat.seat_number ? ` #${seat.seat_number}` : ''}</span>
+                            <span className="text-xs text-accent-600">{seatTable.name}{seat?.seat_number ? ` #${seat.seat_number}` : ''}</span>
                           ) : (
                             <span className="text-xs text-amber-500">Unassigned</span>
                           )}

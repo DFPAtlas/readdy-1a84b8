@@ -1211,7 +1211,7 @@ function SettingsTab({
 
 // ════════════════ PREVIEW ════════════════
 
-function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWeddingWebsiteBuilder>['draftConfig']; wedding: { partner_one_name?: string; partner_two_name?: string; wedding_date?: string } | null }) {
+function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWeddingWebsiteBuilder>['draftConfig']; wedding: { partner_one_name?: string | null; partner_two_name?: string | null; wedding_date?: string | null } | null }) {
   if (!config) return null;
   const theme = config.theme_config;
   const visibleSections = config.sections_config.filter((s) => s.visible);
@@ -1248,14 +1248,14 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
                   <h1 className="text-4xl md:text-5xl font-bold text-white mb-3" style={{ fontFamily: `"${theme.heading_font}", serif` }}>
                     {String(cfg.title || coupleNames)}
                   </h1>
-                  {cfg.subtitle && <p className="text-lg text-white/80 mb-6">{cfg.subtitle as string}</p>}
+                  {!!cfg.subtitle && <p className="text-lg text-white/80 mb-6">{cfg.subtitle as string}</p>}
                   <div className="flex items-center justify-center gap-3">
-                    {cfg.primary_button_label && (
+                    {!!cfg.primary_button_label && (
                       <button style={{ backgroundColor: theme.primary_color }} className={`${btnRadius} px-6 py-2.5 text-sm font-label text-white cursor-pointer whitespace-nowrap`}>
                         {cfg.primary_button_label as string}
                       </button>
                     )}
-                    {cfg.secondary_button_label && (
+                    {!!cfg.secondary_button_label && (
                       <button className={`${btnRadius} px-6 py-2.5 text-sm font-label text-white border border-white/40 cursor-pointer whitespace-nowrap`}>
                         {cfg.secondary_button_label as string}
                       </button>
@@ -1268,7 +1268,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
 
           case 'welcome':
           case 'story': {
-            const hasImg = cfg.image_position && cfg.image_position !== 'none';
+            const hasImg = !!cfg.image_position && cfg.image_position !== 'none';
             return (
               <section key={section.id} id={section.type} className={spacing}>
                 <div className={`${widthClass} mx-auto px-4 md:px-6`}>
@@ -1277,9 +1277,9 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
                       <h2 className="text-2xl md:text-3xl font-bold mb-4" style={{ fontFamily: `"${theme.heading_font}", serif` }}>
                         {String(cfg.heading || SECTION_LABELS[section.type])}
                       </h2>
-                      {cfg.body && <p className="text-sm leading-relaxed whitespace-pre-line" style={{ opacity: 0.75 }}>{cfg.body as string}</p>}
+                      {!!cfg.body && <p className="text-sm leading-relaxed whitespace-pre-line" style={{ opacity: 0.75 }}>{cfg.body as string}</p>}
                     </div>
-                    {hasImg && cfg.image_url && (
+                    {hasImg && !!cfg.image_url && (
                       <div className="flex-1">
                         <img src={cfg.image_url as string} alt="" className="w-full h-64 object-cover rounded-lg" />
                       </div>
@@ -1295,7 +1295,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
               <section key={section.id} id="schedule" className={`${spacing} bg-black/[0.02]`}>
                 <div className={`${widthClass} mx-auto px-4 md:px-6`}>
                   <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{String(cfg.heading || 'Schedule')}</h2>
-                  {cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
+                  {!!cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
                   <div className={`${cardStyles} bg-white rounded-lg p-6`}>
                     <div className="space-y-4">
                       {[1, 2, 3].map((i) => (
@@ -1322,7 +1322,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
               <section key={section.id} id="gallery" className={spacing}>
                 <div className={`${widthClass} mx-auto px-4 md:px-6`}>
                   <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{String(cfg.heading || 'Gallery')}</h2>
-                  {cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
+                  {!!cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
                   <div className="grid grid-cols-3 gap-2">
                     {[1, 2, 3, 4, 5, 6].map((i) => (
                       <div key={i} className="aspect-square bg-secondary-100 rounded-lg" />
@@ -1338,7 +1338,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
               <section key={section.id} id="faqs" className={`${spacing} bg-black/[0.02]`}>
                 <div className={`${widthClass} mx-auto px-4 md:px-6`}>
                   <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{String(cfg.heading || 'FAQs')}</h2>
-                  {cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
+                  {!!cfg.introduction && <p className="text-sm text-center mb-8" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
                   <div className={`${cardStyles} bg-white rounded-lg divide-y divide-secondary-100`}>
                     {['What time should guests arrive?', 'Is there parking on site?', 'What is the dress code?'].map((q, i) => (
                       <div key={i} className="px-5 py-4 flex items-center justify-between cursor-pointer">
@@ -1357,7 +1357,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
               <section key={section.id} id="rsvp" className={`${spacing} text-center`} style={{ backgroundColor: theme.primary_color, color: '#fff' }}>
                 <div className="max-w-2xl mx-auto px-4">
                   <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: `"${theme.heading_font}", serif` }}>{String(cfg.heading || 'RSVP')}</h2>
-                  {cfg.introduction && <p className="text-sm mb-6 opacity-80">{cfg.introduction as string}</p>}
+                  {!!cfg.introduction && <p className="text-sm mb-6 opacity-80">{cfg.introduction as string}</p>}
                   <button className={`${btnRadius} px-8 py-3 font-label text-sm cursor-pointer whitespace-nowrap`} style={{ backgroundColor: '#fff', color: theme.primary_color }}>
                     {String(cfg.button_label || 'Respond Now')}
                   </button>
@@ -1374,7 +1374,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
                   <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ fontFamily: `"${theme.heading_font}", serif` }}>
                     {String(cfg.heading || SECTION_LABELS[section.type])}
                   </h2>
-                  {cfg.introduction && <p className="text-sm max-w-lg mx-auto" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
+                  {!!cfg.introduction && <p className="text-sm max-w-lg mx-auto" style={{ opacity: 0.7 }}>{cfg.introduction as string}</p>}
                   {!cfg.heading && !cfg.introduction && (
                     <div className={`${cardStyles} bg-white rounded-lg p-8`}>
                       <div className="w-10 h-10 mx-auto flex items-center justify-center rounded-full bg-secondary-100 text-foreground-300 mb-3">

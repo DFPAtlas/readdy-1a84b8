@@ -160,7 +160,7 @@ export default function GuestItineraryPage() {
   }
 
   // ── Error ──
-  if (error || !data) {
+  if (error || !data || !wedding) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
         <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-full bg-secondary-100 text-secondary-400 mb-4">

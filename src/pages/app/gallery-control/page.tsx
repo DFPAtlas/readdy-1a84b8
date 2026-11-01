@@ -236,7 +236,7 @@ function RealGalleryControl({ weddingId }: { weddingId: string }) {
                   </div>
                   <div className="p-3">
                     <p className="text-xs text-foreground-800 line-clamp-2 mb-1.5">{(a.title || a.caption || 'Untitled') as string}</p>
-                    {a.moderation_ai_label && <p className="text-[9px] text-foreground-400 mb-1">AI: {(a.moderation_ai_label as string)}</p>}
+                    {!!a.moderation_ai_label && <p className="text-[9px] text-foreground-400 mb-1">AI: {(a.moderation_ai_label as string)}</p>}
                     <div className="flex items-center justify-between mt-1.5">
                       <span className="text-[9px] text-foreground-350">{String(albumTitle)}</span>
                       <span className="text-[9px] text-foreground-400">{new Date(a.created_at as string).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>

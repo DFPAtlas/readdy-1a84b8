@@ -167,10 +167,10 @@ export function setFormEventField(gf: GuestFormState, eventKey: string, val: boo
 interface StepProps {
   canEdit?: boolean;
   gf: GuestFormState;
-  currentRecipient: ReturnType<typeof useGuestPortal>['data']['recipients'][number];
-  portal: ReturnType<typeof useGuestPortal>['data']['portal_settings'];
-  recipients: ReturnType<typeof useGuestPortal>['data']['recipients'];
-  rsvpResponses: ReturnType<typeof useGuestPortal>['data']['rsvp_responses'];
+  currentRecipient: NonNullable<ReturnType<typeof useGuestPortal>['data']>['recipients'][number];
+  portal: NonNullable<ReturnType<typeof useGuestPortal>['data']>['portal_settings'] | undefined;
+  recipients: NonNullable<ReturnType<typeof useGuestPortal>['data']>['recipients'];
+  rsvpResponses: NonNullable<ReturnType<typeof useGuestPortal>['data']>['rsvp_responses'];
   householdEnabled: boolean;
   showTransport: boolean;
   showAccommodation: boolean;

@@ -220,7 +220,7 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
           case 'nw': nw = Math.max(400, w - dx); nh = Math.max(300, h - dy); break;
         }
         if (Math.round(nw) !== Math.round(w) || Math.round(nh) !== Math.round(h)) {
-          onUpdatePlan({ canvas_width: Math.round(nw), canvas_height: Math.round(nh) });
+          onUpdatePlan?.({ canvas_width: Math.round(nw), canvas_height: Math.round(nh) });
         }
       });
     };

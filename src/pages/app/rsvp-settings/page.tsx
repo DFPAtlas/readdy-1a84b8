@@ -64,7 +64,7 @@ export default function RsvpSettingsPage() {
             Object.fromEntries(
               Object.keys(DEFAULTS).map((key) => [
                 key,
-                data[key] ?? DEFAULTS[key],
+                data[key] ?? DEFAULTS[key as keyof typeof DEFAULTS],
               ]),
             ) as typeof DEFAULTS,
           );

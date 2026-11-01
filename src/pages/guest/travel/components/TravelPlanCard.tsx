@@ -16,7 +16,7 @@ const LABEL_MAP: Record<string, { label: string; icon: string }> = {
 export default function TravelPlanCard({ plan, placeName, onEdit, onDelete }: TravelPlanCardProps) {
   const info = LABEL_MAP[plan.plan_type] || { label: plan.plan_type, icon: 'ri-map-pin-line' };
 
-  const formatDate = (d?: string) => {
+  const formatDate = (d?: string | null) => {
     if (!d) return null;
     return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   };

@@ -174,7 +174,7 @@ function DemoSearchPage() {
         typeLabel: 'Event',
         typeIcon: 'ri-calendar-event-line',
         name: e.name,
-        secondary: `${new Date(e.start_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} — ${e.venue_name || e.venue_city || 'TBC'}`,
+        secondary: `${e.start_at ? new Date(e.start_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Date TBC'} — ${e.venue_name || e.venue_city || 'TBC'}`,
         status: e.status,
         route: '/app/schedule',
         weddingName: WNAME,

@@ -466,7 +466,7 @@ function RealSeatingOverview() {
       if (err) throw err;
 
       const plansWithCounts = await Promise.all(
-        (data || []).map(async (p: PlanSummary) => {
+        (data || []).map(async (p: Omit<PlanSummary, '_count_tables' | '_count_assignments'>) => {
           const [{ count: tc }, { count: ac }] = await Promise.all([
             supabase.from('seating_tables').select('*', { count: 'exact', head: true }).eq('plan_id', p.id),
             supabase.from('seating_assignments').select('*', { count: 'exact', head: true }).eq('plan_id', p.id),

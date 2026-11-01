@@ -74,7 +74,7 @@ export default function WorkspaceSearch() {
           const source = SOURCES[index];
           return (response.data || []).map((row) => ({
             id: String(row.id),
-            name: String(row[source.column] || "Untitled"),
+            name: String((row as Record<string, unknown>)[source.column] || "Untitled"),
             label: source.label,
             path: source.path.endsWith("/")
               ? source.path + row.id
