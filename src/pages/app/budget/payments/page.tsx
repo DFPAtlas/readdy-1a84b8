@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { supabase } from '@/lib/supabase';
@@ -32,7 +32,7 @@ function NormalBudgetPaymentsPage() {
 
   const currency: CurrencyCode = 'GBP';
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [pRes, eRes] = await Promise.all([
         supabase.from('budget_payments').select('*').eq('wedding_id', weddingId).order('due_at', { ascending: true }),
@@ -43,7 +43,7 @@ function NormalBudgetPaymentsPage() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load');
     }
-  };
+  }, [weddingId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,7 +54,7 @@ function NormalBudgetPaymentsPage() {
     };
     init();
     return () => { cancelled = true; };
-  }, [weddingId]);
+  }, [weddingId, fetchData]);
 
   const daysUntil = (dateStr: string) => Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
 
@@ -351,7 +351,7 @@ function DemoBudgetPaymentsPage() {
   const [cancelPayId, setCancelPayId] = useState<string | null>(null);
 
   const state = demo?.state;
-  const payments = state?.payments || [];
+  const payments = useMemo(() => state?.payments || [], [state?.payments]);
   const expenses = state?.expenses || [];
   const categories = state?.budgetCategories || [];
   const suppliers = state?.suppliers || [];

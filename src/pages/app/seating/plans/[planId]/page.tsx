@@ -397,7 +397,7 @@ export default function SeatingPlanWorkspacePage() {
     setSaveStatus('saved');
     await supabase.from('seating_activity_log').insert({ wedding_id: weddingId, seating_plan_id: planId, action: 'table_created', summary: `Added "${tableName}"` });
     showToast(`"${tableName}" added`);
-  }, [planId, weddingId, isDemo, tables.length, markUnsaved, showToast, pushUndo, tables]);
+  }, [planId, weddingId, isDemo, markUnsaved, showToast, pushUndo, tables]);
 
   // ── Add room object ──
   const handleAddObject = useCallback(async (type: ObjectType, name: string) => {

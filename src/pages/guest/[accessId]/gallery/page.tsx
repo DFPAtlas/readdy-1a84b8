@@ -45,7 +45,7 @@ export default function GuestGalleryPage() {
   const gallery: GalleryData | null = data?.gallery ?? null;
   const portalSettings = data?.portal_settings ?? null;
   const showGallery = portalSettings?.show_gallery !== false;
-  const albums = gallery?.albums ?? [];
+  const albums = useMemo(() => gallery?.albums ?? [], [gallery?.albums]);
 
   // ── Derived data (memos) ──
   const activeAlbum = useMemo(() => {

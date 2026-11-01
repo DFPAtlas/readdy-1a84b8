@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { supabase } from '@/lib/supabase';
@@ -25,7 +25,7 @@ export default function InvitationAccessPage() {
   const [showSendConfirm, setShowSendConfirm] = useState(false);
   const [storedLink, setStoredLink] = useState('');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!invitationId) return;
     setLoading(true);
     try {
@@ -38,9 +38,9 @@ export default function InvitationAccessPage() {
       setAccessToken((tokenRes.data as InvitationAccessToken) || null);
       setActivity((actRes.data || []) as AccessActivity[]);
     } catch { /* ignore */ } finally { setLoading(false); }
-  };
+  }, [invitationId, weddingId]);
 
-  useEffect(() => { fetchData(); }, [invitationId]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleGenerateLink = async () => {
     if (!invitationId || generating) return;

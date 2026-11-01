@@ -36,7 +36,7 @@ function NormalTemplateDetailPage() {
         setLoading(false);
       }
     })();
-  }, [templateId]);
+  }, [templateId, weddingId]);
 
   const handleArchive = async () => {
     if (!template) return;

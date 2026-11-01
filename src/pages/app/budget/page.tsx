@@ -389,12 +389,12 @@ function DemoBudgetDashboardPage() {
   const [toastMsg, setToastMsg] = useState('');
 
   const state = demo?.state;
-  const categories = state?.budgetCategories || [];
-  const expenses = state?.expenses || [];
-  const payments = state?.payments || [];
+  const categories = useMemo(() => state?.budgetCategories || [], [state?.budgetCategories]);
+  const expenses = useMemo(() => state?.expenses || [], [state?.expenses]);
+  const payments = useMemo(() => state?.payments || [], [state?.payments]);
   const suppliers = state?.suppliers || [];
-  const demoGiftFunds = state?.giftFunds || [];
-  const demoGiftFundContribs = state?.giftFundContributions || [];
+  const demoGiftFunds = useMemo(() => state?.giftFunds || [], [state?.giftFunds]);
+  const demoGiftFundContribs = useMemo(() => state?.giftFundContributions || [], [state?.giftFundContributions]);
 
   const demoGiftFundList: GiftFundListItem[] = useMemo(() => {
     return demoGiftFunds.map((f) => {

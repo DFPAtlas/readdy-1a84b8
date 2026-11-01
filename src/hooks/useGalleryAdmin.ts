@@ -326,8 +326,8 @@ function useDemoGalleryAdmin(): UseGalleryAdminReturn {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const items = demo?.state.galleryItems ?? [];
-  const demoAlbums = demo?.state.galleryAlbums ?? [];
+  const items = useMemo(() => demo?.state.galleryItems ?? [], [demo?.state.galleryItems]);
+  const demoAlbums = useMemo(() => demo?.state.galleryAlbums ?? [], [demo?.state.galleryAlbums]);
   const demoSettings = demo?.state.gallerySettings;
 
   const assets: GalleryAdminAsset[] = useMemo(() => items.map((item: DemoGalleryItem): GalleryAdminAsset => ({

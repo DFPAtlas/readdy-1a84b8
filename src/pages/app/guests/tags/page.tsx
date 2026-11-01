@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { supabase } from '@/lib/supabase';
@@ -94,6 +94,7 @@ function DemoTagsPage() {
 function NormalTagsPage() {
   const navigate = useNavigate();
   const svc = useGuestService();
+  const { listTags, weddingId: tagsWeddingId } = svc;
   const [loading, setLoading] = useState(true);
   const [tags, setTags] = useState<(GuestTag & { usage_count: number })[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -103,23 +104,23 @@ function NormalTagsPage() {
   const [error, setError] = useState('');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const fetchTags = async () => {
+  const fetchTags = useCallback(async () => {
     setLoading(true);
-    const tgs = await svc.listTags();
+    const tgs = await listTags();
     // Fetch usage counts via assignments
     const tagIds = new Set(tgs.map((t) => t.id));
     const tagCounts: Record<string, number> = {};
     if (tagIds.size > 0) {
-      const { data: assignments } = await supabase.from('guest_tag_assignments').select('tag_id').eq('wedding_id', svc.weddingId);
+      const { data: assignments } = await supabase.from('guest_tag_assignments').select('tag_id').eq('wedding_id', tagsWeddingId);
       (assignments || []).forEach((a: { tag_id: string }) => {
         if (tagIds.has(a.tag_id)) tagCounts[a.tag_id] = (tagCounts[a.tag_id] || 0) + 1;
       });
     }
     setTags(tgs.map((t) => ({ ...t, usage_count: tagCounts[t.id] || 0 })));
     setLoading(false);
-  };
+  }, [listTags, tagsWeddingId]);
 
-  useEffect(() => { fetchTags(); }, []);
+  useEffect(() => { fetchTags(); }, [fetchTags]);
 
   const resetForm = () => {
     setForm({ name: '', description: '', colour_key: 'secondary' });

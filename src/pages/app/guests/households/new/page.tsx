@@ -67,7 +67,7 @@ export default function HouseholdNewEditPage() {
       setLoading(false);
     };
     load();
-  }, [isEdit, householdId]);
+  }, [isEdit, householdId, weddingId]);
 
   const update = (field: string, value: string) => setForm((p) => ({ ...p, [field]: value }));
 

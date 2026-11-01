@@ -30,7 +30,7 @@ export default function GuestQuestionsPage() {
   const questionsData = data?.questions;
   const portalSettings = data?.portal_settings;
   const primaryGuest = data?.recipients?.[0];
-  const faqs = questionsData?.faqs || [];
+  const faqs = useMemo(() => questionsData?.faqs || [], [questionsData?.faqs]);
   const myQuestions = questionsData?.my_questions || [];
 
   // Compute category counts

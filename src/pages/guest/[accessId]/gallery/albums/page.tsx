@@ -55,7 +55,7 @@ export default function GuestGalleryAlbumsPage() {
   const portalSettings = data?.portal_settings ?? null;
   const showGallery = portalSettings?.show_gallery !== false;
 
-  const albums: GalleryAlbum[] = gallery?.albums ?? [];
+  const albums: GalleryAlbum[] = useMemo(() => gallery?.albums ?? [], [gallery?.albums]);
 
   const typeOptions = useMemo(() => {
     const types = new Set(albums.map((a) => a.album_type));

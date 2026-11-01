@@ -48,7 +48,7 @@ export default function EditTemplatePage() {
       });
       setLoading(false);
     })();
-  }, [templateId]);
+  }, [templateId, weddingId]);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));

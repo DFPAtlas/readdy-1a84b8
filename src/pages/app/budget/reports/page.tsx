@@ -198,7 +198,7 @@ function NormalBudgetReportsPage() {
       }
     };
     fetchAll();
-  }, []);
+  }, [weddingId]);
 
   const formatGBP = (n: number) => `£${n.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`;
   const totalPlanned = budget?.planned_total || 0;

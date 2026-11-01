@@ -479,7 +479,7 @@ function RealSeatingOverview() {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load plans');
     } finally { setLoading(false); }
-  }, [weddingId, supabase]);
+  }, [weddingId]);
 
   useEffect(() => { fetchPlans(); }, [fetchPlans]);
 

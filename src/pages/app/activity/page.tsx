@@ -55,7 +55,7 @@ function getCategoryColor(category: string): string {
 
 function DemoActivityCentre() {
   const demoData = useDemoDataSafe();
-  const activityFeed: DemoActivityEvent[] = demoData?.state.activityFeed || [];
+  const activityFeed: DemoActivityEvent[] = useMemo(() => demoData?.state.activityFeed || [], [demoData?.state.activityFeed]);
 
   const [category, setCategory] = useState('all');
   const [search, setSearch] = useState('');

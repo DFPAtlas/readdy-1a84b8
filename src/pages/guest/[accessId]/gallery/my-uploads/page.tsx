@@ -31,7 +31,7 @@ export default function GuestGalleryMyUploadsPage() {
   const [removingId, setRemovingId] = useState<string | null>(null);
 
   const gallery: GalleryData | null = data?.gallery ?? null;
-  const albums: GalleryAlbum[] = gallery?.albums ?? [];
+  const albums: GalleryAlbum[] = useMemo(() => gallery?.albums ?? [], [gallery?.albums]);
   const basePath = `/guest/${accessId}`;
 
   const myUploads = useMemo(() => {
