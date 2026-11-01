@@ -747,6 +747,7 @@ function NormalDashboard() {
   const [websitePublished, setWebsitePublished] = useState(false);
   const { wedding, weddingId, weddingState, loading: weddingLoading, error: weddingError, refreshWeddings } = useActiveWedding();
   const svc = useGuestService();
+  const getGuestStats = svc.getStats;
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -816,7 +817,7 @@ function NormalDashboard() {
       try {
         const [weddingRes, guestStats, allGuestsRes, householdsRes, invRes, draftInvRes, readyInvRes, tmplRes, allRecipientsRes, allInvRes, activeTokenRes, revokedTokenRes, portalRes, budgetRes, budgetExpRes, budgetPayRes, taskRes, websiteRes] = await Promise.all([
           supabase.from('weddings').select('title, partner_one_name, partner_two_name, wedding_date, slug').eq('id', weddingId).maybeSingle(),
-          svc.getStats(),
+          getGuestStats(),
           supabase.from('guests').select('id').eq('wedding_id', weddingId).eq('status', 'active'),
           supabase.from('guest_households').select('id').eq('wedding_id', weddingId).eq('status', 'active'),
           supabase.from('invitations').select('id', { count: 'exact', head: true }).eq('wedding_id', weddingId).not('status', 'eq', 'archived'),
@@ -971,7 +972,7 @@ function NormalDashboard() {
     };
     if (weddingId) fetchAll();
     return () => { cancelled = true; };
-  }, [weddingId]);
+  }, [weddingId, getGuestStats]);
 
   // Fetch gift fund list for the summary card
   useEffect(() => {

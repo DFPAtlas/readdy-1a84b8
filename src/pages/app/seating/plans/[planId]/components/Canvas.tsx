@@ -443,7 +443,7 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
         onMoveObjectLocal(touchDragTargetRef.current.id, nx, ny);
       }
     }
-  }, [panning, zoom, panOffset, snapEnabled, gridSize, onMoveTableLocal, onMoveObjectLocal, onZoomChange, onPanChange]);
+  }, [panning, zoom, snapEnabled, gridSize, onMoveTableLocal, onMoveObjectLocal, onZoomChange, onPanChange, canvasW, canvasH]);
 
   const handleCanvasTouchEnd = useCallback(() => {
     touchStateRef.current.pinching = false;

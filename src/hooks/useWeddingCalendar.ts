@@ -310,9 +310,10 @@ export function useWeddingCalendar(): UseWeddingCalendarReturn {
   }, []);
 
   // Build demo items
+  const demoState = demo?.state;
   const demoAllItems = useMemo(() => {
-    if (!demoMode) return [] as CalendarItem[];
-    const state = demo!.state;
+    if (!demoMode || !demoState) return [] as CalendarItem[];
+    const state = demoState;
     const allItems: CalendarItem[] = [];
 
     if (filters.sources.includes('wedding_event')) {
@@ -341,7 +342,7 @@ export function useWeddingCalendar(): UseWeddingCalendarReturn {
     }
 
     return allItems;
-  }, [demoMode, demo?.state, filters.sources]);
+  }, [demoMode, demoState, filters.sources]);
 
   // Build production items
   const prodAllItems = useMemo(() => {
@@ -381,13 +382,16 @@ export function useWeddingCalendar(): UseWeddingCalendarReturn {
   const loading = demoMode ? false : (eventsHook.loading || tasksHook.loading || suppliersHook.loading);
   const error = demoMode ? null : (eventsHook.error || tasksHook.error || suppliersHook.error);
 
+  const refetchEvents = eventsHook.refetch;
+  const refreshTasks = tasksHook.refresh;
+  const fetchSuppliers = suppliersHook.fetchSuppliers;
   const refetch = useCallback(() => {
     if (!demoMode) {
-      eventsHook.refetch();
-      tasksHook.refresh();
-      suppliersHook.fetchSuppliers();
+      refetchEvents();
+      refreshTasks();
+      fetchSuppliers();
     }
-  }, [demoMode, eventsHook.refetch, tasksHook.refresh, suppliersHook.fetchSuppliers]);
+  }, [demoMode, refetchEvents, refreshTasks, fetchSuppliers]);
 
   return {
     items,

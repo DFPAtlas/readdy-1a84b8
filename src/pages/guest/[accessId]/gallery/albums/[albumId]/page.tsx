@@ -34,14 +34,15 @@ export default function GuestGalleryAlbumDetailPage() {
   const basePath = `/guest/${accessId}`;
 
   // Mark album as read
+  const openedAlbumId = album?.id;
   useEffect(() => {
-    if (!album || !accessId) return;
+    if (!openedAlbumId || !accessId) return;
     fetch(INTERACT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_hash: accessId, action: 'mark_album_read', album_id: album.id }),
+      body: JSON.stringify({ session_hash: accessId, action: 'mark_album_read', album_id: openedAlbumId }),
     }).catch(() => { /* noop */ });
-  }, [album?.id, accessId]);
+  }, [openedAlbumId, accessId]);
 
   const isFavourited = useCallback(
     (asset: GalleryAsset): boolean => {

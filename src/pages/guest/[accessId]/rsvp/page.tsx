@@ -70,9 +70,9 @@ function NormalRSVPPage() {
   const { navigate, blocker } = useRsvpNavigationGuard(isDirty);
 
   const portal = data?.portal_settings;
-  const recipients = data?.recipients || [];
+  const recipients = useMemo(() => data?.recipients || [], [data?.recipients]);
   const invitation = data?.invitation;
-  const rsvpResponses = data?.rsvp_responses || {};
+  const rsvpResponses = useMemo(() => data?.rsvp_responses || {}, [data?.rsvp_responses]);
   const deadline = invitation?.rsvp_deadline ? new Date(invitation.rsvp_deadline) : null;
   const deadlinePassed = deadline ? new Date() > new Date(new Date(deadline.getFullYear(), deadline.getMonth(), deadline.getDate(), 23, 59, 59)) : false;
   const allowLateRsvp = portal?.allow_late_rsvp === true;
@@ -98,7 +98,6 @@ function NormalRSVPPage() {
     if (recipients.length === 0) return;
     const initial: Record<string, GuestFormState> = {};
     recipients.forEach((r) => {
-      if (forms[r.guest_id]) return;
       const existing = rsvpResponses[r.guest_id];
       if (existing && existing.response_status) {
         const sd = existing.structured_dietary;
@@ -144,8 +143,15 @@ function NormalRSVPPage() {
         initial[r.guest_id] = emptyForm();
       }
     });
-    if (Object.keys(initial).length > 0) setForms((prev) => ({ ...prev, ...initial }));
-  }, [recipients]);
+    // Only fill guests that have no form yet, so in-progress answers are never overwritten.
+    setForms((prev) => {
+      const missing = Object.keys(initial).filter((id) => !prev[id]);
+      if (missing.length === 0) return prev;
+      const next = { ...prev };
+      for (const id of missing) next[id] = initial[id];
+      return next;
+    });
+  }, [recipients, rsvpResponses]);
 
   const updateGuestField = useCallback((guestId: string, field: keyof GuestFormState, value: unknown) => {
     markDirty(guestId);

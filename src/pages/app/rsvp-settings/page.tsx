@@ -31,14 +31,16 @@ export default function RsvpSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const isDemo = !!demo;
+  const demoPortalSettings = demo?.state.portalSettings;
   useEffect(() => {
     let cancelled = false;
     setMessage("");
     setSettings(DEFAULTS);
     setMeals("");
     setLoading(true);
-    if (demo) {
-      const p = demo.state.portalSettings;
+    if (isDemo && demoPortalSettings) {
+      const p = demoPortalSettings;
       setSettings({ ...DEFAULTS, ...p });
       setMeals((p.meal_options || []).join("\n"));
       setLoading(false);
@@ -73,7 +75,7 @@ export default function RsvpSettingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [weddingId, !!demo]);
+  }, [weddingId, isDemo, demoPortalSettings]);
   async function save() {
     if (!permissions.canManageInvitations || !weddingId) return;
     const meal_options = [

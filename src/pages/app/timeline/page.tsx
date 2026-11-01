@@ -651,7 +651,12 @@ function NormalTimelinePage() {
     else setItems((data || []) as TimelineItem[]);
     setLoading(false);
   }, [weddingId]);
-  useEffect(() => { setItems([]); setMessage(''); setLoading(true); load(); return () => { loadGeneration.current++; }; }, [load]);
+  useEffect(() => {
+    setItems([]); setMessage(''); setLoading(true); load();
+    // Bumping the counter on cleanup cancels any load still in flight (not a DOM ref).
+    const generationRef = loadGeneration;
+    return () => { generationRef.current++; };
+  }, [load]);
   const sorted = items.filter(item => !selectedDate || item.timeline_date === selectedDate);
   async function save(form: TimelineFormData) {
     if (!weddingId || !permissions.canManageTimeline || saving) return;
