@@ -34,7 +34,7 @@ export default function GuestLocalGuidePage() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [search, setSearch] = useState('');
 
-  const places = data?.localPlaces || [];
+  const places = useMemo(() => data?.localPlaces || [], [data?.localPlaces]);
   const settings = data?.portal_settings;
   const wedding = data?.wedding;
   const savedIds = useMemo(() => new Set((data?.savedLocations || []).map((s) => s.travel_location_id)), [data]);

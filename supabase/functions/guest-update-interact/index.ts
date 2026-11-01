@@ -25,7 +25,7 @@ Deno.serve(async (req: Request) => {
     const body = await req.json();
     const { session_hash, action, update_id, guest_id, updates_enabled, email_notifications } = body || {};
 
-    if (!session_hash || typeof session_hash !== "string" || session_hash.length < 32) {
+    if (!validGuestSessionSecret(session_hash)) {
       return new Response(JSON.stringify({ ok: false, error: "session_invalid" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

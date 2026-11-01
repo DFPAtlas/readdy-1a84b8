@@ -8,9 +8,9 @@ export default function GuestAccommodationDetailPage() {
   const navigate = useNavigate();
   const { data, loading, error } = useGuestPortal();
 
-  const places = data?.localPlaces || [];
+  const places = useMemo(() => data?.localPlaces || [], [data?.localPlaces]);
   const place = useMemo(() => places.find((p) => p.id === locationId), [places, locationId]);
-  const travelPlans = data?.travelPlans || [];
+  const travelPlans = useMemo(() => data?.travelPlans || [], [data?.travelPlans]);
   const isSaved = useMemo(() => travelPlans.some((p) => p.place_id === locationId), [travelPlans, locationId]);
   const wedding = data?.wedding;
 

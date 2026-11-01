@@ -68,10 +68,11 @@ function DemoLiveWall() {
   const [showCaptions, setShowCaptions] = useState(true);
   const [showNames, setShowNames] = useState(true);
 
+  const galleryItems = demo?.state.galleryItems;
   const wallItems = useMemo(() => {
-    if (!demo) return [];
-    return demo.state.galleryItems.filter((gi) => gi.moderation_status === 'approved' && gi.wall_visible);
-  }, [demo?.state.galleryItems]);
+    if (!galleryItems) return [];
+    return galleryItems.filter((gi) => gi.moderation_status === 'approved' && gi.wall_visible);
+  }, [galleryItems]);
 
   const settings = demo?.state.gallerySettings;
   const isPaused = settings?.wall_paused ?? false;
