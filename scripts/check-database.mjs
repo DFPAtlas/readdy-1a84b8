@@ -91,6 +91,13 @@ create function auth.role() returns text language sql stable as $$ select coales
     "insert into public.weddings(id,title,slug,status) values($1,'Private wedding','private-wedding','planning'),($2,'Other wedding','other-wedding','planning')",
     [wedding, otherWedding],
   );
+  // The journeys below exercise paid features (collaborators, gallery, etc.),
+  // so the primary test wedding is on an active Luxury subscription. Free-plan
+  // limits are enforced by 20261011132941_subscription_entitlements.sql.
+  await db.query(
+    "insert into public.wedora_subscriptions(wedding_id,user_id,plan_key,stripe_subscription_id,status,current_period_end) values($1,$2,'luxury','sub_test_journeys','active',now()+interval '30 days')",
+    [wedding, owner],
+  );
   await db.query(
     "insert into public.wedding_members(wedding_id,user_id,role,status) values($1,$2,'owner','active'),($1,$3,'viewer','active')",
     [wedding, owner, viewer],
@@ -405,6 +412,18 @@ create function auth.role() returns text language sql stable as $$ select coales
     ).rows[0].portal_enabled,
     false,
     "New weddings start private",
+  );
+  // Paywall: a free-plan wedding cannot use paid features, even via trusted writes.
+  await db.exec(
+    `reset role; select set_config('request.jwt.claim.role','',false)`,
+  );
+  await assert.rejects(
+    db.query(
+      "insert into public.gallery_albums(wedding_id,title) values($1,'Paid album')",
+      [otherWedding],
+    ),
+    /Upgrade your subscription/,
+    "Free-plan weddings cannot create gallery albums",
   );
   await db.close();
   console.log("Database migration and access boundary checks passed.");
