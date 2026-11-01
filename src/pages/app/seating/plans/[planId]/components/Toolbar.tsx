@@ -85,7 +85,7 @@ export default function Toolbar({
           <MaybeTooltip isDemo={isDemo} title="Guest list" description="View and assign unseated guests from a mobile-friendly list." icon="ri-group-line">
             <button onClick={onShowMobileGuests} className="w-8 h-8 flex items-center justify-center rounded-lg text-foreground-500 hover:bg-background-100 cursor-pointer relative" title="Guest list" aria-label="Open guest list">
               <i className="ri-group-line" style={{ fontSize: '14px' }} />
-              {unseatedGuestCount > 0 && (
+              {(unseatedGuestCount ?? 0) > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[15px] h-4 flex items-center justify-center rounded-full bg-primary-500 text-white text-[9px] font-label px-0.5">{unseatedGuestCount}</span>
               )}
             </button>

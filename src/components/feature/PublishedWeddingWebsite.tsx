@@ -209,7 +209,7 @@ function Website({ data }: { data: Published }) {
                 <img
                   className="max-h-96 w-full object-cover rounded-xl mb-5"
                   src={image}
-                  alt={headingText}
+                  alt={headingText ?? undefined}
                 />
               )}
               {text(c.introduction || c.body) && (

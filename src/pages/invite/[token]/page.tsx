@@ -223,12 +223,12 @@ export default function InviteLandingPage() {
       <main className="flex-1 flex items-center justify-center px-4 py-12 md:py-20">
         <div className="w-full max-w-2xl">
           <div className={`bg-white rounded-2xl ${ps.border} border p-8 md:p-12 text-center`}>
-            {invitation.design_document&&<GuestInvitationDesign value={invitation.design_document} assets={invitation.design_assets}/>}
+            {!!invitation.design_document&&<GuestInvitationDesign value={invitation.design_document} assets={invitation.design_assets}/>}
             {/* Couple names */}
             <p className={`font-heading text-4xl md:text-5xl ${ps.text} mb-2`}>
               {wedding.partner_one_name} <span className="text-2xl">&amp;</span> {wedding.partner_two_name}
             </p>
-            {dateDisplay && (
+            {!!dateDisplay && (
               <p className={`text-sm font-label ${ps.accent} tracking-wider uppercase mb-8`}>{dateDisplay}</p>
             )}
 
@@ -240,19 +240,19 @@ export default function InviteLandingPage() {
             </div>
 
             {/* Invitation text */}
-            {template?.header_text && (
+            {!!template?.header_text && (
               <h2 className={`font-heading text-2xl md:text-3xl ${ps.text} mb-4`}>{template.header_text as string}</h2>
             )}
 
             {/* Recipient greeting */}
-            {invitation.formal_recipient_name && (
-              <p className={`text-lg font-label ${ps.text} mb-4`}>{invitation.formal_recipient_name}</p>
+            {!!invitation.formal_recipient_name && (
+              <p className={`text-lg font-label ${ps.text} mb-4`}>{String(invitation.formal_recipient_name)}</p>
             )}
-            {invitation.informal_greeting && (
-              <p className={`text-sm font-label ${ps.accent} mb-3`}>Dear {invitation.informal_greeting},</p>
+            {!!invitation.informal_greeting && (
+              <p className={`text-sm font-label ${ps.accent} mb-3`}>Dear {String(invitation.informal_greeting)},</p>
             )}
 
-            {template?.body_text && (
+            {!!template?.body_text && (
               <p className={`text-sm ${ps.text} opacity-80 leading-relaxed max-w-lg mx-auto mb-8`}>
                 {template.body_text as string}
               </p>
@@ -289,7 +289,7 @@ export default function InviteLandingPage() {
             )}
 
             {/* Closing */}
-            {template?.closing_text && (
+            {!!template?.closing_text && (
               <p className={`text-sm ${ps.text} opacity-70 italic mb-8`}>{template.closing_text as string}</p>
             )}
 
@@ -309,7 +309,7 @@ export default function InviteLandingPage() {
               </button>
             </div>
 
-            {template?.footer_text && (
+            {!!template?.footer_text && (
               <p className={`text-xs ${ps.accent} opacity-60 mt-8`}>{template.footer_text as string}</p>
             )}
           </div>

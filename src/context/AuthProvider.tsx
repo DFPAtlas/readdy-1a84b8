@@ -175,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Check if email confirmation is required
       const needsVerification = data?.user?.identities?.length === 0 ||
-        (data?.user && !data?.session);
+        !!(data?.user && !data?.session);
 
       return { success: true, needsVerification };
     } catch (err) {

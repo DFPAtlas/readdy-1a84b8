@@ -47,9 +47,11 @@ function FundCard({ fund, basePath, coupleAccountReady }: { fund: GiftFundLight;
                 <span className="text-sm font-semibold text-foreground-900">
                   {formatMinor(fund.raised_amount_minor, 'GBP' as CurrencyCode)}
                 </span>
-                <span className="text-xs text-foreground-400">
-                  of {formatMinor(fund.target_amount_minor, 'GBP' as CurrencyCode)}
-                </span>
+                {fund.target_amount_minor != null && (
+                  <span className="text-xs text-foreground-400">
+                    of {formatMinor(fund.target_amount_minor, 'GBP' as CurrencyCode)}
+                  </span>
+                )}
               </div>
               <div className="w-full h-1.5 rounded-full bg-secondary-100 overflow-hidden">
                 <div className="h-full rounded-full bg-accent-500 transition-all" style={{ width: `${progress}%` }} />

@@ -5,7 +5,7 @@ import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { PUBLIC_SITE_HOST } from '@/lib/env';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { supabase } from '@/lib/supabase';
-import type { DemoTravelPlace, DemoGalleryItem } from '@/demo/demoTypes';
+import type { DemoTravelPlace, DemoGalleryItem, DemoWedding, DemoUpdate, DemoRegistryItem, DemoWeddingVenue } from '@/demo/demoTypes';
 import { createDemoSeoConfig } from '@/demo/demoWebsite';
 import { usePublicSeoMetadata } from '@/hooks/usePublicSeoMetadata';
 
@@ -133,9 +133,11 @@ function PublicWeddingPageContent({
   setMobileMenuOpen, faqOpen, setFaqOpen, previewBarVisible, setPreviewBarVisible,
   seo, coupleNames, siteUrl,
 }: {
-  wedding: any; dateDisplay: string; navLinks: any; scheduleItems: any; faqs: any;
-  updates: any; registryItems: any; galleryItems: any; travelGroups: any;
-  ceremonyVenue: any; receptionVenue: any; mobileMenuOpen: boolean;
+  wedding: DemoWedding; dateDisplay: string; navLinks: { label: string; href: string }[];
+  scheduleItems: { time: string; title: string; desc: string }[]; faqs: { q: string; a: string }[];
+  updates: DemoUpdate[]; registryItems: DemoRegistryItem[]; galleryItems: DemoGalleryItem[];
+  travelGroups: Record<string, DemoTravelPlace[]>;
+  ceremonyVenue: DemoWeddingVenue | undefined; receptionVenue: DemoWeddingVenue | undefined; mobileMenuOpen: boolean;
   setMobileMenuOpen: (v: boolean) => void; faqOpen: number | null;
   setFaqOpen: (v: number | null) => void; previewBarVisible: boolean;
   setPreviewBarVisible: (v: boolean) => void; seo: any; coupleNames: string; siteUrl: string;

@@ -116,7 +116,7 @@ function NormalBudgetCategoriesPage() {
       if (editingExpenseId) {
         const { error: updErr } = await supabase.from('budget_expenses').update(payload).eq('id', editingExpenseId).eq('wedding_id', weddingId);
         if (updErr) throw updErr;
-        setExpenses((prev) => prev.map((ex) => ex.id === editingExpenseId ? { ...ex, ...payload } : ex));
+        setExpenses((prev) => prev.map((ex) => ex.id === editingExpenseId ? ({ ...ex, ...payload } as BudgetExpense) : ex));
         setToastMsg('Expense updated.');
       } else {
         const { data, error: insErr } = await supabase.from('budget_expenses').insert({ ...payload, created_at: new Date().toISOString() }).select('*').single();

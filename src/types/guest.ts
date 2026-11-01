@@ -46,7 +46,7 @@ export interface Guest {
   updated_by?: string;
   created_at?: string;
   updated_at?: string;
-  archived_at?: string;
+  archived_at?: string | null;
   date_of_birth?: string;
   age_band?: string;
   household?: GuestHousehold | null;
@@ -75,7 +75,7 @@ export interface GuestHousehold {
   created_by?: string;
   created_at?: string;
   updated_at?: string;
-  archived_at?: string;
+  archived_at?: string | null;
   primary_guest?: Guest | null;
   members?: Guest[];
   member_count?: number;
@@ -85,7 +85,7 @@ export interface GuestTag {
   id: string;
   wedding_id: string;
   name: string;
-  description?: string;
+  description?: string | null;
   colour_key: string;
   created_by?: string;
   created_at?: string;

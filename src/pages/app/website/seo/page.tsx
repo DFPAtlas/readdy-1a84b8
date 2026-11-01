@@ -75,7 +75,7 @@ function SocialPreview({ seo, coupleNames }: { seo: SeoConfig; coupleNames: stri
 }
 
 // ── Structured data preview ──
-function StructuredDataPreview({ seo, coupleNames, wedding }: { seo: SeoConfig; coupleNames: string; wedding: { partner_one_name?: string; partner_two_name?: string; wedding_date?: string; location?: string } | null }) {
+function StructuredDataPreview({ seo, coupleNames, wedding }: { seo: SeoConfig; coupleNames: string; wedding: { partner_one_name?: string | null; partner_two_name?: string | null; wedding_date?: string | null; location?: string | null } | null }) {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',

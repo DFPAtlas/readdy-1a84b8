@@ -18,7 +18,7 @@ export interface InvitationTemplate {
   updated_by?: string;
   created_at?: string;
   updated_at?: string;
-  archived_at?: string;
+  archived_at?: string | null;
   usage_count?: number;
 }
 
@@ -40,7 +40,7 @@ export interface Invitation {
   updated_by?: string;
   created_at?: string;
   updated_at?: string;
-  archived_at?: string;
+  archived_at?: string | null;
   template?: InvitationTemplate | null;
   household?: { id: string; display_name: string } | null;
   recipients?: InvitationRecipient[];

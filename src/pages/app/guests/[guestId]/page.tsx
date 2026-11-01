@@ -11,6 +11,29 @@ import type { DemoGuest } from '@/demo/demoTypes';
 
 // ── Helpers ──
 
+/** RSVP response row fields shown on the guest detail page. */
+interface GuestRsvpRow {
+  id: string;
+  response_status?: string | null;
+  is_draft?: boolean | null;
+  submitted_at?: string | null;
+  ceremony_attending?: boolean | null;
+  reception_attending?: boolean | null;
+  evening_attending?: boolean | null;
+  welcome_attending?: boolean | null;
+  day_after_attending?: boolean | null;
+  meal_choice?: string | null;
+  dietary_requirements?: string | null;
+  accessibility_notes?: string | null;
+  transport_status?: string | null;
+  accommodation_status?: string | null;
+  plus_one_confirmed?: boolean | null;
+  plus_one_name?: string | null;
+  song_request?: string | null;
+  message_to_couple?: string | null;
+  [key: string]: unknown;
+}
+
 function getRsvpLabel(status: string): string {
   if (status === 'accepted') return 'Attending';
   if (status === 'declined') return 'Declined';
@@ -326,7 +349,7 @@ function NormalGuestDetailPage() {
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // RSVP data from rsvp_responses table
-  const [rsvpData, setRsvpData] = useState<Record<string, unknown> | null>(null);
+  const [rsvpData, setRsvpData] = useState<GuestRsvpRow | null>(null);
   const [rsvpRevisions, setRsvpRevisions] = useState<Array<{ revision_number: number; change_summary: string; created_at: string }>>([]);
   const [rsvpCustomAnswers, setRsvpCustomAnswers] = useState<Array<{ question_label: string; answer: string }>>([]);
   const [manualRsvpOpen, setManualRsvpOpen] = useState(false);
@@ -368,7 +391,7 @@ function NormalGuestDetailPage() {
 
         // RSVP response data
         if (rsvpRes.data && !cancelled) {
-          const rd = rsvpRes.data as unknown as Record<string, unknown>;
+          const rd = rsvpRes.data as unknown as GuestRsvpRow;
           setRsvpData(rd);
 
           // Fetch revisions
@@ -449,7 +472,7 @@ function NormalGuestDetailPage() {
 
       // Refresh RSVP data
       const { data: freshRsvp } = await supabase.from('rsvp_responses').select('*').eq('guest_id', guest.id).eq('wedding_id', weddingId).order('updated_at', { ascending: false }).limit(1).maybeSingle();
-      setRsvpData((freshRsvp || null) as unknown as Record<string, unknown> | null);
+      setRsvpData((freshRsvp || null) as unknown as GuestRsvpRow | null);
 
       // Refresh activity
       const { data: freshAct } = await supabase.from('guest_activity_log').select('action, summary, created_at').eq('guest_id', guestId).order('created_at', { ascending: false }).limit(20);

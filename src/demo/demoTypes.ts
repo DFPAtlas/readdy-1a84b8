@@ -39,8 +39,8 @@ export interface DemoWeddingEvent {
   wedding_id: string;
   event_type: string;
   name: string;
-  start_at: string;
-  end_at: string;
+  start_at: string | null;
+  end_at: string | null;
   venue_id: string;
   dress_code: string;
   description: string;

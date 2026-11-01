@@ -400,19 +400,19 @@ export function useWeddingEvents(): UseWeddingEventsReturn {
       if (data.event_type !== undefined) demoUpdates.event_type = data.event_type;
       if (data.start_at !== undefined) demoUpdates.start_at = data.start_at;
       if (data.end_at !== undefined) demoUpdates.end_at = data.end_at;
-      if (data.venue_id !== undefined) demoUpdates.venue_id = data.venue_id;
-      if (data.dress_code !== undefined) demoUpdates.dress_code = data.dress_code;
-      if (data.description !== undefined) demoUpdates.description = data.description;
-      if (data.guest_description !== undefined) demoUpdates.guest_description = data.guest_description;
+      if (data.venue_id !== undefined) demoUpdates.venue_id = data.venue_id ?? '';
+      if (data.dress_code !== undefined) demoUpdates.dress_code = data.dress_code ?? '';
+      if (data.description !== undefined) demoUpdates.description = data.description ?? '';
+      if (data.guest_description !== undefined) demoUpdates.guest_description = data.guest_description ?? '';
       if (data.visibility !== undefined) demoUpdates.visibility = data.visibility as DemoWeddingEvent['visibility'];
       if (data.status !== undefined) demoUpdates.status = data.status as DemoWeddingEvent['status'];
       if (data.reveal_at !== undefined) demoUpdates.reveal_at = data.reveal_at;
       if (data.published_at !== undefined) demoUpdates.published_at = data.published_at;
       if (data.arrival_offset_minutes !== undefined) demoUpdates.arrival_offset_minutes = data.arrival_offset_minutes;
-      if (data.parking_notes !== undefined) demoUpdates.parking_notes = data.parking_notes;
-      if (data.transport_notes !== undefined) demoUpdates.transport_notes = data.transport_notes;
-      if (data.accessibility_notes !== undefined) demoUpdates.accessibility_notes = data.accessibility_notes;
-      if (data.children_notes !== undefined) demoUpdates.children_notes = data.children_notes;
+      if (data.parking_notes !== undefined) demoUpdates.parking_notes = data.parking_notes ?? '';
+      if (data.transport_notes !== undefined) demoUpdates.transport_notes = data.transport_notes ?? '';
+      if (data.accessibility_notes !== undefined) demoUpdates.accessibility_notes = data.accessibility_notes ?? '';
+      if (data.children_notes !== undefined) demoUpdates.children_notes = data.children_notes ?? '';
       demo.updateEvent(eventId, demoUpdates);
       return true;
     }

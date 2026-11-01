@@ -1134,7 +1134,7 @@ function DemoSettingsPage() {
             </div>
           </nav>
           <div className="flex-1 min-w-0">
-            <DemoTabContent tab={activeTab} wedding={wedding} />
+            {wedding && <DemoTabContent tab={activeTab} wedding={wedding} />}
           </div>
         </div>
       </div>
@@ -1142,7 +1142,7 @@ function DemoSettingsPage() {
   );
 }
 
-function DemoTabContent({ tab, wedding }: { tab: SettingsTab; wedding: ReturnType<typeof useDemoDataSafe>['state']['wedding'] }) {
+function DemoTabContent({ tab, wedding }: { tab: SettingsTab; wedding: NonNullable<ReturnType<typeof useDemoDataSafe>>['state']['wedding'] }) {
   useDemoDataSafe(); // keep hook call consistent
 
   switch (tab) {
