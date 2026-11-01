@@ -1,6 +1,6 @@
 import { useGuestPortal } from '@/hooks/useGuestPortal';
 import { useParams, Link } from 'react-router-dom';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { GuestUpdate } from '@/types/access';
 import { isDemoMode } from '@/demo/demoConfig';
 import { edgeFunctionUrl } from '@/lib/edgeFunctions';
@@ -51,9 +51,13 @@ export default function GuestUpdateDetailPage() {
 
   const primaryGuest = data?.recipients?.[0];
 
-  // Mark as read on open
+  // Mark as read on open. The ref ensures each update is only marked once,
+  // even if the portal data (and so `update`/`primaryGuest`) is refreshed.
+  const markedReadRef = useRef<string | null>(null);
   useEffect(() => {
     if (!update || !primaryGuest || update.is_read || isDemoMode) return;
+    if (markedReadRef.current === update.id) return;
+    markedReadRef.current = update.id;
     const markRead = async () => {
       await fetch(INTERACT_URL, {
         method: 'POST',
@@ -63,7 +67,7 @@ export default function GuestUpdateDetailPage() {
       await refresh();
     };
     markRead();
-  }, [update?.id]);
+  }, [accessId, primaryGuest, refresh, update]);
 
   const callInteract = useCallback(async (action: string, params: Record<string, unknown>) => {
     setMutating(true);

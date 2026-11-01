@@ -20,7 +20,7 @@ export default function GuestSavedTravelPage() {
   const { data, loading, error, refresh } = useGuestPortal();
 
   const places = data?.localPlaces || [];
-  const travelPlans = data?.travelPlans || [];
+  const travelPlans = useMemo(() => data?.travelPlans || [], [data?.travelPlans]);
   const settings = data?.portal_settings;
   const firstRecipient = data?.recipients?.[0];
   const wedding = data?.wedding;

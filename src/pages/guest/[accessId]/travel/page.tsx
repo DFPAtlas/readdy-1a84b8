@@ -17,10 +17,10 @@ export default function GuestTravelPage() {
 
   const wedding = data?.wedding;
   const settings = data?.portal_settings;
-  const places = data?.localPlaces || [];
-  const venues = data?.weddingVenues || [];
-  const plans = data?.travelPlans || [];
-  const travelUpdates = data?.travelUpdates || [];
+  const places = useMemo(() => data?.localPlaces || [], [data?.localPlaces]);
+  const venues = useMemo(() => data?.weddingVenues || [], [data?.weddingVenues]);
+  const plans = useMemo(() => data?.travelPlans || [], [data?.travelPlans]);
+  const travelUpdates = useMemo(() => data?.travelUpdates || [], [data?.travelUpdates]);
   const shuttles = data?.shuttles || [];
   const firstRecipient = data?.recipients?.[0];
 

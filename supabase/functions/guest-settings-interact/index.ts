@@ -40,10 +40,6 @@ interface RequestBody {
   corrected_fields?: Record<string, string>;
 }
 
-function validateSessionHash(hash: unknown): hash is string {
-  return typeof hash === "string" && hash.length >= 32;
-}
-
 function validateProfile(profile: unknown): { valid: boolean; error?: string } {
   if (!profile || typeof profile !== "object") return { valid: false, error: "Profile data is required" };
   const p = profile as Record<string, unknown>;
@@ -67,7 +63,7 @@ Deno.serve(async (req: Request) => {
     const body: RequestBody = await req.json();
     const { session_hash, action } = body;
 
-    if (!validateSessionHash(session_hash)) {
+    if (!validGuestSessionSecret(session_hash)) {
       return new Response(JSON.stringify({ success: false, error: "Invalid session" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 

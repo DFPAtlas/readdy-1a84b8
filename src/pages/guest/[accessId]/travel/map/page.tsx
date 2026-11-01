@@ -38,8 +38,8 @@ export default function GuestTravelMapPage() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedPlace, setSelectedPlace] = useState<LocalPlace | null>(null);
 
-  const places = data?.localPlaces || [];
-  const venues = data?.weddingVenues || [];
+  const places = useMemo(() => data?.localPlaces || [], [data?.localPlaces]);
+  const venues = useMemo(() => data?.weddingVenues || [], [data?.weddingVenues]);
   const settings = data?.portal_settings;
   const wedding = data?.wedding;
 

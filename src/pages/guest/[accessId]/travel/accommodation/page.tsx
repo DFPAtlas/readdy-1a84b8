@@ -8,8 +8,8 @@ export default function GuestAccommodationPage() {
   const basePath = `/guest/${accessId}`;
   const { data, loading, error } = useGuestPortal();
 
-  const places = data?.localPlaces || [];
-  const travelPlans = data?.travelPlans || [];
+  const places = useMemo(() => data?.localPlaces || [], [data?.localPlaces]);
+  const travelPlans = useMemo(() => data?.travelPlans || [], [data?.travelPlans]);
   const settings = data?.portal_settings;
   const wedding = data?.wedding;
 

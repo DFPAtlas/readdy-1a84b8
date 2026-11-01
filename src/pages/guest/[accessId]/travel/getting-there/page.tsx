@@ -20,7 +20,7 @@ export default function GuestGettingTherePage() {
   const settings = data?.portal_settings;
   const venues = data?.weddingVenues || [];
   const shuttles = data?.shuttles || [];
-  const travelUpdates = data?.travelUpdates || [];
+  const travelUpdates = useMemo(() => data?.travelUpdates || [], [data?.travelUpdates]);
 
   const transportUpdates = useMemo(
     () => travelUpdates.filter((u) => ['travel', 'transport', 'venue'].includes(u.category || '')),
