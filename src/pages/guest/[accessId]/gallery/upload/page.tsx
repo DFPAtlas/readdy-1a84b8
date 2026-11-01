@@ -31,7 +31,7 @@ export default function GuestGalleryUploadPage() {
   const basePath = `/guest/${accessId}`;
 
   const now = new Date();
-  let uploadState: 'disabled' | 'before_open' | 'open' | 'closed' = 'disabled';
+  let uploadState: 'disabled' | 'before_open' | 'open' | 'closed';
   if (!uploadSettings || !uploadSettings.uploads_enabled) {
     uploadState = 'disabled';
   } else if (uploadSettings.opens_at && now < new Date(uploadSettings.opens_at)) {

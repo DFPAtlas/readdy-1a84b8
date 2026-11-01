@@ -379,7 +379,7 @@ function NormalSuppliersPage() {
   const sorted = useMemo(() => {
     const list = [...suppliers];
     list.sort((a, b) => {
-      let cmp = 0;
+      let cmp: number;
       switch (sortBy) {
         case 'business_name': cmp = (a.business_name || '').localeCompare(b.business_name || ''); break;
         case 'category': cmp = (a.category || '').localeCompare(b.category || ''); break;

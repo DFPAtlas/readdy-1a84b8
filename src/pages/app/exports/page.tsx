@@ -272,9 +272,9 @@ function DemoExportCentre() {
     // Simulate generation delay
     await new Promise((r) => setTimeout(r, 800));
 
-    let filename = '';
-    let content = '';
-    let mimeType = '';
+    let filename: string;
+    let content: string;
+    let mimeType: string;
 
     if (format === 'ics') {
       content = generateDemoICS(privacy);
