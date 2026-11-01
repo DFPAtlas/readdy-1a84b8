@@ -92,8 +92,6 @@ Deno.serve(async (req: Request) => {
     // For account.updated, we handle separately
     if (event.type === "account.updated") {
       const account = event.data.object as Stripe.Account;
-      const userId = account.metadata?.user_id;
-
       if (account.id) {
         const updated = {
           onboarding_complete: account.charges_enabled && account.payouts_enabled && !account.requirements?.currently_due?.length,

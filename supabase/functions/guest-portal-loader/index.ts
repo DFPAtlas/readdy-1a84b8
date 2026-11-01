@@ -7,12 +7,6 @@ import { edgeGuestCorsHeaders, sha256Hex, validGuestSessionSecret } from "../_sh
 
 
 
-async function buildFingerprint(req: Request): Promise<string> {
-  const ip = req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const ua = req.headers.get("user-agent") || "unknown";
-  return await sha256Hex(`${ip}:${ua.slice(0, 64)}`);
-}
-
 function isEventVisibleToGuest(visibility: string, revealAt: string | null, eventType: string, recipients: Array<{ ceremony_included: boolean; reception_included: boolean; evening_included: boolean; welcome_event_included: boolean; day_after_event_included: boolean; invitation_group?: string }>): boolean {
   const now = new Date();
   switch (visibility) {
@@ -45,7 +39,6 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const fingerprint = await buildFingerprint(req);
 
   try {
     const body = await req.json();
@@ -144,7 +137,7 @@ Deno.serve(async (req: Request) => {
             const showRoomMap = portalSettings?.show_room_map !== false;
             const showFloorPlanBg = portalSettings?.show_floor_plan_background === true;
             const showEntranceRoute = portalSettings?.show_entrance_route === true;
-            let companions: Array<{ full_name: string; preferred_name: string | null; display_name: string; seat_label: string | null }> = [];
+            const companions: Array<{ full_name: string; preferred_name: string | null; display_name: string; seat_label: string | null }> = [];
             if (showCompanions && table && companionFormat !== "hidden") {
               const { data: tableAssignments } = await supabase.from("seating_assignments").select("guest_id, seating_seat_id, guest:guests!inner(id, full_name, preferred_name)").eq("plan_id", publication.seating_plan_id).eq("table_id", myAssignment.table_id);
               for (const ta of (tableAssignments || [])) {
@@ -344,7 +337,7 @@ Deno.serve(async (req: Request) => {
     const { data: myQuestions } = await supabase.from("guest_questions").select("*").eq("wedding_id", session.wedding_id).eq("invitation_id", session.invitation_id).order("created_at", { ascending: false });
     // Load feedback for this invitation's guests to set my_feedback
     const faqIds = (faqs || []).map((f) => f.id);
-    let feedbackMap = new Map<string, string>();
+    const feedbackMap = new Map<string, string>();
     if (faqIds.length > 0 && guestIds.length > 0) {
       const { data: feedbackRows } = await supabase.from("question_activity").select("faq_id, activity_type").eq("invitation_id", session.invitation_id).in("guest_id", guestIds).in("faq_id", faqIds);
       (feedbackRows || []).forEach((fb: Record<string, unknown>) => { if (fb.faq_id) feedbackMap.set(fb.faq_id as string, fb.activity_type as string); });

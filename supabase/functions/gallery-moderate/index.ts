@@ -18,11 +18,6 @@ interface ModerationResult {
   provider: string;
 }
 
-interface ContentScanner {
-  scanImage(buffer: Uint8Array, mimeType: string, fileName: string): Promise<ModerationResult>;
-  scanVideo(buffer: Uint8Array, mimeType: string, fileName: string, durationSeconds?: number): Promise<ModerationResult>;
-}
-
 // ── Deterministic file validation ──
 
 function validateFileSafety(buffer: Uint8Array, mimeType: string): { safe: boolean; reason?: string } {
@@ -129,7 +124,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { asset_id, wedding_id, action } = body || {};
+    const { asset_id, wedding_id } = body || {};
 
     if (!asset_id || !wedding_id) {
       return new Response(JSON.stringify({ success: false, error: "Missing asset_id or wedding_id" }), {

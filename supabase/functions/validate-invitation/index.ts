@@ -17,12 +17,6 @@ const RATE_WINDOW_MINUTES = 15;
 const MAX_FAILED_ATTEMPTS = 5;
 const SESSION_DURATION_DAYS = 7;
 
-function generateSessionSecret(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 
 
 async function buildFingerprint(req: Request): Promise<string> {
@@ -43,8 +37,6 @@ function allHeaders(req: Request): Record<string, string> {
 }
 
 Deno.serve(async (req: Request) => {
-  const corsHeaders = edgeGuestCorsHeaders(req);
-
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: allHeaders(req) });
   }

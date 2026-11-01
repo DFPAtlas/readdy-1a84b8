@@ -22,6 +22,8 @@ const FUND_TITLE_MAX = 80;
 
 function sanitizeText(text: string | null | undefined, maxLen: number): string | null {
   if (!text) return null;
+  // Strip control characters on purpose (they are never valid in names/messages).
+  // eslint-disable-next-line no-control-regex
   const cleaned = text.replace(/[\u0000-\u001F\u007F-\u009F]/g, "").trim();
   if (cleaned.length === 0) return null;
   if (cleaned.length > maxLen) return cleaned.slice(0, maxLen);
@@ -249,7 +251,7 @@ Deno.serve(async (req: Request) => {
         price_data: {
           currency: "gbp",
           product_data: {
-            name: `Gift: ${fund.title.slice(0, 80)}`,
+            name: `Gift: ${fund.title.slice(0, FUND_TITLE_MAX)}`,
             description: "A voluntary gift contribution for the couple. No ownership, financial returns or rewards.",
           },
           unit_amount: amount_minor,

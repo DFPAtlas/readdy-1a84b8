@@ -103,7 +103,6 @@ test.describe('Auth Redirects', () => {
 test.describe('Demo Mode', () => {
   test('demo login button is present on login page', async ({ page }) => {
     await page.goto(`${BASE_URL}/login`);
-    const demoButton = page.locator('text=Try Demo|text=Explore Demo|text=Demo');
     // Demo button may or may not be present depending on env
     // This just verifies the login page doesn't crash
     await expect(page.locator('form')).toBeVisible();

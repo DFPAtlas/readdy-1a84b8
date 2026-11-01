@@ -163,6 +163,7 @@ Deno.serve(async (req: Request) => {
         const column = feedback_type === "helpful" ? "helpful_count" : "not_helpful_count";
         const { error: updateErr } = await supabase
           .rpc("increment_faq_counter", { p_faq_id: faq_id, p_column: column });
+        if (updateErr) console.error("guest-question-interact: FAQ counter update failed", updateErr.message);
 
         return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }

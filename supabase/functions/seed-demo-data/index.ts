@@ -28,7 +28,6 @@ const CEREMONY_EVENT = "ffa1096a-118d-4c1f-8b67-3d98e64fc4f8";
 const RECEPTION_EVENT = "df6f0aab-573a-40ee-97cd-364a862b2565";
 const EVENING_EVENT = "b2db65d5-9fb7-43b4-abf4-2aa68d8cbc09";
 const WELCOME_EVENT = "3a77c7f8-33e4-4c79-bb0d-0a9b25d92b0a";
-const FAREWELL_EVENT = "b24822bb-6bc7-4de2-b5f4-65d9f770d357";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {

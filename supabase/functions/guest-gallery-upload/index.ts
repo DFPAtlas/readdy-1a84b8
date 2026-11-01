@@ -21,12 +21,6 @@ async function sha256(buffer: Uint8Array): Promise<string> {
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-// The browser holds the raw guest session credential; only its SHA-256 hash is
-// stored in guest_access_sessions.session_hash, so hash before every lookup.
-function sha256String(text: string): Promise<string> {
-  return sha256(new TextEncoder().encode(text));
-}
-
 // ── Rate limiting store ──
 
 const rateLimitStore = new Map<string, { count: number; windowStart: number }>();

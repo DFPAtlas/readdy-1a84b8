@@ -133,29 +133,6 @@ function validate(env, environment) {
   return { errors, warnings };
 }
 
-function checkSourceForSecrets() {
-  const srcDir = resolve(PROJECT_ROOT, 'src');
-  if (!existsSync(srcDir)) return [];
-
-  const secretPatterns = [
-    { name: 'Stripe secret key', pattern: /sk_live_[0-9a-zA-Z]{24,}/ },
-    { name: 'Stripe test secret key', pattern: /sk_test_[0-9a-zA-Z]{24,}/ },
-    { name: 'Supabase service role', pattern: /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}.*service_role/ },
-    { name: 'Resend API key', pattern: /re_[A-Za-z0-9]{20,}/ },
-    { name: 'Generic JWT with secret', pattern: /['"]eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+['"]/ },
-  ];
-
-  const findings = [];
-
-  function scanDir(dir) {
-    const entries = readFileSync; // placeholder — need fs.readdirSync
-    // We'll skip recursive source scanning in the script since gitleaks handles it in CI.
-    // This script focuses on env validation.
-  }
-
-  return findings;
-}
-
 // ── Main ──
 
 const env = loadEnv();
