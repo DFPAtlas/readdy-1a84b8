@@ -376,7 +376,7 @@ export function useTasks(): UseTasksReturn {
     } catch (err: unknown) {
       return { task: null, error: err instanceof Error ? err.message : 'Failed to update task' };
     }
-  }, [weddingId]);
+  }, [weddingId, tasks]);
 
   const deleteTask = useCallback(async (id: string): Promise<{ error: string | null }> => {
     if (isDemoMode) {

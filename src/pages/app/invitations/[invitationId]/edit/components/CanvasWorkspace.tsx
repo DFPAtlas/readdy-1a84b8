@@ -218,6 +218,22 @@ export default function CanvasWorkspace({
     [],
   );
 
+  // Window listeners for the active drag. Removing exactly what was attached keeps
+  // cleanup correct even if a handler's identity ever changes between renders.
+  const pointerListenersRef = useRef<{
+    move: (e: PointerEvent) => void;
+    up: (e: PointerEvent) => void;
+    cancel: (e: PointerEvent) => void;
+  } | null>(null);
+  const detachPointerListeners = useCallback(() => {
+    const l = pointerListenersRef.current;
+    if (!l) return;
+    window.removeEventListener('pointermove', l.move);
+    window.removeEventListener('pointerup', l.up);
+    window.removeEventListener('pointercancel', l.cancel);
+    pointerListenersRef.current = null;
+  }, []);
+
   // ── Finish interaction cleanly ──
   const finishInteraction = useCallback(() => {
     const active = interactionRef.current;
@@ -244,10 +260,8 @@ export default function CanvasWorkspace({
     interactionRef.current = null;
     hasMovedRef.current = false;
     wasAlreadySelectedRef.current = false;
-    window.removeEventListener('pointermove', handlePointerMove);
-    window.removeEventListener('pointerup', handlePointerUp);
-    window.removeEventListener('pointercancel', handlePointerCancel);
-  }, []);
+    detachPointerListeners();
+  }, [detachPointerListeners]);
 
   // ── Cancel interaction ──
   const cancelInteraction = useCallback((restoreDocument = false) => {
@@ -261,10 +275,8 @@ export default function CanvasWorkspace({
     interactionRef.current = null;
     hasMovedRef.current = false;
     wasAlreadySelectedRef.current = false;
-    window.removeEventListener('pointermove', handlePointerMove);
-    window.removeEventListener('pointerup', handlePointerUp);
-    window.removeEventListener('pointercancel', handlePointerCancel);
-  }, []);
+    detachPointerListeners();
+  }, [detachPointerListeners]);
 
   // ── Pointer move handler ──
   const handlePointerMove = useCallback((e: PointerEvent) => {
@@ -287,9 +299,7 @@ export default function CanvasWorkspace({
       interactionRef.current = null;
       hasMovedRef.current = false;
       wasAlreadySelectedRef.current = false;
-      window.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('pointercancel', handlePointerCancel);
+      detachPointerListeners();
       return;
     }
 
@@ -404,7 +414,7 @@ export default function CanvasWorkspace({
         l.id === active.layerId ? nextLayer : l,
       ),
     });
-  }, [clientToDocument]);
+  }, [clientToDocument, detachPointerListeners]);
 
   // ── Pointer up ──
   const handlePointerUp = useCallback((e: PointerEvent) => {
@@ -430,6 +440,8 @@ export default function CanvasWorkspace({
   const startInteraction = useCallback((active: ActiveInteraction) => {
     interactionRef.current = active;
     hasMovedRef.current = false;
+    detachPointerListeners();
+    pointerListenersRef.current = { move: handlePointerMove, up: handlePointerUp, cancel: handlePointerCancel };
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
     window.addEventListener('pointercancel', handlePointerCancel);
@@ -439,7 +451,7 @@ export default function CanvasWorkspace({
     } catch {
       // ignore
     }
-  }, [handlePointerMove, handlePointerUp, handlePointerCancel]);
+  }, [detachPointerListeners, handlePointerMove, handlePointerUp, handlePointerCancel]);
 
   const handleStartMove = useCallback(
     (event: React.PointerEvent, layer: InvitationLayer) => {
@@ -705,12 +717,10 @@ export default function CanvasWorkspace({
     return () => {
       if (interactionRef.current) {
         interactionRef.current = null;
-        window.removeEventListener('pointermove', handlePointerMove);
-        window.removeEventListener('pointerup', handlePointerUp);
-        window.removeEventListener('pointercancel', handlePointerCancel);
+        detachPointerListeners();
       }
     };
-  }, [handlePointerMove, handlePointerUp, handlePointerCancel]);
+  }, [detachPointerListeners]);
 
   // ── Zoom controls ──
   const zoomIn = useCallback(() => {

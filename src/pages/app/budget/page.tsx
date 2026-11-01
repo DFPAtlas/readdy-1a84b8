@@ -392,7 +392,7 @@ function DemoBudgetDashboardPage() {
   const categories = useMemo(() => state?.budgetCategories || [], [state?.budgetCategories]);
   const expenses = useMemo(() => state?.expenses || [], [state?.expenses]);
   const payments = useMemo(() => state?.payments || [], [state?.payments]);
-  const suppliers = state?.suppliers || [];
+  const suppliers = useMemo(() => state?.suppliers || [], [state?.suppliers]);
   const demoGiftFunds = useMemo(() => state?.giftFunds || [], [state?.giftFunds]);
   const demoGiftFundContribs = useMemo(() => state?.giftFundContributions || [], [state?.giftFundContributions]);
 
@@ -455,10 +455,10 @@ function DemoBudgetDashboardPage() {
     if (catFilter !== 'all') list = list.filter((e) => e.category_id === catFilter);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter((e) => e.description.toLowerCase().includes(q) || catName(e.category_id).toLowerCase().includes(q) || (supplierName(e) || '').toLowerCase().includes(q));
+      list = list.filter((e) => e.description.toLowerCase().includes(q) || (categories.find((c) => c.id === e.category_id)?.name || '—').toLowerCase().includes(q) || ((e.supplier_id ? suppliers.find((s) => s.id === e.supplier_id)?.name || null : null) || '').toLowerCase().includes(q));
     }
     return list;
-  }, [expenses, statusFilter, catFilter, search]);
+  }, [expenses, statusFilter, catFilter, search, categories, suppliers]);
 
   const statusBg = (ps: string) => {
     switch (ps) {

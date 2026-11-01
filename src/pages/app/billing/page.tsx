@@ -117,6 +117,9 @@ export default function BillingPage() {
       newParams.delete('plan');
       setSearchParams(newParams, { replace: true });
     }
+    // Handles the one-off return from Stripe Checkout. It must run once per URL change;
+    // depending on `access`/`fetch` (new each render) could refresh or toast twice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   // Load invoices

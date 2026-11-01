@@ -531,17 +531,22 @@ export default function InvitationEditor({
 
   // ── Export effect — runs when exportSnapshot is set ──
 
+  const isPreparingExport = exportState === 'preparing';
+  const exportUnmountedRef = useRef(false);
   useEffect(() => {
+    exportUnmountedRef.current = false;
+    return () => { exportUnmountedRef.current = true; };
+  }, []);
+  useEffect(() => {
+    if (!isPreparingExport) return;
     const snapshot = exportSnapshotRef.current;
     if (!snapshot) return;
-
-    let cancelled = false;
 
     const runExport = async () => {
       // Wait a tick for React to render the export surface
       await new Promise((r) => setTimeout(r, 100));
 
-      if (cancelled) return;
+      if (exportUnmountedRef.current) return;
       const surface = exportSurfaceRef.current;
       if (!surface) {
         setExportState('error');
@@ -554,7 +559,7 @@ export default function InvitationEditor({
 
       // Wait for images to load
       const imgResult = await waitForImages(surface);
-      if (cancelled) return;
+      if (exportUnmountedRef.current) return;
 
       if (!imgResult.ready) {
         setExportState('error');
@@ -567,7 +572,7 @@ export default function InvitationEditor({
 
       // Wait for fonts
       const fontsReady = await waitForFonts();
-      if (cancelled) return;
+      if (exportUnmountedRef.current) return;
 
       if (!fontsReady) {
         setExportState('error');
@@ -585,12 +590,12 @@ export default function InvitationEditor({
       await new Promise((r) => requestAnimationFrame(r));
       await new Promise((r) => requestAnimationFrame(r));
 
-      if (cancelled) return;
+      if (exportUnmountedRef.current) return;
 
       // Capture PNG
       setExportState('downloading');
       const blob = await capturePng(surface);
-      if (cancelled) return;
+      if (exportUnmountedRef.current) return;
 
       if (!blob) {
         setExportState('error');
@@ -619,19 +624,19 @@ export default function InvitationEditor({
       const filename = sanitizeFilename(snapshot.title) + '.png';
       downloadBlob(blob, filename);
 
-      if (cancelled) return;
+      if (exportUnmountedRef.current) return;
 
       // Generate and upload thumbnail
       setExportState('updating-thumbnail');
 
       const thumbnailBlob = await generateThumbnail(blob, canvasW, canvasH);
 
-      if (cancelled) return;
+      if (exportUnmountedRef.current) return;
 
       if (thumbnailBlob && persistedIdRef.current) {
         const thumbResult = await uploadThumbnail(persistedIdRef.current, thumbnailBlob);
 
-        if (cancelled) return;
+        if (exportUnmountedRef.current) return;
 
         if (thumbResult.success) {
           setExportState('success');
@@ -653,66 +658,11 @@ export default function InvitationEditor({
 
     runExport();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [exportState === 'preparing' ? exportState : 0]);
+    // Not cancelled when exportState moves on (that used to abort the run and
+    // trigger a second full export); only abandoned if the editor unmounts.
+  }, [isPreparingExport]);
 
   // ── Keyboard shortcuts ──
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      // Don't intercept when focus is in form controls or contentEditable
-      const target = e.target as HTMLElement | null;
-      if (target) {
-        const tag = target.tagName.toLowerCase();
-        if (
-          tag === 'input' ||
-          tag === 'textarea' ||
-          tag === 'select' ||
-          target.isContentEditable
-        ) {
-          return;
-        }
-      }
-
-      const mod = e.metaKey || e.ctrlKey;
-
-      // Ctrl/Cmd+Z → Undo
-      if (mod && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        handleUndo();
-        return;
-      }
-
-      // Ctrl/Cmd+Shift+Z or Ctrl+Y → Redo
-      if ((mod && e.key === 'z' && e.shiftKey) || (mod && e.key === 'y')) {
-        e.preventDefault();
-        handleRedo();
-        return;
-      }
-
-      // Ctrl/Cmd+D → Duplicate
-      if (mod && e.key === 'd') {
-        e.preventDefault();
-        handleDuplicate();
-        return;
-      }
-
-      // Delete/Backspace → Delete (only when not editing text)
-      if (
-        (e.key === 'Delete' || e.key === 'Backspace') &&
-        selectedIdRef.current &&
-        !editingIdRef.current
-      ) {
-        e.preventDefault();
-        handleDelete();
-      }
-    };
-
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [handleUndo, handleRedo]);
 
   // ── Canvas selection ──
 
@@ -849,6 +799,60 @@ export default function InvitationEditor({
     setEditingId(null);
     editingStartContentRef.current = null;
   }, [selectedId, commitDocument]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Don't intercept when focus is in form controls or contentEditable
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const tag = target.tagName.toLowerCase();
+        if (
+          tag === 'input' ||
+          tag === 'textarea' ||
+          tag === 'select' ||
+          target.isContentEditable
+        ) {
+          return;
+        }
+      }
+
+      const mod = e.metaKey || e.ctrlKey;
+
+      // Ctrl/Cmd+Z → Undo
+      if (mod && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+        return;
+      }
+
+      // Ctrl/Cmd+Shift+Z or Ctrl+Y → Redo
+      if ((mod && e.key === 'z' && e.shiftKey) || (mod && e.key === 'y')) {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
+
+      // Ctrl/Cmd+D → Duplicate
+      if (mod && e.key === 'd') {
+        e.preventDefault();
+        handleDuplicate();
+        return;
+      }
+
+      // Delete/Backspace → Delete (only when not editing text)
+      if (
+        (e.key === 'Delete' || e.key === 'Backspace') &&
+        selectedIdRef.current &&
+        !editingIdRef.current
+      ) {
+        e.preventDefault();
+        handleDelete();
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleUndo, handleRedo, handleDuplicate, handleDelete]);
 
   const handleBringForward = useCallback(() => {
     if (!selectedId) return;

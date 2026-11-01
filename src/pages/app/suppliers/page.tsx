@@ -355,14 +355,15 @@ function NormalSuppliersPage() {
   useEffect(() => { setSelectedSupplier(null); setDetailTab('overview'); }, [weddingId]);
 
   // Detail loading when supplier selected
+  const selectedSupplierId = selectedSupplier?.id;
   useEffect(() => {
-    if (!selectedSupplier) return;
+    if (!selectedSupplierId) return;
     setDetailLoading(true);
     Promise.all([
-      fetchContacts(selectedSupplier.id),
-      fetchQuotes(selectedSupplier.id),
-      fetchDocuments(selectedSupplier.id),
-      fetchActivity(selectedSupplier.id),
+      fetchContacts(selectedSupplierId),
+      fetchQuotes(selectedSupplierId),
+      fetchDocuments(selectedSupplierId),
+      fetchActivity(selectedSupplierId),
     ]).then(([contacts, quotes, docs, activity]) => {
       setDetailContacts(contacts);
       setDetailQuotes(quotes);
@@ -370,7 +371,7 @@ function NormalSuppliersPage() {
       setDetailActivity(activity);
       setDetailLoading(false);
     }).catch(() => setDetailLoading(false));
-  }, [selectedSupplier?.id]);
+  }, [selectedSupplierId, fetchContacts, fetchQuotes, fetchDocuments, fetchActivity]);
 
   const stats: SupplierStats = getStats();
 

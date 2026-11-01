@@ -106,7 +106,8 @@ function NormalPrivacyPage() {
 
   const isOwner = membership?.role === 'owner';
   const [deletionRequestId,setDeletionRequestId]=useState<string|null>(null);
-  useEffect(()=>{let cancelled=false;if(!user)return;supabase.from('privacy_requests').select('id').eq('user_id',user.id).eq('request_type','account_deletion').in('status',['submitted','pending','confirmed']).order('created_at',{ascending:false}).limit(1).then(({data,error})=>{if(!cancelled&&!error&&data?.[0]){setDeletionRequestId(data[0].id);setDeletionStep('completed');}});return()=>{cancelled=true;};},[user?.id]);
+  const userId = user?.id;
+  useEffect(()=>{let cancelled=false;if(!userId)return;supabase.from('privacy_requests').select('id').eq('user_id',userId).eq('request_type','account_deletion').in('status',['submitted','pending','confirmed']).order('created_at',{ascending:false}).limit(1).then(({data,error})=>{if(!cancelled&&!error&&data?.[0]){setDeletionRequestId(data[0].id);setDeletionStep('completed');}});return()=>{cancelled=true;};},[userId]);
 
 
   const handleAccountExport = async () => {

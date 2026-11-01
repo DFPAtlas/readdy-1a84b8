@@ -42,49 +42,45 @@ const sectionDefs: SectionDef[] = [
   { id: 'groomsmenAttire', title: 'Groomsmen attire', icon: 'ri-team-line' },
 ];
 
+const DEMO_STYLE_IMAGES: Record<string, StyleImage[]> = {
+  flowers: [
+    { id: 'demo-f1', url: 'https://readdy.ai/api/search-image?query=Elegant%20spring%20wedding%20bouquet%20with%20white%20peonies%20and%20eucalyptus%2C%20soft%20natural%20light%2C%20pastel%20background%2C%20editorial%20floral%20photography&width=600&height=800&seq=style-f1&orientation=portrait', caption: 'White peony bouquet with eucalyptus' },
+    { id: 'demo-f2', url: 'https://readdy.ai/api/search-image?query=Romantic%20wedding%20reception%20table%20centerpiece%20with%20cascading%20greenery%20and%20candlelight%2C%20warm%20ambient%20glow%2C%20fine%20art%20photography&width=600&height=800&seq=style-f2&orientation=portrait', caption: 'Greenery tablescape with candles' },
+  ],
+  rings: [
+    { id: 'demo-r1', url: 'https://readdy.ai/api/search-image?query=Two%20elegant%20wedding%20rings%20on%20soft%20velvet%20cushion%2C%20rose%20gold%20and%20platinum%20bands%2C%20macro%20photography%20with%20warm%20bokeh%20background&width=600&height=800&seq=style-r1&orientation=portrait', caption: 'Rose gold & platinum bands' },
+  ],
+  food: [
+    { id: 'demo-fd1', url: 'https://readdy.ai/api/search-image?query=Elegant%20three-tier%20wedding%20cake%20with%20white%20buttercream%20and%20fresh%20flowers%2C%20minimalist%20design%2C%20soft%20studio%20lighting%2C%20editorial%20food%20photography&width=600&height=800&seq=style-fd1&orientation=portrait', caption: 'Three-tier buttercream cake' },
+    { id: 'demo-fd2', url: 'https://readdy.ai/api/search-image?query=Beautifully%20plated%20wedding%20reception%20starter%20course%20with%20edible%20flowers%2C%20fine%20dining%20presentation%2C%20warm%20natural%20light&width=600&height=800&seq=style-fd2&orientation=portrait', caption: 'Fine dining starter course' },
+  ],
+  brideAttire: [
+    { id: 'demo-ba1', url: 'https://readdy.ai/api/search-image?query=Elegant%20A-line%20wedding%20dress%20with%20lace%20bodice%20and%20long%20train%2C%20hanging%20in%20bright%20boutique%20with%20natural%20light%2C%20editorial%20bridal%20photography&width=600&height=800&seq=style-ba1&orientation=portrait', caption: 'A-line lace gown' },
+    { id: 'demo-ba2', url: 'https://readdy.ai/api/search-image?query=Delicate%20bridal%20veil%20with%20pearl%20embellishments%20draped%20over%20antique%20chair%2C%20soft%20window%20light%2C%20romantic%20atmosphere&width=600&height=800&seq=style-ba2&orientation=portrait', caption: 'Pearl-embellished veil' },
+  ],
+  bridesmaidsAttire: [
+    { id: 'demo-bma1', url: 'https://readdy.ai/api/search-image?query=Row%20of%20sage%20green%20bridesmaid%20dresses%20hanging%20on%20brass%20rack%2C%20chiffon%20fabric%2C%20soft%20boutique%20lighting%2C%20editorial%20photography&width=600&height=800&seq=style-bma1&orientation=portrait', caption: 'Sage green chiffon dresses' },
+  ],
+  groomAttire: [
+    { id: 'demo-ga1', url: 'https://readdy.ai/api/search-image?query=Tailored%20navy%20three-piece%20wedding%20suit%20on%20wooden%20hanger%20against%20neutral%20wall%2C%20classic%20menswear%20styling%2C%20clean%20editorial%20photography&width=600&height=800&seq=style-ga1&orientation=portrait', caption: 'Navy three-piece suit' },
+  ],
+  groomsmenAttire: [
+    { id: 'demo-gma1', url: 'https://readdy.ai/api/search-image?query=Matching%20grey%20groomsmen%20suits%20with%20burgundy%20ties%20laid%20out%20on%20neutral%20linen%2C%20flat%20lay%20styling%2C%20editorial%20menswear%20photography&width=600&height=800&seq=style-gma1&orientation=portrait', caption: 'Grey suits with burgundy ties' },
+  ],
+};
+
 // ── Demo styleboard with sample inspiration images ──
 function DemoStyleboard() {
   const demo = useDemoDataSafe();
-  const [sections, setSections] = useState<SectionData[]>([]);
+  const [sections, setSections] = useState<SectionData[]>(() =>
+    sectionDefs.map((def) => ({
+      ...def,
+      images: DEMO_STYLE_IMAGES[def.id] || [],
+    }))
+  );
   const [addModal, setAddModal] = useState<{ open: boolean; sectionId: string | null }>({ open: false, sectionId: null });
   const [newImage, setNewImage] = useState({ url: '', caption: '' });
   const [addError, setAddError] = useState('');
-
-  const demoImages: Record<string, StyleImage[]> = {
-    flowers: [
-      { id: 'demo-f1', url: 'https://readdy.ai/api/search-image?query=Elegant%20spring%20wedding%20bouquet%20with%20white%20peonies%20and%20eucalyptus%2C%20soft%20natural%20light%2C%20pastel%20background%2C%20editorial%20floral%20photography&width=600&height=800&seq=style-f1&orientation=portrait', caption: 'White peony bouquet with eucalyptus' },
-      { id: 'demo-f2', url: 'https://readdy.ai/api/search-image?query=Romantic%20wedding%20reception%20table%20centerpiece%20with%20cascading%20greenery%20and%20candlelight%2C%20warm%20ambient%20glow%2C%20fine%20art%20photography&width=600&height=800&seq=style-f2&orientation=portrait', caption: 'Greenery tablescape with candles' },
-    ],
-    rings: [
-      { id: 'demo-r1', url: 'https://readdy.ai/api/search-image?query=Two%20elegant%20wedding%20rings%20on%20soft%20velvet%20cushion%2C%20rose%20gold%20and%20platinum%20bands%2C%20macro%20photography%20with%20warm%20bokeh%20background&width=600&height=800&seq=style-r1&orientation=portrait', caption: 'Rose gold & platinum bands' },
-    ],
-    food: [
-      { id: 'demo-fd1', url: 'https://readdy.ai/api/search-image?query=Elegant%20three-tier%20wedding%20cake%20with%20white%20buttercream%20and%20fresh%20flowers%2C%20minimalist%20design%2C%20soft%20studio%20lighting%2C%20editorial%20food%20photography&width=600&height=800&seq=style-fd1&orientation=portrait', caption: 'Three-tier buttercream cake' },
-      { id: 'demo-fd2', url: 'https://readdy.ai/api/search-image?query=Beautifully%20plated%20wedding%20reception%20starter%20course%20with%20edible%20flowers%2C%20fine%20dining%20presentation%2C%20warm%20natural%20light&width=600&height=800&seq=style-fd2&orientation=portrait', caption: 'Fine dining starter course' },
-    ],
-    brideAttire: [
-      { id: 'demo-ba1', url: 'https://readdy.ai/api/search-image?query=Elegant%20A-line%20wedding%20dress%20with%20lace%20bodice%20and%20long%20train%2C%20hanging%20in%20bright%20boutique%20with%20natural%20light%2C%20editorial%20bridal%20photography&width=600&height=800&seq=style-ba1&orientation=portrait', caption: 'A-line lace gown' },
-      { id: 'demo-ba2', url: 'https://readdy.ai/api/search-image?query=Delicate%20bridal%20veil%20with%20pearl%20embellishments%20draped%20over%20antique%20chair%2C%20soft%20window%20light%2C%20romantic%20atmosphere&width=600&height=800&seq=style-ba2&orientation=portrait', caption: 'Pearl-embellished veil' },
-    ],
-    bridesmaidsAttire: [
-      { id: 'demo-bma1', url: 'https://readdy.ai/api/search-image?query=Row%20of%20sage%20green%20bridesmaid%20dresses%20hanging%20on%20brass%20rack%2C%20chiffon%20fabric%2C%20soft%20boutique%20lighting%2C%20editorial%20photography&width=600&height=800&seq=style-bma1&orientation=portrait', caption: 'Sage green chiffon dresses' },
-    ],
-    groomAttire: [
-      { id: 'demo-ga1', url: 'https://readdy.ai/api/search-image?query=Tailored%20navy%20three-piece%20wedding%20suit%20on%20wooden%20hanger%20against%20neutral%20wall%2C%20classic%20menswear%20styling%2C%20clean%20editorial%20photography&width=600&height=800&seq=style-ga1&orientation=portrait', caption: 'Navy three-piece suit' },
-    ],
-    groomsmenAttire: [
-      { id: 'demo-gma1', url: 'https://readdy.ai/api/search-image?query=Matching%20grey%20groomsmen%20suits%20with%20burgundy%20ties%20laid%20out%20on%20neutral%20linen%2C%20flat%20lay%20styling%2C%20editorial%20menswear%20photography&width=600&height=800&seq=style-gma1&orientation=portrait', caption: 'Grey suits with burgundy ties' },
-    ],
-  };
-
-  useEffect(() => {
-    setSections(
-      sectionDefs.map((def) => ({
-        ...def,
-        images: demoImages[def.id] || [],
-      }))
-    );
-  }, []);
 
   const handleOpenAdd = (sectionId: string) => {
     setAddModal({ open: true, sectionId });

@@ -10,17 +10,18 @@ export default function PlatformAdminGuard({
 }) {
   const { user } = useAuth();
   const [allowed, setAllowed] = useState<boolean | null>(null);
+  const userId = user?.id;
   useEffect(() => {
     let cancelled = false;
     setAllowed(null);
-    if (!user) {
+    if (!userId) {
       setAllowed(false);
       return;
     }
     supabase
       .from("platform_admins")
       .select("user_id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("active", true)
       .maybeSingle()
       .then(({ data, error }) => {
@@ -29,7 +30,7 @@ export default function PlatformAdminGuard({
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [userId]);
   if (allowed === null)
     return (
       <p className="p-8" role="status">

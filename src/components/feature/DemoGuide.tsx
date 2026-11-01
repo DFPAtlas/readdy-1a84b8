@@ -144,6 +144,10 @@ export default function DemoGuide() {
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Find matching tip for current route
+  // Tips re-evaluate on route change only; read the latest dismissed set via a ref.
+  const dismissedRef = useRef(dismissed);
+  useEffect(() => { dismissedRef.current = dismissed; }, [dismissed]);
+
   useEffect(() => {
     // Clear any pending dismiss timer when route changes
     if (dismissTimerRef.current) {
@@ -168,7 +172,7 @@ export default function DemoGuide() {
       }
     }
 
-    if (matched && !dismissed.has(matched.route)) {
+    if (matched && !dismissedRef.current.has(matched.route)) {
       setCurrentTip(matched);
       setMinimised(false);
 

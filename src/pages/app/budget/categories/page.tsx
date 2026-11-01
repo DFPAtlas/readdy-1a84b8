@@ -171,8 +171,8 @@ function NormalBudgetCategoriesPage() {
       list = list.filter((e) =>
         (e.description || '').toLowerCase().includes(q) ||
         (e.title || '').toLowerCase().includes(q) ||
-        (catById(e.category_id || '')?.name || '').toLowerCase().includes(q) ||
-        (supById(e.supplier_id || '')?.business_name || '').toLowerCase().includes(q)
+        (categories.find((c) => c.id === (e.category_id || ''))?.name || '').toLowerCase().includes(q) ||
+        (suppliers.find((s) => s.id === (e.supplier_id || ''))?.business_name || '').toLowerCase().includes(q)
       );
     }
     return list;
@@ -418,10 +418,10 @@ function DemoBudgetCategoriesPage() {
   const [sortExpenses, setSortExpenses] = useState('newest');
 
   const state = demo?.state;
-  const categories = state?.budgetCategories || [];
-  const expenses = state?.expenses || [];
+  const categories = useMemo(() => state?.budgetCategories || [], [state?.budgetCategories]);
+  const expenses = useMemo(() => state?.expenses || [], [state?.expenses]);
   const payments = state?.payments || [];
-  const suppliers = state?.suppliers || [];
+  const suppliers = useMemo(() => state?.suppliers || [], [state?.suppliers]);
 
   const formatGBP = (n: number) => `£${n.toLocaleString('en-GB', { maximumFractionDigits: 0 })}`;
 
@@ -456,13 +456,13 @@ function DemoBudgetCategoriesPage() {
     if (catFilter !== 'all') list = list.filter((e) => e.category_id === catFilter);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      list = list.filter((e) => e.description.toLowerCase().includes(q) || (catById(e.category_id)?.name || '').toLowerCase().includes(q) || (supplierName(e) || '').toLowerCase().includes(q));
+      list = list.filter((e) => e.description.toLowerCase().includes(q) || (categories.find((c) => c.id === e.category_id)?.name || '').toLowerCase().includes(q) || ((e.supplier_id ? suppliers.find((s) => s.id === e.supplier_id)?.name || null : null) || '').toLowerCase().includes(q));
     }
     if (sortExpenses === 'newest') list = [...list].reverse();
     if (sortExpenses === 'highest') list = [...list].sort((a, b) => (b.agreed_amount || b.quoted_amount) - (a.agreed_amount || a.quoted_amount));
     if (sortExpenses === 'lowest') list = [...list].sort((a, b) => (a.agreed_amount || a.quoted_amount) - (b.agreed_amount || b.quoted_amount));
     return list;
-  }, [expenses, statusFilter, catFilter, search, sortExpenses]);
+  }, [expenses, statusFilter, catFilter, search, sortExpenses, categories, suppliers]);
 
   const handleOpenExpenseForm = (exp?: DemoExpense, catId?: string) => {
     if (exp) {
