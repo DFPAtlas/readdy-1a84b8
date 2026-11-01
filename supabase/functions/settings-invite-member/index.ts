@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { resolvePublicSiteOrigin } from "../_shared/publicSiteOrigin.ts";
 import { Resend } from "npm:resend@6.13.0";
 import {
   sha256Hex,
@@ -149,7 +150,7 @@ Deno.serve(async (req) => {
       .eq("id", weddingId)
       .single();
     const site = new URL(
-      Deno.env.get("PUBLIC_SITE_URL") || "https://vowora.uk",
+      resolvePublicSiteOrigin(Deno.env.get("PUBLIC_SITE_URL")),
     );
     const joinUrl = new URL(`/join/${token}`, site).toString();
     const apiKey = Deno.env.get("RESEND_API_KEY");
@@ -165,7 +166,9 @@ Deno.serve(async (req) => {
       delivered = !deliveryError;
     }
     return reply({ success: true, invitationId, delivered, joinUrl });
-  } catch {
+  } catch (error) {
+    const message = error && typeof error === 'object' && 'message' in error ? String(error.message) : '';
+    if (/limit reached|requires Luxury/i.test(message)) return reply({ error: message }, 403);
     return reply(
       { error: "The invitation could not be processed. Please retry." },
       500,

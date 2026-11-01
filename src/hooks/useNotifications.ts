@@ -6,7 +6,7 @@ import { demoNotifications } from '@/demo/demoNotifications';
 const DEMO_NOTIF_STORAGE_KEY = 'vowora.demo.notifications.v1';
 
 function loadDemoNotifications(): AppNotification[] {
-  if (!isDemoMode) return demoNotifications;
+  if (!isDemoMode) return [];
   try {
     const raw = localStorage.getItem(DEMO_NOTIF_STORAGE_KEY);
     if (!raw) return [...demoNotifications];
@@ -73,7 +73,7 @@ export function useNotifications() {
   );
 
   const resetNotifications = useCallback(() => {
-    const fresh = [...demoNotifications];
+    const fresh = isDemoMode ? [...demoNotifications] : [];
     setNotifications(fresh);
     if (isDemoMode) saveDemoNotifications(fresh);
   }, []);

@@ -1,3 +1,4 @@
+import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
@@ -39,6 +40,8 @@ Deno.serve(async (req: Request) => {
     if (sessionErr || !session) {
       return new Response(JSON.stringify({ ok: false, error: "session_invalid" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    await requireEntitlement(supabase, session.wedding_id, 'communications');
 
     if (guest_id) {
       const { data: recipient } = await supabase
@@ -229,6 +232,8 @@ Deno.serve(async (req: Request) => {
         return new Response(JSON.stringify({ ok: false, error: "unknown_action" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
   } catch (err) {
+    const denied = entitlementErrorResponse(err, corsHeaders);
+    if (denied) return denied;
     console.error("guest-update-interact error:", err);
     return new Response(JSON.stringify({ ok: false, error: "unavailable" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
