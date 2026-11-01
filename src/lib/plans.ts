@@ -5,75 +5,11 @@ import type { BillingPlanKey, PlanConfig, PlanLimits } from '@/types/billing';
 // Stripe price IDs come from wedora_subscription_plans in the database.
 // The frontend NEVER sends raw Stripe price IDs to the backend.
 
-const UNLIMITED = null;
-
-const FREE_LIMITS: PlanLimits = {
-  maxGuests: 20,
-  maxCollaborators: 1,
-  maxAlbums: 2,
-  maxCustomSections: 1,
-  maxEmailCampaigns: 0,
-  maxInvitations: 0,
-  galleryStorageMb: 100,
-  whiteLabel: false,
-  prioritySupport: false,
-  seatingPlanner: false,
-  budgetTracker: false,
-  travelConcierge: false,
-  customDomain: false,
-  apiAccess: false,
-};
-
-const ESSENTIAL_LIMITS: PlanLimits = {
-  maxGuests: 80,
-  maxCollaborators: 3,
-  maxAlbums: 5,
-  maxCustomSections: 3,
-  maxEmailCampaigns: 5,
-  maxInvitations: 80,
-  galleryStorageMb: 500,
-  whiteLabel: true,
-  prioritySupport: false,
-  seatingPlanner: false,
-  budgetTracker: false,
-  travelConcierge: true,
-  customDomain: false,
-  apiAccess: false,
-};
-
-const COMPLETE_LIMITS: PlanLimits = {
-  maxGuests: 200,
-  maxCollaborators: 10,
-  maxAlbums: 15,
-  maxCustomSections: 5,
-  maxEmailCampaigns: 20,
-  maxInvitations: 200,
-  galleryStorageMb: 2000,
-  whiteLabel: true,
-  prioritySupport: false,
-  seatingPlanner: true,
-  budgetTracker: true,
-  travelConcierge: true,
-  customDomain: false,
-  apiAccess: false,
-};
-
-const LUXURY_LIMITS: PlanLimits = {
-  maxGuests: UNLIMITED,
-  maxCollaborators: UNLIMITED,
-  maxAlbums: UNLIMITED,
-  maxCustomSections: UNLIMITED,
-  maxEmailCampaigns: UNLIMITED,
-  maxInvitations: UNLIMITED,
-  galleryStorageMb: 10000,
-  whiteLabel: true,
-  prioritySupport: true,
-  seatingPlanner: true,
-  budgetTracker: true,
-  travelConcierge: true,
-  customDomain: true,
-  apiAccess: true,
-};
+import { PLAN_LIMITS } from '../../supabase/functions/_shared/entitlementConfig';
+const FREE_LIMITS: PlanLimits = PLAN_LIMITS.free;
+const ESSENTIAL_LIMITS: PlanLimits = PLAN_LIMITS.essential;
+const COMPLETE_LIMITS: PlanLimits = PLAN_LIMITS.complete;
+const LUXURY_LIMITS: PlanLimits = PLAN_LIMITS.luxury;
 
 // ── Plan definitions ──
 
