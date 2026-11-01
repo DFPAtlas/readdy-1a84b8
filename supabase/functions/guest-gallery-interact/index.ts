@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json();
-    const { session_hash, action, asset_id, reason, album_id, asset_ids, moderation_status } = body || {};
+    const { session_hash, action, asset_id, reason, album_id } = body || {};
 
     if (!validGuestSessionSecret(session_hash) || !action) {
       return new Response(JSON.stringify({ success: false, error: "Missing required fields" }), {

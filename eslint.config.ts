@@ -46,9 +46,28 @@ const autoImportGlobals = {
 }
 
 export default [
-  { ignores: ['dist', 'node_modules'] },
+  { ignores: ['dist', 'out', 'node_modules', 'coverage', 'playwright-report', 'test-results'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  // Node tooling: build/check scripts and config files.
+  {
+    files: ['scripts/**/*.{js,mjs,cjs}', '*.{js,mjs,cjs}', 'eslint-rules/**/*.js'],
+    languageOptions: { globals: { ...globals.node } },
+  },
+  { files: ['**/*.cjs'], rules: { '@typescript-eslint/no-require-imports': 'off' } },
+  // Supabase Edge Functions run on Deno.
+  {
+    files: ['supabase/functions/**/*.ts'],
+    languageOptions: { globals: { ...globals.browser, Deno: 'readonly' } },
+  },
   {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: {

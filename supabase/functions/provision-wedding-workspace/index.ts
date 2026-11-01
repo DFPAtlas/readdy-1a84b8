@@ -8,40 +8,6 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// ── Reserved slugs ──
-const RESERVED_SLUGS = [
-  "app", "admin", "api", "auth", "guest", "login", "signup",
-  "support", "vowora", "wedora", "dashboard", "settings", "onboarding",
-  "reset-password", "forgot-password", "callback", "demo", "demo-start",
-  "contact", "features", "pricing", "privacy", "terms", "about",
-];
-
-// ── Slug generation ──
-function generateSlug(displayName: string): string {
-  let slug = displayName
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  if (slug.length === 0) slug = "wedding";
-  if (slug.length > 50) slug = slug.substring(0, 50).replace(/-$/, "");
-  return slug;
-}
-
-function generateUniqueSlug(baseSlug: string, attempts: string[]): string {
-  if (!attempts.includes(baseSlug) && !RESERVED_SLUGS.includes(baseSlug)) {
-    return baseSlug;
-  }
-  for (let i = 1; i < 100; i++) {
-    const candidate = `${baseSlug}-${i}`;
-    if (!attempts.includes(candidate)) return candidate;
-  }
-  return `${baseSlug}-${Date.now().toString(36)}`;
-}
-
 // ── Validate payload ──
 interface ProvisionPayload {
   partner_one_first: string;
@@ -161,8 +127,6 @@ Deno.serve(async (req: Request) => {
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-
-    const userId = user.id;
 
     // ── 2. Parse and validate payload ──
     let body: unknown;

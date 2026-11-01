@@ -189,6 +189,14 @@ Deno.serve(async (req: Request) => {
         if (hg) householdGuests = hg as typeof householdGuests;
       }
 
+      // Restrict to guests carrying any of the requested tags (filter was previously ignored).
+      let taggedGuestIds: Set<string> | null = null;
+      if (guestTags.length > 0) {
+        const { data: tagged } = await supabaseClient.from('guest_tag_assignments')
+          .select('guest_id').eq('wedding_id', wedding_id).in('tag_id', guestTags).throwOnError();
+        taggedGuestIds = new Set((tagged || []).map((t: { guest_id: string }) => t.guest_id));
+      }
+
       // Deduplicate by email
       const seen = new Set<string>();
       const recipients: Array<{ campaign_id: string; wedding_id: string; guest_id: string | null; household_id: string | null; recipient_email: string; recipient_name: string; recipient_type: string; status: string }> = [];
@@ -198,6 +206,7 @@ Deno.serve(async (req: Request) => {
         const email = (g.email as string).toLowerCase().trim();
         if (!email || seen.has(email)) continue;
         if (excludeIds.includes(g.id)) continue;
+        if (taggedGuestIds && !taggedGuestIds.has(g.id)) continue;
 
         const isSuppressed = suppressedEmails.has(email);
         seen.add(email);

@@ -52,7 +52,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",
+    "lint": "eslint . --report-unused-disable-directives",
     "preview": "vite preview",
     "type-check": "tsc --noEmit --project tsconfig.app.json",
     "test": "vitest run",
