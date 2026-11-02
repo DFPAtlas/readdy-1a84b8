@@ -93,3 +93,9 @@ verify_jwt = false
 
 [functions.email-unsubscribe]
 verify_jwt = false
+
+[functions.seating-lookup-codes]
+verify_jwt = false
+
+[functions.seating-table-lookup]
+verify_jwt = false

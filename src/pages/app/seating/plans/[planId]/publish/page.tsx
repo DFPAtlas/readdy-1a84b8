@@ -6,6 +6,84 @@ import { supabase } from '@/lib/supabase';
 import type { SeatingPlan, FinalisationCheck, SeatingPublication } from '@/types/seating';
 import { PLAN_STATUS_LABELS, EVENT_TYPE_LABELS, AUDIT_STATUS_COLOURS, AUDIT_STATUS_LABELS } from '@/types/seating';
 
+interface LookupCodeRow { guest_name: string; table: string; seat_label: string | null; code: string }
+
+// Personal "find your table" codes for the public lookup page. Codes are derived
+// server-side and stay the same for this publication, so they can be reprinted.
+function LookupCodesPanel({ weddingId, planId }: { weddingId: string; planId: string }) {
+  const [codes, setCodes] = useState<LookupCodeRow[] | null>(null);
+  const [lookupUrl, setLookupUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const load = async () => {
+    setLoading(true); setError('');
+    const { data, error: fnErr } = await supabase.functions.invoke('seating-lookup-codes', { body: { wedding_id: weddingId, plan_id: planId } });
+    setLoading(false);
+    if (fnErr || !data || data.error) { setError((data && data.error) || 'Could not load lookup codes. Please try again.'); return; }
+    setCodes((data.codes || []) as LookupCodeRow[]);
+    setLookupUrl(data.lookup_path ? `${window.location.origin}${data.lookup_path}` : '');
+  };
+
+  const downloadCsv = () => {
+    if (!codes) return;
+    const cell = (v: string | null) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const csv = ['Guest,Table,Seat,Table code', ...codes.map((c) => [c.guest_name, c.table, c.seat_label, c.code].map(cell).join(','))].join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'table-lookup-codes.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(lookupUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* clipboard unavailable */ }
+  };
+
+  return (
+    <div className="card-default mb-6">
+      <h2 className="font-label text-sm font-semibold text-foreground-900 mb-1">Guest table codes</h2>
+      <p className="text-xs text-foreground-500 mb-4">Guests find their table on your wedding website with their name and a personal code. Share each guest&rsquo;s code with them, for example on their invitation or by message.</p>
+      {codes === null ? (
+        <button onClick={load} disabled={loading} className="btn-outline text-xs py-2 cursor-pointer whitespace-nowrap disabled:opacity-50">
+          {loading ? <><i className="ri-loader-4-line animate-spin mr-1" />Loading codes…</> : <><i className="ri-key-2-line mr-1" />Show table codes</>}
+        </button>
+      ) : (
+        <div className="space-y-3">
+          {lookupUrl && (
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="text-foreground-500">Lookup page:</span>
+              <a href={lookupUrl} target="_blank" rel="noreferrer" className="text-primary-600 hover:text-primary-700 break-all">{lookupUrl}</a>
+              <button onClick={copyLink} className="text-foreground-500 hover:text-foreground-700 cursor-pointer whitespace-nowrap"><i className="ri-file-copy-line mr-0.5" />{copied ? 'Copied' : 'Copy'}</button>
+            </div>
+          )}
+          {codes.length === 0 ? (
+            <p className="text-xs text-foreground-500">No guests are seated on this plan yet.</p>
+          ) : (
+            <>
+              <div className="max-h-80 overflow-auto border border-secondary-100 rounded-lg">
+                <table className="w-full text-xs">
+                  <thead className="bg-background-50 text-foreground-500 sticky top-0"><tr><th className="text-left font-label font-medium px-3 py-2">Guest</th><th className="text-left font-label font-medium px-3 py-2">Table</th><th className="text-left font-label font-medium px-3 py-2">Code</th></tr></thead>
+                  <tbody>
+                    {codes.map((c) => (
+                      <tr key={`${c.guest_name}-${c.code}`} className="border-t border-secondary-100">
+                        <td className="px-3 py-2 text-foreground-800">{c.guest_name}</td>
+                        <td className="px-3 py-2 text-foreground-600">{c.table}{c.seat_label ? ` · Seat ${c.seat_label}` : ''}</td>
+                        <td className="px-3 py-2 font-mono tracking-wider text-foreground-900">{c.code}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <button onClick={downloadCsv} className="btn-outline text-xs py-2 cursor-pointer whitespace-nowrap"><i className="ri-download-2-line mr-1" />Download CSV</button>
+            </>
+          )}
+        </div>
+      )}
+      {error && <p className="text-xs text-red-600 mt-3" role="alert">{error}</p>}
+    </div>
+  );
+}
+
 export default function SeatingPublishPage() {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
@@ -66,13 +144,15 @@ export default function SeatingPublishPage() {
 
       await supabase.from('seating_plans').update({ status: 'published', is_published: true, published_at: new Date().toISOString(), revision: (plan.revision || 1) + 1 }).eq('id', planId);
 
-      await supabase.from('seating_publications').insert({
-        wedding_id: weddingId, seating_plan_id: planId,
+      const { data: newPub, error: pubErr } = await supabase.from('seating_publications').insert({
+        wedding_id: weddingId, seating_plan_id: planId, published_at: new Date().toISOString(),
         seating_plan_version_id: verData ? (verData as { version_number: number }).version_number.toString() : null,
         status: 'published', publication_revision: 1,
         audience_settings: { audience, allow_public_lookup: allowPublicLookup },
         lookup_settings: { mode: allowPublicLookup ? 'name_code' : 'secure_portal', reveal_table: true, reveal_seat: true, reveal_companions: false },
-      });
+      }).select('*').single();
+      if (pubErr) throw pubErr;
+      if (newPub) setPublication(newPub as SeatingPublication);
 
       await supabase.from('seating_activity_log').insert({ wedding_id: weddingId, seating_plan_id: planId, action: 'plan_published', summary: `Plan published as revision ${plan.revision + 1}` });
 
@@ -151,11 +231,15 @@ export default function SeatingPublishPage() {
               <div className="w-9 h-9 flex items-center justify-center rounded-lg bg-accent-50 text-accent-600"><i className="ri-global-line text-sm" /></div>
               <div>
                 <p className="font-label text-sm font-semibold text-foreground-900">Currently published</p>
-                <p className="text-xs text-foreground-500">Published {new Date(publication.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p className="text-xs text-foreground-500">Published {publication.published_at ? new Date(publication.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'just now'}</p>
               </div>
             </div>
             <button onClick={handleUnpublish} className="btn-outline text-xs py-2 text-red-600 border-red-200 hover:bg-red-50 cursor-pointer whitespace-nowrap"><i className="ri-close-circle-line mr-1.5" />Unpublish & return to working</button>
           </div>
+        )}
+
+        {publication?.status === 'published' && (publication.lookup_settings as Record<string, unknown> | null)?.mode === 'name_code' && weddingId && planId && (
+          <LookupCodesPanel weddingId={weddingId} planId={planId} />
         )}
 
         {/* Publish button */}
