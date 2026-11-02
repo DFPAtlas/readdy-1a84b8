@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import QrCode from "@/components/feature/QrCode";
+import { sharedPhotoUploadUrl } from "@/lib/sharedPhotoLink";
 type Wall = {
   title: string | null;
   hashtag: string | null;
@@ -10,6 +12,7 @@ type Wall = {
   shuffle: boolean;
   transition: string;
   photos: { id: string; caption: string | null; url: string }[];
+  upload_token?: string | null;
 };
 export default function PublicPhotoWall({
   slug,
@@ -94,7 +97,11 @@ export default function PublicPhotoWall({
       ) : !wall ? (
         <p role="status">Loading photo wall…</p>
       ) : !photo ? (
-        <p>No published photos have been added to the wall yet.</p>
+        <p className="relative z-10">
+          {wall.upload_token
+            ? "Be the first to share a photo — scan the code to upload."
+            : "No published photos have been added to the wall yet."}
+        </p>
       ) : (
         <figure className="relative z-10 w-full text-center">
           <img
@@ -115,6 +122,19 @@ export default function PublicPhotoWall({
             <figcaption className="mt-4">{photo.caption}</figcaption>
           )}
         </figure>
+      )}
+      {wall?.upload_token && (
+        <aside className="absolute bottom-5 right-5 z-20 bg-white text-stone-900 rounded-xl p-3 shadow-2xl flex items-center gap-3 max-w-[18rem]">
+          <QrCode
+            value={sharedPhotoUploadUrl(wall.upload_token)}
+            label="QR code to upload your photos"
+            className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 [&>svg]:w-full [&>svg]:h-full"
+          />
+          <p className="text-sm leading-snug">
+            <span className="block font-semibold">Share your photos</span>
+            Scan with your phone camera to send them to the couple.
+          </p>
+        </aside>
       )}
     </main>
   );

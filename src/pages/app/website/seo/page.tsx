@@ -6,6 +6,7 @@ import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { isDemoMode } from '@/demo/demoConfig';
 import { PUBLIC_SITE_HOST } from '@/lib/env';
 import type { SeoConfig } from '@/types/website';
+import { SOCIAL_IMAGE_TYPES, uploadSocialImage } from '@/lib/websiteImages';
 
 // ── Character counter with color ──
 function CharCount({ current, max, warningAt }: { current: number; max: number; warningAt: number }) {
@@ -123,7 +124,9 @@ function Field({ label, children, hint }: { label: string; children: React.React
 export default function WebsiteSeoPage() {
   const navigate = useNavigate();
   const { activeWedding } = useActiveWedding();
-  const { draftConfig, saveStatus, publishStatus, setSeo, saveDraft } = useWeddingWebsiteBuilder();
+  const { config: publishedConfig, draftConfig, saveStatus, publishStatus, setSeo, saveDraft } = useWeddingWebsiteBuilder();
+  const [imageUploading, setImageUploading] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const [seoState, setSeoState] = useState<SeoConfig | null>(null);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -148,11 +151,39 @@ export default function WebsiteSeoPage() {
     toastTimer.current = setTimeout(() => setToast(null), 3500);
   }, []);
 
-  const updateField = (field: keyof SeoConfig, value: unknown) => {
+  const updateFields = (changes: Partial<SeoConfig>) => {
     if (!seoState) return;
-    const updated = { ...seoState, [field]: value };
+    const updated = { ...seoState, ...changes };
     setSeoState(updated);
     setSeo(updated);
+  };
+  const updateField = (field: keyof SeoConfig, value: unknown) => {
+    updateFields({ [field]: value } as Partial<SeoConfig>);
+  };
+
+  const handleImageChosen = async (file: File | undefined) => {
+    if (!file || !seoState) return;
+    if (isDemoMode || !activeWedding?.id) {
+      showToast('error', 'Image upload is not available in the demo.');
+      return;
+    }
+    setImageUploading(true);
+    try {
+      const url = await uploadSocialImage(activeWedding.id, file, [
+        seoState.social_image_url,
+        publishedConfig?.seo_config?.social_image_url,
+      ]);
+      updateFields({
+        social_image_url: url,
+        social_image_alt: seoState.social_image_alt || `${coupleNames} wedding`,
+      });
+      showToast('success', 'Image uploaded — save changes to keep it');
+    } catch (err) {
+      showToast('error', err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setImageUploading(false);
+      if (imageInputRef.current) imageInputRef.current.value = '';
+    }
   };
 
   const handleSave = async () => {
@@ -299,7 +330,14 @@ export default function WebsiteSeoPage() {
                 <CharCount current={seo.social_description.length} max={200} warningAt={180} />
               </Field>
 
-              <Field label="Social image" hint="Recommended size: 1200×630px. Images work best at a 1.91:1 ratio.">
+              <Field label="Social image" hint="Any photo works — we crop it to 1200×630px (1.91:1) from the centre.">
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept={SOCIAL_IMAGE_TYPES.join(',')}
+                  className="hidden"
+                  onChange={(e) => handleImageChosen(e.target.files?.[0])}
+                />
                 {seo.social_image_url ? (
                   <div className="space-y-2">
                     <div className="relative rounded-lg overflow-hidden border border-secondary-200 aspect-[1200/630] max-w-sm">
@@ -309,7 +347,16 @@ export default function WebsiteSeoPage() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={imageUploading}
+                        className="text-xs text-foreground-600 hover:text-foreground-900 cursor-pointer whitespace-nowrap disabled:opacity-60"
+                      >
+                        {imageUploading
+                          ? <><i className="ri-loader-4-line animate-spin mr-1" /> Uploading…</>
+                          : <><i className="ri-image-edit-line mr-1" /> Replace</>}
+                      </button>
                       <button
                         onClick={() => updateField('social_image_url', null)}
                         className="text-xs text-red-500 hover:text-red-600 cursor-pointer whitespace-nowrap"
@@ -324,16 +371,15 @@ export default function WebsiteSeoPage() {
                       <i className="ri-image-add-line text-lg" />
                     </div>
                     <p className="text-xs text-foreground-500 mb-1">No image set</p>
-                    <p className="text-[10px] text-foreground-400 mb-3">Upload a 1200×630px image for social sharing</p>
+                    <p className="text-[10px] text-foreground-400 mb-3">JPG, PNG or WebP — shown when your website link is shared</p>
                     <button
-                      onClick={() => {
-                        // Simulated upload — in production this would open the storage uploader
-                        updateField('social_image_url', 'https://readdy.ai/api/search-image?query=Elegant%20romantic%20wedding%20invitation%20flat%20lay%20with%20cream%20roses%20peonies%20and%20greenery%20on%20silk%20fabric%2C%20gold%20accents%2C%20soft%20natural%20window%20light%2C%20fine%20art%20editorial%20photography%2C%20warm%20neutral%20tones%2C%20luxurious%20texture%2C%20joyful%20celebration%20aesthetic&width=1200&height=630&seq=wedding-seo-og&orientation=landscape');
-                        updateField('social_image_alt', `${coupleNames} wedding invitation with floral arrangement`);
-                      }}
-                      className="px-3 py-1.5 text-xs rounded-lg border border-secondary-200 text-foreground-600 hover:bg-background-100 cursor-pointer transition-colors whitespace-nowrap"
+                      onClick={() => imageInputRef.current?.click()}
+                      disabled={imageUploading}
+                      className="px-3 py-1.5 text-xs rounded-lg border border-secondary-200 text-foreground-600 hover:bg-background-100 cursor-pointer transition-colors whitespace-nowrap disabled:opacity-60"
                     >
-                      <i className="ri-upload-line mr-1" /> Upload image
+                      {imageUploading
+                        ? <><i className="ri-loader-4-line animate-spin mr-1" /> Uploading…</>
+                        : <><i className="ri-upload-line mr-1" /> Upload image</>}
                     </button>
                   </div>
                 )}

@@ -2,10 +2,12 @@ import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { DEMO_CONFIG, isDemoMode } from '@/demo/demoConfig';
-import type { GalleryAdminAsset, GalleryModerationRules } from '@/types/gallery';
+import type { GalleryAdminAlbum, GalleryAdminAsset, GalleryModerationRules } from '@/types/gallery';
+import SharedUploadLinkCard from './SharedUploadLinkCard';
 
 interface LiveWallTabProps {
   assets: GalleryAdminAsset[];
+  albums: GalleryAdminAlbum[];
   rules: GalleryModerationRules | null;
   saving: boolean;
   onToggleWall: (assetId: string) => Promise<void>;
@@ -32,7 +34,7 @@ const WALL_CONFIG_DEFAULTS = {
   paused: false,
 };
 
-export default function LiveWallTab({ assets, rules, saving, onToggleWall, onBulkToggleWall, onUpdateRules, showToast }: LiveWallTabProps) {
+export default function LiveWallTab({ assets, albums, rules, saving, onToggleWall, onBulkToggleWall, onUpdateRules, showToast }: LiveWallTabProps) {
   const [wallConfig, setWallConfig] = useState(WALL_CONFIG_DEFAULTS);
   const [selectedWallIds, setSelectedWallIds] = useState<Set<string>>(new Set());
   const [showPreview, setShowPreview] = useState(false);
@@ -159,8 +161,8 @@ export default function LiveWallTab({ assets, rules, saving, onToggleWall, onBul
               </div>
 
               <label className="flex items-center justify-between py-1.5 cursor-pointer">
-                <span className="text-xs text-foreground-700">Show QR upload prompt</span>
-                <button disabled={!isDemoMode} onClick={() => setWallConfig((p) => ({ ...p, show_qr_upload: !p.show_qr_upload }))} className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${wallConfig.show_qr_upload ? 'bg-primary-500' : 'bg-secondary-300'}`}>
+                <span className="text-xs text-foreground-700">Show photo upload QR code<span className="block text-[10px] text-foreground-400">Uses the shared photo upload link below</span></span>
+                <button onClick={() => setWallConfig((p) => ({ ...p, show_qr_upload: !p.show_qr_upload }))} className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${wallConfig.show_qr_upload ? 'bg-primary-500' : 'bg-secondary-300'}`}>
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${wallConfig.show_qr_upload ? 'translate-x-4' : 'translate-x-0.5'}`} />
                 </button>
               </label>
@@ -208,6 +210,9 @@ export default function LiveWallTab({ assets, rules, saving, onToggleWall, onBul
               </button>
             </label>
           </div>
+          {!isDemoMode && activeWedding?.id && (
+            <SharedUploadLinkCard weddingId={activeWedding.id} albums={albums} showToast={showToast} />
+          )}
         </div>
 
         {/* Right: Wall media grid */}

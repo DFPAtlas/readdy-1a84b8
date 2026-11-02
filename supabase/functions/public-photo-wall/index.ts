@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!wedding) return reply({ error: "Wall unavailable" }, 404);
     await requireEntitlement(db, wedding.id, 'weddingDay');
-    const [{ data: rules }, { data: portal }] = await Promise.all([
+    const [{ data: rules }, { data: portal }, { data: uploadLink }] = await Promise.all([
       db
         .from("gallery_moderation_rules")
         .select("provider_config")
@@ -35,6 +35,11 @@ Deno.serve(async (req) => {
       db
         .from("guest_portal_settings")
         .select("portal_enabled,portal_closes_at")
+        .eq("wedding_id", wedding.id)
+        .maybeSingle(),
+      db
+        .from("gallery_shared_upload_links")
+        .select("token,enabled,album_id")
         .eq("wedding_id", wedding.id)
         .maybeSingle(),
     ]);
@@ -85,6 +90,13 @@ Deno.serve(async (req) => {
         ? config.transition_style
         : "none",
       paused: config.paused === true,
+      // Shared photo upload link for the on-screen QR code (gallery-shared-upload).
+      upload_token:
+        config.show_qr_upload !== false &&
+        uploadLink?.enabled &&
+        uploadLink.album_id
+          ? uploadLink.token
+          : null,
       duration: Math.max(
         2000,
         Math.min(30000, Number(config.photo_duration_ms) || 5000),

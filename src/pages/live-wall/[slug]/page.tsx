@@ -5,58 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 
-// ── Non-demo: Live wall with Supabase Realtime ──
-
-function QRCodeOverlay({ slug, onClose }: { slug: string; onClose: () => void }) {
-  const uploadUrl = `${window.location.origin}/guest/${slug}/gallery`;
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={onClose}>
-      <div
-        className="bg-white rounded-2xl w-full max-w-sm p-8 text-center shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-foreground-400 hover:bg-background-100 cursor-pointer"
-          aria-label="Close"
-        >
-          <i className="ri-close-line" />
-        </button>
-
-        <div className="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-primary-50 text-primary-500 mb-5">
-          <i className="ri-camera-line text-3xl" />
-        </div>
-        <h2 className="font-heading text-xl text-foreground-900 mb-2">Share your photos</h2>
-        <p className="text-sm text-foreground-500 mb-6 leading-relaxed">
-          Scan the QR code or visit the link below to upload your wedding photos.
-        </p>
-
-        {/* QR Code placeholder — in production use a real QR generation */}
-        <div className="w-48 h-48 mx-auto bg-secondary-100 rounded-xl flex items-center justify-center mb-4">
-          <div className="text-center">
-            <i className="ri-qr-code-line text-5xl text-foreground-400 block mb-2" />
-            <span className="text-[10px] text-foreground-400 font-label">QR Code</span>
-          </div>
-        </div>
-
-        <p className="text-xs text-foreground-400 break-all mb-6 px-4">{uploadUrl}</p>
-
-        <div className="flex items-center justify-center gap-2">
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(uploadUrl).catch(() => {});
-            }}
-            className="px-4 py-2 rounded-lg bg-primary-500 text-white text-sm font-label font-medium hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"
-          >
-            <i className="ri-file-copy-line mr-1.5" /> Copy link
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Demo wall (preserved from existing) ──
 
 function DemoLiveWall() {

@@ -199,6 +199,7 @@ export default function GalleryHubPage() {
         {activeTab === 'live-wall' && (
           <LiveWallTab
             assets={assets}
+            albums={albums}
             rules={rules}
             saving={saving}
             onToggleWall={toggleWall}
