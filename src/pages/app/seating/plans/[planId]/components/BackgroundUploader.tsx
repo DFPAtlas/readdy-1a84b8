@@ -3,15 +3,21 @@ import { useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { BackgroundAsset } from '@/types/seating';
 
+// Floor plans live in the private bucket under seating/<wedding>/<plan>/, protected by
+// the same per-wedding storage policies as gallery photos. Guests get signed links.
+const BUCKET = 'private';
+const isStoragePath = (p: string | null | undefined): p is string => !!p && !/^(https?:|data:|blob:)/.test(p);
+
 interface Props {
   planId: string;
   weddingId: string;
+  isDemo?: boolean;
   currentBg: BackgroundAsset | null;
   onClose: () => void;
   onUpdate: (bg: BackgroundAsset | null) => void;
 }
 
-export default function BackgroundUploader({ planId, weddingId, currentBg, onClose, onUpdate }: Props) {
+export default function BackgroundUploader({ planId, weddingId, isDemo = false, currentBg, onClose, onUpdate }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [opacity, setOpacity] = useState(currentBg?.opacity ?? 1);
@@ -26,27 +32,34 @@ export default function BackgroundUploader({ planId, weddingId, currentBg, onClo
     if (!validTypes.includes(file.type)) { setError('Only PNG, JPEG, and WebP files are supported.'); return; }
     if (file.size > 10 * 1024 * 1024) { setError('File size must be under 10 MB.'); return; }
 
+    if (isDemo || !weddingId) { setError('Floor plan uploads are not available in the demo.'); return; }
+
     setUploading(true); setError('');
     try {
-      const safeName = `floorplans/${planId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-      const { error: uploadErr } = await supabase.storage.from('wedding-assets').upload(safeName, file, { upsert: true });
+      const path = `seating/${weddingId}/${planId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: uploadErr } = await supabase.storage.from(BUCKET).upload(path, file, { contentType: file.type });
       if (uploadErr) throw uploadErr;
-
-      const { data: urlData } = supabase.storage.from('wedding-assets').getPublicUrl(safeName);
+      const fileFields = { storage_path: path, original_filename: file.name, mime_type: file.type, file_size: file.size, visible: true };
 
       if (currentBg?.id) {
-        await supabase.from('seating_background_assets').update({
-          storage_path: urlData.publicUrl, original_filename: file.name, mime_type: file.type,
-          file_size: file.size, updated_at: new Date().toISOString(),
+        const { error: updErr } = await supabase.from('seating_background_assets').update({
+          ...fileFields, updated_at: new Date().toISOString(),
         }).eq('id', currentBg.id);
-        onUpdate({ ...currentBg, storage_path: urlData.publicUrl, original_filename: file.name, mime_type: file.type, file_size: file.size });
+        if (updErr) { await supabase.storage.from(BUCKET).remove([path]); throw updErr; }
+        // Best-effort clean-up of the replaced file.
+        if (isStoragePath(currentBg.storage_path)) await supabase.storage.from(BUCKET).remove([currentBg.storage_path]);
+        onUpdate({ ...currentBg, ...fileFields });
       } else {
+        // Table defaults are visible=false / opacity=0, so set display values explicitly.
         const { data, error: insErr } = await supabase.from('seating_background_assets').insert({
-          wedding_id: weddingId, seating_plan_id: planId, storage_path: urlData.publicUrl,
-          original_filename: file.name, mime_type: file.type, file_size: file.size,
+          wedding_id: weddingId, seating_plan_id: planId, ...fileFields, opacity: 1, scale_factor: 1,
         }).select('*').single();
-        if (insErr) throw insErr;
-        if (data) onUpdate(data as BackgroundAsset);
+        if (insErr || !data) { await supabase.storage.from(BUCKET).remove([path]); throw insErr ?? new Error('Upload failed'); }
+        // Link it to the plan so the guest portal's seating map can show it.
+        const { error: linkErr } = await supabase.from('seating_plans').update({ background_asset_id: data.id }).eq('id', planId).eq('wedding_id', weddingId);
+        if (linkErr) throw linkErr;
+        setOpacity(1); setScale(1);
+        onUpdate(data as BackgroundAsset);
       }
       await supabase.from('seating_activity_log').insert({ wedding_id: weddingId, seating_plan_id: planId, action: 'background_uploaded', summary: `Uploaded ${file.name}` });
     } catch (err: unknown) {
@@ -56,7 +69,11 @@ export default function BackgroundUploader({ planId, weddingId, currentBg, onClo
 
   const handleRemove = async () => {
     if (!currentBg) return;
-    await supabase.from('seating_background_assets').delete().eq('id', currentBg.id);
+    setError('');
+    await supabase.from('seating_plans').update({ background_asset_id: null }).eq('id', planId).eq('background_asset_id', currentBg.id);
+    const { error: delErr } = await supabase.from('seating_background_assets').delete().eq('id', currentBg.id);
+    if (delErr) { setError(delErr.message); return; }
+    if (isStoragePath(currentBg.storage_path)) await supabase.storage.from(BUCKET).remove([currentBg.storage_path]);
     await supabase.from('seating_activity_log').insert({ wedding_id: weddingId, seating_plan_id: planId, action: 'background_removed', summary: 'Background removed' });
     onUpdate(null);
   };
@@ -98,6 +115,7 @@ export default function BackgroundUploader({ planId, weddingId, currentBg, onClo
               </button>
               <button onClick={handleRemove} className="flex-1 px-3 py-2 text-xs font-label border border-red-200 text-red-600 rounded-lg hover:bg-red-50 cursor-pointer whitespace-nowrap">Remove</button>
             </div>
+            {error && <p className="text-xs text-red-600">{error}</p>}
           </div>
         ) : (
           <div>

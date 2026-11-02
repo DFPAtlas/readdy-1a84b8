@@ -71,7 +71,8 @@ create function auth.role() returns text language sql stable as $$ select coales
       ),
     );
   await db.exec(
-    "grant usage on schema public,auth to authenticated,anon,service_role; grant select,insert,update,delete on all tables in schema public to authenticated,anon,service_role;",
+    // Mirror Supabase: API roles can reach storage.objects, and RLS decides what they may do.
+    "grant usage on schema public,auth,storage to authenticated,anon,service_role; grant select,insert,update,delete on all tables in schema public to authenticated,anon,service_role; grant select,insert,update,delete on storage.objects to authenticated,anon,service_role;",
   );
   const owner = "10000000-0000-4000-8000-000000000001",
     viewer = "10000000-0000-4000-8000-000000000002",

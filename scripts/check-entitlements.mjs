@@ -74,5 +74,13 @@ export async function checkEntitlements(db, owner, wedding, otherWedding) {
  await setPlan('complete'); await db.query("insert into public.wedding_tasks(wedding_id,title) values($1,'Paid task')",[wedding]);
  await setPlan('luxury'); assert.equal((await db.query('select count(*)::int as n from public.invitations where wedding_id=$1',[wedding])).rows[0].n,80,'Upgrade restores saved data');
  await db.query("insert into public.invitations(wedding_id,internal_name) values($1,'Luxury invite 81')",[wedding]);
+ // Seating floor plans: private bucket, scoped to the uploader's wedding, paid "seating" feature.
+ await db.query("insert into storage.objects(bucket_id,name,metadata) values('private',$1,'{\"size\":2048}')",[`seating/${wedding}/plan-1/floor.png`]);
+ // Give the other wedding a paid plan so only the membership rule can block this.
+ await asServer(); await db.query("insert into public.wedora_subscriptions(wedding_id,user_id,plan_key,status,stripe_subscription_id,current_period_end) values($1,$2,'luxury','active','sub_other',now()+interval '1 month')",[otherWedding,owner]); await asOwner();
+ await assert.rejects(db.query("insert into storage.objects(bucket_id,name,metadata) values('private',$1,'{\"size\":2048}')",[`seating/${otherWedding}/plan-1/floor.png`]),/row-level security/,'Cannot upload a floor plan into another wedding');
+ await setPlan('essential');
+ await assert.rejects(db.query("insert into storage.objects(bucket_id,name,metadata) values('private',$1,'{\"size\":2048}')",[`seating/${wedding}/plan-1/floor-2.png`]),/Upgrade|row-level security/,'Floor plans need a plan with seating');
+ await setPlan('luxury');
  await asServer(); console.log('Subscription tier, status, direct-API, quota and downgrade tests passed.');
 }
