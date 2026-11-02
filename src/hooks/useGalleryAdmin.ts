@@ -76,7 +76,8 @@ function useRealGalleryAdmin(weddingId: string | null): UseGalleryAdminReturn {
           } catch { /* ignore */ }
         }
         const album = (albumRes.data || []).find((al: Record<string, unknown>) => al.id === a.album_id);
-        signedAssets.push({ ...a, signed_url: signedUrl, thumbnail_signed_url: thumbSignedUrl, album_title: album?.title || null } as GalleryAdminAsset);
+        // Shared-link uploads have no guest record; show the name the uploader typed.
+        signedAssets.push({ ...a, uploader_name: a.uploader_name ?? a.credit_name ?? null, signed_url: signedUrl, thumbnail_signed_url: thumbSignedUrl, album_title: album?.title || null } as GalleryAdminAsset);
       }
 
       const albumsWithCount: GalleryAdminAlbum[] = (albumRes.data || []).map((al: Record<string, unknown>) => ({

@@ -10,6 +10,7 @@ import SummaryCards from './components/SummaryCards';
 import EventDrawer from './components/EventDrawer';
 import TimelineView from './components/TimelineView';
 import ListView from './components/ListView';
+import GuestItineraryPreview from './components/GuestItineraryPreview';
 
 // ── Helpers ──
 
@@ -92,6 +93,7 @@ export default function SchedulePage() {
   const [editingEvent, setEditingEvent] = useState<WeddingEvent | null>(null);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
     setToast({ msg, type });
@@ -201,11 +203,10 @@ export default function SchedulePage() {
   const handlePreview = () => {
     if (demoMode) {
       navigate('/guest/demo-session/itinerary');
-    } else if (wedding?.slug) {
-      // Navigate to guest itinerary preview if available
-      showToast('Guest itinerary preview coming soon', 'error');
+    } else if (weddingId) {
+      setPreviewOpen(true);
     } else {
-      showToast('No preview available — publish your wedding first', 'error');
+      showToast('Choose a wedding first', 'error');
     }
   };
 
@@ -440,6 +441,10 @@ export default function SchedulePage() {
               </div>
             </div>
           </div>
+        )}
+
+        {previewOpen && weddingId && (
+          <GuestItineraryPreview weddingId={weddingId} events={events} onClose={() => setPreviewOpen(false)} />
         )}
       </div>
     </AppShell>

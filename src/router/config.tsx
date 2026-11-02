@@ -47,6 +47,7 @@ const PublicTableLookupPage = lazy(() => import("@/pages/w/[slug]/table-lookup/p
 const InviteLandingPage = lazy(() => import("@/pages/invite/[token]/page"));
 const DemoStartPage = lazy(() => import("@/pages/demo-start/page"));
 const LivePhotoWallPage = lazy(() => import("@/pages/live-wall/[slug]/page"));
+const SharedPhotoUploadPage = lazy(() => import("@/pages/photos/[token]/page"));
 const ContributionSuccessPage = lazy(() => import("@/pages/guest/fund/contribution/success/page"));
 const ContributionCancelPage = lazy(() => import("@/pages/guest/fund/contribution/cancel/page"));
 
@@ -237,6 +238,7 @@ const routes: RouteObject[] = [
   { path: "/invite/:token", element: <LazyRoute comp={InviteLandingPage} /> },
   { path: "/demo-start", element: <LazyRoute comp={DemoStartPage} /> },
   { path: "/live-wall/:slug", element: <LazyRoute comp={LivePhotoWallPage} /> },
+  { path: "/photos/:token", element: <LazyRoute comp={SharedPhotoUploadPage} /> },
   { path: "/guest/fund/contribution/success", element: <LazyRoute comp={ContributionSuccessPage} /> },
   { path: "/guest/fund/contribution/cancel", element: <LazyRoute comp={ContributionCancelPage} /> },
 
