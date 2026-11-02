@@ -990,7 +990,7 @@ export default function SeatingPlanWorkspacePage() {
         )}
         {showBackground && (
           <BackgroundUploader
-            planId={planId!} weddingId={weddingId || ''}
+            planId={planId!} weddingId={weddingId || ''} isDemo={isDemo}
             currentBg={backgroundAsset} onClose={() => setShowBackground(false)}
             onUpdate={handleBackgroundUpdate}
           />

@@ -4,7 +4,6 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
-import { useGalleryRealtime, type WallAsset } from '@/hooks/useGalleryRealtime';
 
 // ── Non-demo: Live wall with Supabase Realtime ──
 

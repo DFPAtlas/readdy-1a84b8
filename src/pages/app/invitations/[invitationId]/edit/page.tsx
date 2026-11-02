@@ -12,8 +12,7 @@ export default function EditInvitationPage() {
   // ── Handle creation callback — navigate to the real URL ──
 
   const handleCreated = (newId: string) => {
-    const base = (window as { __BASE_PATH__?: string }).__BASE_PATH__ || '';
-    navigate(`${base}/app/invitations/${newId}/edit`, { replace: true });
+    navigate(`/app/invitations/${newId}/edit`, { replace: true });
   };
 
   // ── Auth loading ──

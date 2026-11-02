@@ -1,6 +1,7 @@
 import type * as React from "react";
 import { useState, useRef, useCallback, useEffect, useMemo, forwardRef } from 'react';
 import type { SeatingPlan, TableWithData, RoomObject, BackgroundAsset, SeatingZone, SeatingSeat } from '@/types/seating';
+import { supabase } from '@/lib/supabase';
 import DemoHoverTooltip, { type HoverTarget } from './DemoHoverTooltip';
 
 interface CanvasProps {
@@ -545,7 +546,18 @@ export default forwardRef<HTMLDivElement, CanvasProps>(function Canvas({
   const renderedObjects = useMemo(() => roomObjects.filter((o) => o.visible), [roomObjects]);
 
   // ── Background ──
-  const bgImageUrl = backgroundAsset?.storage_path || null;
+  // Floor plans are stored privately; resolve the stored path to a short-lived signed link.
+  const bgPath = backgroundAsset?.storage_path || null;
+  const [bgImageUrl, setBgImageUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!bgPath) { setBgImageUrl(null); return; }
+    if (/^(https?:|data:|blob:)/.test(bgPath)) { setBgImageUrl(bgPath); return; }
+    let cancelled = false;
+    supabase.storage.from('private').createSignedUrl(bgPath, 60 * 60 * 6).then(({ data }) => {
+      if (!cancelled) setBgImageUrl(data?.signedUrl ?? null);
+    });
+    return () => { cancelled = true; };
+  }, [bgPath]);
 
   // ── Resize handle cursor map ──
   const handleCursors: Record<string, string> = {

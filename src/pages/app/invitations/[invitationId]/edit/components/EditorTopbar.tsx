@@ -118,8 +118,7 @@ export default function EditorTopbar({
   };
 
   const handleBack = () => {
-    const base = __BASE_PATH__ || '';
-    navigate(`${base}/app/invitations`);
+    navigate('/app/invitations');
   };
 
   const status = SAVE_STATE_MAP[saveState] || SAVE_STATE_MAP.loading;
