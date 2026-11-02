@@ -5,7 +5,7 @@ import type { WebsiteConfig, WeddingPartyProfile } from "@/types/website";
 import { usePublicSeoMetadata } from "@/hooks/usePublicSeoMetadata";
 type Row = Record<string, string | null>;
 type Published = {
-  features?: { whiteLabel?: boolean };
+  features?: { whiteLabel?: boolean; seatingLookup?: boolean };
   wedding: Row;
   config: WebsiteConfig;
   events: Row[];
@@ -157,15 +157,22 @@ function Website({ data }: { data: Published }) {
       <header className="border-b bg-white p-4">
         <div className="max-w-5xl mx-auto flex flex-wrap justify-between gap-4">
           <span className="font-heading text-xl">{wedding.title}</span>
-          {config.navigation_config?.show_top_nav && (
-            <nav className="flex flex-wrap gap-4" aria-label="Wedding website">
-              {sections.map((section) => (
-                <a key={section.id} className="text-sm" href={`#${section.id}`}>
-                  {section.label}
-                </a>
-              ))}
-            </nav>
-          )}
+          <div className="flex flex-wrap items-center gap-4">
+            {config.navigation_config?.show_top_nav && (
+              <nav className="flex flex-wrap gap-4" aria-label="Wedding website">
+                {sections.map((section) => (
+                  <a key={section.id} className="text-sm" href={`#${section.id}`}>
+                    {section.label}
+                  </a>
+                ))}
+              </nav>
+            )}
+            {data.features?.seatingLookup && wedding.slug && (
+              <Link className="text-sm font-semibold underline" to={`/w/${wedding.slug}/table-lookup`}>
+                Find your table
+              </Link>
+            )}
+          </div>
         </div>
       </header>
       <main className="max-w-5xl mx-auto px-5">

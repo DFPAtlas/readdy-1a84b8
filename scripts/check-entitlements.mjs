@@ -82,5 +82,17 @@ export async function checkEntitlements(db, owner, wedding, otherWedding) {
  await setPlan('essential');
  await assert.rejects(db.query("insert into storage.objects(bucket_id,name,metadata) values('private',$1,'{\"size\":2048}')",[`seating/${wedding}/plan-1/floor-2.png`]),/Upgrade|row-level security/,'Floor plans need a plan with seating');
  await setPlan('luxury');
+ // Public "find your table" link on the wedding website.
+ await asServer();
+ const lookupFlag = async () => (await db.query("select public.public_wedding_page('private-wedding') as p")).rows[0].p.features.seatingLookup;
+ assert.equal(await lookupFlag(), false, 'No table lookup link before a plan is published with lookup');
+ const pubId = (await db.query("insert into public.seating_publications(wedding_id,status,lookup_settings,published_at) values($1,'published','{\"mode\":\"name_code\"}',now()) returning id",[wedding])).rows[0].id;
+ assert.equal(await lookupFlag(), true, 'Table lookup link shows once a plan is published with name + code');
+ await setPlan('essential'); await asServer();
+ assert.equal(await lookupFlag(), false, 'Table lookup link is hidden without the seating feature');
+ await setPlan('luxury'); await asServer();
+ const lookupGuest = (await db.query("select id from public.guests where wedding_id=$1 limit 1",[wedding])).rows[0].id;
+ await db.query("insert into public.seating_lookup_codes(wedding_id,publication_id,guest_id,code_hash,status) values($1,$2,$3,'hash-1','active')",[wedding,pubId,lookupGuest]);
+ await assert.rejects(db.query("insert into public.seating_lookup_codes(wedding_id,publication_id,guest_id,code_hash,status) values($1,$2,$3,'hash-2','active')",[wedding,pubId,lookupGuest]),/duplicate key/,'One table code per guest per publication');
  await asServer(); console.log('Subscription tier, status, direct-API, quota and downgrade tests passed.');
 }
