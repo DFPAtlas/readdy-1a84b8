@@ -87,7 +87,11 @@ export default function SettingsTab({ rules, uploadSettings, storageUsage, savin
       <div className="space-y-4">
         {/* Moderation rules */}
         <div className="bg-white border border-secondary-100 rounded-xl p-5">
-          <h3 className="font-heading text-sm font-semibold text-foreground-900 mb-4">Moderation rules</h3>
+          <h3 className="font-heading text-sm font-semibold text-foreground-900 mb-1">Moderation rules</h3>
+          <p className="text-[11px] text-foreground-500 mb-4">
+            Guest photos get an automatic safety check. Anything flagged is held for you. With manual approval off, photos that pass are approved automatically —
+            except those sent through the shared photo link, which always wait for you.
+          </p>
           <div className="space-y-2">
             {[
               { key: 'manual_approval_required', label: 'Require manual approval' },

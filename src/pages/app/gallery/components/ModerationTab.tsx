@@ -144,8 +144,10 @@ export default function ModerationTab({ assets, albums, saving, onModerate, onBu
                   )}
                   <div className="absolute top-2 right-2 flex items-center gap-1">
                     <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-label font-medium ${statusColor(asset.moderation_status)}`}>{statusLabel(asset.moderation_status)}</span>
-                    {asset.moderation_ai_label && (
-                      <span className="px-1.5 py-0.5 rounded-full bg-secondary-100 text-secondary-600 text-[9px] font-label">{asset.moderation_ai_label}</span>
+                    {asset.scan_status === 'queued' || asset.scan_status === 'claimed' ? (
+                      <span title="Being checked automatically — you can still approve or reject it now" className="px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 text-[9px] font-label">Safety check pending</span>
+                    ) : asset.moderation_ai_label && (
+                      <span title={asset.scanned_by ? `Checked by ${asset.scanned_by}` : undefined} className={`px-1.5 py-0.5 rounded-full text-[9px] font-label ${asset.moderation_ai_label.startsWith('Flagged') ? 'bg-red-50 text-red-700' : 'bg-secondary-100 text-secondary-600'}`}>{asset.moderation_ai_label}</span>
                     )}
                   </div>
                 </div>
