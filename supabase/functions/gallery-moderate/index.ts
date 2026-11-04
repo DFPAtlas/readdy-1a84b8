@@ -7,17 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// ── Moderation provider interface (swap implementations behind this) ──
-
-interface ModerationResult {
-  status: "approved" | "rejected" | "held" | "manual_review" | "error";
-  ai_label: string;
-  reason_category?: string;
-  reason_detail?: string;
-  confidence: number;
-  provider: string;
-}
-
 // ── Deterministic file validation ──
 
 function validateFileSafety(buffer: Uint8Array, mimeType: string): { safe: boolean; reason?: string } {
@@ -47,68 +36,6 @@ function validateFileSafety(buffer: Uint8Array, mimeType: string): { safe: boole
   }
 
   return { safe: false, reason: `Unsupported MIME type: ${mimeType}` };
-}
-
-// ── Simulated AI content scanner (provider abstraction) ──
-
-async function simulateContentScan(
-  buffer: Uint8Array,
-  mimeType: string,
-  _fileName: string,
-  _durationSeconds?: number
-): Promise<ModerationResult> {
-  const fileSize = buffer.length;
-  const isVideo = mimeType.startsWith("video/");
-
-  // Deterministic but reasonable simulation of content scanning
-  // In production, replace with actual AI provider (e.g., AWS Rekognition, Google Vision, Sightengine)
-
-  // Simulate scanning delay
-  await new Promise((r) => setTimeout(r, 200));
-
-  // For the simulation: tiny files (< 1KB) or extremely large files (> 100MB) trigger review
-  if (fileSize < 512) {
-    return {
-      status: "held",
-      ai_label: "suspicious_tiny_file",
-      reason_category: "file_integrity",
-      reason_detail: "File appears corrupted or too small to contain valid image data",
-      confidence: 0.95,
-      provider: "vowora-simulated-scanner",
-    };
-  }
-
-  if (fileSize > 100 * 1024 * 1024) {
-    return {
-      status: "manual_review",
-      ai_label: "large_file",
-      reason_category: "size_threshold",
-      reason_detail: "File exceeds automated scan size threshold, requires manual review",
-      confidence: 0.99,
-      provider: "vowora-simulated-scanner",
-    };
-  }
-
-  // Most content passes in simulation
-  if (isVideo) {
-    return {
-      status: "approved",
-      ai_label: "video_content_ok",
-      reason_category: undefined,
-      reason_detail: undefined,
-      confidence: 0.92,
-      provider: "vowora-simulated-scanner",
-    };
-  }
-
-  return {
-    status: "approved",
-    ai_label: "image_content_ok",
-    reason_category: undefined,
-    reason_detail: undefined,
-    confidence: 0.94,
-    provider: "vowora-simulated-scanner",
-  };
 }
 
 // ── Main handler ──
@@ -171,12 +98,6 @@ Deno.serve(async (req: Request) => {
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Update status to scanning
-    await supabase.from("gallery_assets").update({
-      moderation_status: "scanning",
-      updated_at: new Date().toISOString(),
-    }).eq("id", asset_id);
-
     // Fetch the file from storage
     const storagePath = a.storage_path as string;
     const { data: fileData, error: downloadErr } = await supabase.storage
@@ -198,14 +119,13 @@ Deno.serve(async (req: Request) => {
 
     const buffer = new Uint8Array(await fileData.arrayBuffer());
     const mimeType = (a.mime_type as string) || "image/jpeg";
-    const fileName = storagePath.split("/").pop() || "unknown";
-    const duration = a.duration_seconds as number | undefined;
 
     // ── Step 1: File integrity / malware check ──
     const fileCheck = validateFileSafety(buffer, mimeType);
     if (!fileCheck.safe) {
       await supabase.from("gallery_assets").update({
         moderation_status: "rejected",
+        scan_status: "skipped",
         moderation_reason: fileCheck.reason || "File failed safety validation",
         moderation_scanned_at: new Date().toISOString(),
         scanned_by: "vowora-file-validator",
@@ -221,93 +141,24 @@ Deno.serve(async (req: Request) => {
       }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // ── Step 2: Content safety scan ──
-    let scanResult: ModerationResult;
+    // ── Step 2: Content check ──
+    // Guest photos are checked by Tron through gallery-scan-worker (queued by a
+    // database trigger on upload) and stay in the approval queue until then.
+    // Videos aren't checked automatically, so they go straight to the couple.
     if (mimeType.startsWith("video/")) {
-      scanResult = await simulateContentScan(buffer, mimeType, fileName, duration);
-    } else {
-      scanResult = await simulateContentScan(buffer, mimeType, fileName);
+      await supabase.from("gallery_assets").update({
+        moderation_status: "awaiting_review",
+        moderation_ai_label: "Video — please review",
+        moderation_updated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", asset_id);
+      return new Response(JSON.stringify({ success: true, moderation_status: "awaiting_review" }), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-
-    // ── Step 3: Fetch moderation rules ──
-    const { data: rules } = await supabase
-      .from("gallery_moderation_rules")
-      .select("*")
-      .eq("wedding_id", wedding_id)
-      .maybeSingle();
-
-    const moderationRules = rules as Record<string, unknown> | null;
-    const manualApprovalRequired = moderationRules?.manual_approval_required !== false;
-    const autoApproveTrusted = moderationRules?.auto_approve_trusted_guests === true;
-
-    // Determine final status based on scan + rules
-    let finalStatus: string;
-
-    if (scanResult.status === "rejected" || scanResult.status === "held") {
-      // AI flagged — reject or hold
-      finalStatus = scanResult.status;
-    } else if (scanResult.status === "manual_review") {
-      finalStatus = "awaiting_review";
-    } else if (scanResult.status === "approved") {
-      if (manualApprovalRequired) {
-        // Check if uploader is a trusted guest (couple-side upload or auto-approve list)
-        if (autoApproveTrusted && a.source_type === "couple") {
-          finalStatus = "approved";
-        } else {
-          finalStatus = "awaiting_review";
-        }
-      } else {
-        finalStatus = "approved";
-      }
-    } else {
-      finalStatus = "failed";
-    }
-
-    // ── Step 4: Update the asset ──
-    await supabase.from("gallery_assets").update({
-      moderation_status: finalStatus,
-      moderation_ai_label: scanResult.ai_label,
-      moderation_reason: scanResult.reason_detail || scanResult.reason_category || null,
-      moderation_scanned_at: new Date().toISOString(),
-      scanned_by: scanResult.provider,
-      moderation_updated_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      // If approved, also set wall_visible per rules
-      ...(finalStatus === "approved" && moderationRules?.auto_add_to_wall ? {
-        wall_visible: true,
-        wall_added_at: new Date().toISOString(),
-        published_at: new Date().toISOString(),
-        publication_status: "published",
-      } : finalStatus === "approved" ? {
-        published_at: new Date().toISOString(),
-        publication_status: "published",
-      } : {}),
-    }).eq("id", asset_id);
-
-    // ── Step 5: Log audit event ──
-    await supabase.from("invitation_activity_log").insert({
-      wedding_id,
-      event_type: "gallery_moderation",
-      summary: `Asset ${asset_id} scanned: ${currentStatus} → ${finalStatus} (${scanResult.ai_label}) via ${scanResult.provider}`,
-      actor_type: "system",
-      security_metadata: {
-        asset_id,
-        scan_provider: scanResult.provider,
-        confidence: scanResult.confidence,
-        ai_label: scanResult.ai_label,
-        file_size: buffer.length,
-        mime_type: mimeType,
-      },
+    return new Response(JSON.stringify({ success: true, moderation_status: currentStatus, queued: true }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
-    return new Response(JSON.stringify({
-      success: true,
-      moderation_status: finalStatus,
-      ai_label: scanResult.ai_label,
-      confidence: scanResult.confidence,
-      provider: scanResult.provider,
-      reason: scanResult.reason_detail || null,
-    }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
     const denied = entitlementErrorResponse(err, corsHeaders);
     if (denied) return denied;

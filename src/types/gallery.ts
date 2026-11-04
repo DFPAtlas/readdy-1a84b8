@@ -39,6 +39,9 @@ export interface GalleryAdminAsset {
   moderation_reason: string | null;
   moderation_scanned_at: string | null;
   scanned_by: string | null;
+  /** Tron safety check: queued/claimed = waiting, done, failed (left for manual review), skipped (videos). */
+  scan_status?: 'queued' | 'claimed' | 'done' | 'failed' | 'skipped' | null;
+  scan_score?: number | null;
   moderation_updated_by: string | null;
   moderation_updated_at: string | null;
   original_file_hash: string | null;

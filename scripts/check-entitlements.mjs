@@ -122,5 +122,49 @@ export async function checkEntitlements(db, owner, wedding, otherWedding) {
  await db.exec('reset role; set role anon');
  const anonRows = await db.query('select token from public.gallery_shared_upload_links').then((r) => r.rows.length, (e) => (/permission denied/.test(e.message) ? 0 : Promise.reject(e)));
  assert.equal(anonRows,0,'Anonymous visitors cannot read upload links');
+ // Tron photo safety checks: queue, claim, verdicts and the couple's rules.
+ await asServer();
+ const inv = (await db.query('select id from public.invitations where wedding_id=$1 limit 1',[wedding])).rows[0].id;
+ const addAsset = async (fields) => (await db.query(`insert into public.gallery_assets(wedding_id,album_id,storage_path,mime_type,moderation_status,source_type,publication_status,uploaded_by_invitation_id)
+   values($1,$2,$3,$4,$5,$6,'draft',$7) returning id,scan_status`,[wedding,album,`galleries/${wedding}/${album}/${fields.name}`,fields.mime||'image/jpeg','pending',fields.source||'guest',fields.inv===undefined?inv:fields.inv])).rows[0];
+ const viaInvite = await addAsset({name:'a.jpg'}); const viaShared = await addAsset({name:'b.jpg',inv:null});
+ const video = await addAsset({name:'c.mp4',mime:'video/mp4'}); const couple = await addAsset({name:'d.jpg',source:'couple'});
+ const flaggedPhoto = await addAsset({name:'e.jpg'}); const broken = await addAsset({name:'f.jpg'}); const decided = await addAsset({name:'g.jpg'});
+ assert.equal(viaInvite.scan_status,'queued','Guest photos are queued for the safety check');
+ assert.equal(video.scan_status,'skipped','Videos are left for manual review'); assert.equal(couple.scan_status,null,'Couple uploads are not scanned');
+ await db.query("delete from public.gallery_moderation_rules where wedding_id=$1",[wedding]);
+ await db.query("insert into public.gallery_moderation_rules(wedding_id,manual_approval_required,auto_add_to_wall) values($1,false,false)",[wedding]);
+ await asOwner();
+ await db.query("update public.gallery_assets set scan_status='done', scanned_by='fake', moderation_ai_label='No issues found' where id=$1",[viaInvite.id]);
+ await asServer(); assert.equal((await db.query('select scan_status,scanned_by from public.gallery_assets where id=$1',[viaInvite.id])).rows[0].scan_status,'queued','Couples cannot fake a scan result');
+ await asOwner();
+ await assert.rejects(db.query('select * from public.claim_gallery_scans(10)'),/permission denied/,'Only the server can claim photos to check');
+ await assert.rejects(db.query("select public.record_gallery_scan($1,'clean')",[viaInvite.id]),/permission denied/,'Only the server can record results');
+ await db.exec("reset role; set role service_role; select set_config('request.jwt.claim.role','service_role',false)");
+ const claimed = (await db.query('select asset_id from public.claim_gallery_scans(25)')).rows.map((r) => r.asset_id);
+ for (const a of [viaInvite,viaShared,flaggedPhoto,broken,decided]) assert.ok(claimed.includes(a.id),'Queued photos are handed out');
+ assert.ok(!claimed.includes(video.id) && !claimed.includes(couple.id),'Videos and couple uploads are not handed out');
+ assert.equal((await db.query('select count(*)::int as n from public.claim_gallery_scans(25)')).rows[0].n,0,'A claimed photo is not handed out twice');
+ const record = async (id, verdict, labels='[]') => (await db.query('select public.record_gallery_scan($1,$2,$3::jsonb,0.9,$4,$5) as s',[id,verdict,labels,'tron:test','Possible nudity'])).rows[0].s;
+ assert.equal(await record(viaInvite.id,'clean'),'approved','Clean invitation-link photo is approved when the couple turned manual approval off');
+ assert.equal(await record(viaShared.id,'clean'),'awaiting_review','Shared-link photos always wait for the couple');
+ assert.equal(await record(flaggedPhoto.id,'flagged','["nudity"]'),'held','Flagged photos are held');
+ assert.equal(await record(viaInvite.id,'clean'),'ignored','A result for a photo that is not claimed is ignored');
+ await db.exec("reset role; select set_config('request.jwt.claim.role','',false)");
+ const row = async (id) => (await db.query('select moderation_status,moderation_ai_label,moderation_reason,publication_status,scan_status,scanned_by from public.gallery_assets where id=$1',[id])).rows[0];
+ assert.equal((await row(viaInvite.id)).publication_status,'published'); assert.equal((await row(viaInvite.id)).scanned_by,'tron:test');
+ assert.equal((await row(flaggedPhoto.id)).moderation_ai_label,'Flagged: nudity'); assert.equal((await row(flaggedPhoto.id)).moderation_reason,'Possible nudity');
+ // The couple decides before the check finishes: their decision stands.
+ await asOwner(); await db.query("update public.gallery_assets set moderation_status='approved' where id=$1",[decided.id]);
+ await db.exec("reset role; set role service_role; select set_config('request.jwt.claim.role','service_role',false)");
+ assert.equal(await record(decided.id,'flagged','["nudity"]'),'approved','A scan never overrides the couple\'s decision');
+ // Errors retry, then fall back to manual review after 3 attempts.
+ assert.equal(await record(broken.id,'error'),'pending');
+ for (let attempt=2; attempt<=3; attempt++) {
+  assert.ok((await db.query('select asset_id from public.claim_gallery_scans(25)')).rows.some((r) => r.asset_id===broken.id),'Failed checks are retried');
+  await record(broken.id,'error');
+ }
+ await db.exec("reset role; select set_config('request.jwt.claim.role','',false)");
+ assert.equal((await row(broken.id)).scan_status,'failed'); assert.equal((await row(broken.id)).moderation_status,'awaiting_review','Unchecked photos are left for the couple, never approved');
  await asServer(); console.log('Subscription tier, status, direct-API, quota and downgrade tests passed.');
 }
