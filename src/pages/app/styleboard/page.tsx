@@ -189,7 +189,7 @@ function DemoStyleboard() {
                 {section.images.map((image) => (
                   <div key={image.id} className="group relative flex-shrink-0 w-[200px] md:w-[220px]">
                     <div className="relative rounded-lg overflow-hidden bg-background-100 aspect-[3/4]">
-                      <img src={image.url} alt={image.caption} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={image.url} alt={image.caption} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
                       <button
                         onClick={() => handleRemoveImage(section.id, image.id)}
@@ -414,7 +414,7 @@ function NormalStyleboard() {
                 {section.images.map((image) => (
                   <div key={image.id} className="group relative flex-shrink-0 w-[200px] md:w-[220px]">
                     <div className="relative rounded-lg overflow-hidden bg-background-100 aspect-[3/4]">
-                      <img src={image.url} alt={image.caption} className="w-full h-full object-cover" />
+                      <img loading="lazy" decoding="async" src={image.url} alt={image.caption} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200" />
                       <button
                         onClick={() => handleRemoveImage(section.id, image.id)}

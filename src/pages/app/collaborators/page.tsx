@@ -533,7 +533,7 @@ function CollaboratorRow({
       <div className="flex items-center gap-3 min-w-0">
         <div className="w-10 h-10 rounded-full bg-secondary-200 flex items-center justify-center shrink-0 text-xs font-label font-semibold text-foreground-600">
           {collab.avatarUrl ? (
-            <img src={collab.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+            <img loading="lazy" decoding="async" src={collab.avatarUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
           ) : (
             collab.name?.charAt(0)?.toUpperCase() || '?'
           )}

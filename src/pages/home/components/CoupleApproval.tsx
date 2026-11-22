@@ -61,6 +61,8 @@ export default function CoupleApproval() {
                   <div className="flex items-start gap-3">
                     <div className="w-16 h-16 rounded-md bg-background-200 flex-shrink-0 overflow-hidden">
                       <img
+                        loading="lazy"
+                        decoding="async"
                         src="https://readdy.ai/api/search-image?query=Elegant%20boutique%20hotel%20exterior%20with%20warm%20lighting%2C%20Georgian%20architecture%2C%20ivy%20covered%20entrance%2C%20soft%20evening%20light%2C%20professional%20photography%2C%20clean%20composition&width=128&height=128&seq=approval-hotel-sample&orientation=landscape"
                         alt="Suggested hotel"
                         className="w-full h-full object-cover object-top"

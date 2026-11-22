@@ -65,7 +65,7 @@ export default function GuestGiftDetailPage() {
         <div className="lg:col-span-3 space-y-6">
           <div className="w-full h-80 rounded-xl bg-background-50 overflow-hidden">
             {item.image ? (
-              <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+              <img fetchPriority="high" src={item.image} alt={item.title} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-secondary-50">
                 <div className="text-center">

@@ -237,7 +237,7 @@ export default function AlbumsTab({ albumHook, assets, albums, saving, showToast
                   onClick={async () => { await setCover(showCoverPicker, asset.id); setShowCoverPicker(null); showToast('Cover updated'); }}
                   className="aspect-[4/3] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary-400 cursor-pointer transition-all"
                 >
-                  {asset.signed_url ? <img src={asset.signed_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-secondary-100 flex items-center justify-center"><i className="ri-image-line" /></div>}
+                  {asset.signed_url ? <img loading="lazy" decoding="async" src={asset.signed_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-secondary-100 flex items-center justify-center"><i className="ri-image-line" /></div>}
                 </button>
               ))}
             </div>

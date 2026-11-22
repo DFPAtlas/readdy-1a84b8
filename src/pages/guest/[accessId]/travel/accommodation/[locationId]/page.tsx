@@ -69,7 +69,7 @@ export default function GuestAccommodationDetailPage() {
           {/* Image */}
           <div className="rounded-xl overflow-hidden h-64 md:h-80 bg-secondary-50">
             {place.image_url ? (
-              <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" />
+              <img fetchPriority="high" src={place.image_url} alt={place.name} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-secondary-300">
                 <i className="ri-hotel-line text-5xl" />

@@ -100,6 +100,7 @@ export default function LoginPage() {
     <div className="relative min-h-screen flex flex-col overflow-hidden">
       <div className="absolute inset-0 z-0">
         <img
+          fetchPriority="high"
           src={RINGS_BG}
           alt=""
           className="w-full h-full object-cover"

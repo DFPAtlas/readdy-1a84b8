@@ -1,4 +1,6 @@
-import QRCode from 'qrcode';
+// qrcode (~25 KB) loads only when a QR code is actually drawn, so guests on the
+// shared-upload page don't download it.
+const loadQrCode = () => import('qrcode').then((module) => module.default ?? module);
 import { PUBLIC_SITE_URL } from '@/lib/env';
 
 /** Public origin for links guests open (the live site, not an editor preview). */
@@ -14,12 +16,14 @@ export function sharedPhotoUploadUrl(token: string): string {
 
 /** QR code as an SVG string (crisp at any size, e.g. on a big screen). */
 export function qrSvg(text: string, dark = '#111111', light = '#ffffff'): Promise<string> {
-  return QRCode.toString(text, { type: 'svg', errorCorrectionLevel: 'M', margin: 2, color: { dark, light } });
+  return loadQrCode().then((QRCode) =>
+    QRCode.toString(text, { type: 'svg', errorCorrectionLevel: 'M', margin: 2, color: { dark, light } }),
+  );
 }
 
 /** QR code as a PNG data URL, for downloading and printing on table cards. */
 export function qrPngDataUrl(text: string, size = 1024): Promise<string> {
-  return QRCode.toDataURL(text, { errorCorrectionLevel: 'M', margin: 2, width: size });
+  return loadQrCode().then((QRCode) => QRCode.toDataURL(text, { errorCorrectionLevel: 'M', margin: 2, width: size }));
 }
 
 /**

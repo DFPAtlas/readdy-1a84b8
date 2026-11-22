@@ -1,5 +1,5 @@
 import type * as React from "react";
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useDeferredValue } from 'react';
 import type { GalleryAdminAsset, GalleryAdminAlbum } from '@/types/gallery';
 import { MODERATION_STATUS_OPTIONS, SOURCE_TYPE_OPTIONS, MEDIA_TYPE_OPTIONS, ALLOWED_IMAGE_TYPES, ALLOWED_VIDEO_TYPES, MAX_BATCH_UPLOAD } from '@/types/gallery';
 
@@ -33,6 +33,8 @@ export default function MediaTab({
   onUpdateCaption, onMoveToAlbum, onDownload, onUpload, showToast,
 }: MediaTabProps) {
   const [search, setSearch] = useState('');
+  // Deferred so typing stays responsive while the list below re-filters.
+  const deferredSearch = useDeferredValue(search);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [sourceFilter, setSourceFilter] = useState('all');
   const [mediaFilter, setMediaFilter] = useState('all');
@@ -76,8 +78,8 @@ export default function MediaTab({
       else if (mediaFilter === 'video') result = result.filter((a) => a.mime_type?.startsWith('video/'));
     }
     if (albumFilter !== 'all') result = result.filter((a) => a.album_id === albumFilter);
-    if (search) {
-      const q = search.toLowerCase();
+    if (deferredSearch) {
+      const q = deferredSearch.toLowerCase();
       result = result.filter((a) =>
         (a.title || a.caption || '').toLowerCase().includes(q) ||
         (a.album_title || '').toLowerCase().includes(q) ||
@@ -91,7 +93,7 @@ export default function MediaTab({
       case 'largest': result.sort((a, b) => (b.file_size || 0) - (a.file_size || 0)); break;
     }
     return result;
-  }, [assets, statusFilter, sourceFilter, mediaFilter, albumFilter, search, sortBy]);
+  }, [assets, statusFilter, sourceFilter, mediaFilter, albumFilter, deferredSearch, sortBy]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -286,7 +288,7 @@ export default function MediaTab({
             <div key={asset.id} className="grid grid-cols-1 md:grid-cols-12 gap-2 md:gap-4 px-4 py-3 items-center border-b border-secondary-50 hover:bg-background-50 transition-colors">
               <div className="md:col-span-5 flex items-center gap-3">
                 <div className="w-12 h-10 rounded-md bg-background-50 overflow-hidden flex-shrink-0">
-                  {asset.signed_url ? <img src={asset.signed_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><i className="ri-image-line text-sm text-foreground-300" /></div>}
+                  {asset.signed_url ? <img loading="lazy" decoding="async" src={asset.signed_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><i className="ri-image-line text-sm text-foreground-300" /></div>}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm text-foreground-800 truncate">{asset.title || 'Untitled'}</p>

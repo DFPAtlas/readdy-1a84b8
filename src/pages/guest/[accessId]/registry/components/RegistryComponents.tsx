@@ -62,6 +62,8 @@ function ItemCard({
       <div className="relative w-full h-48 bg-background-50 overflow-hidden flex-shrink-0">
         {item.image ? (
           <img
+            loading="lazy"
+            decoding="async"
             src={item.image}
             alt={item.title}
             className="w-full h-full object-cover"

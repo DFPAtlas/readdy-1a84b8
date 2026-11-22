@@ -96,20 +96,28 @@ export default function SeatingPublishPage() {
   const [allowPublicLookup, setAllowPublicLookup] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  // "Plan not found" only once the lookup has finished, not while it is running.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!weddingId || !planId) return;
     (async () => {
-      const { data: p } = await supabase.from('seating_plans').select('*').eq('id', planId).eq('wedding_id', weddingId).maybeSingle();
-      if (p) setPlan(p as SeatingPlan);
-
-      const { data: pub } = await supabase.from('seating_publications').select('*').eq('seating_plan_id', planId).eq('wedding_id', weddingId).order('created_at', { ascending: false }).limit(1).maybeSingle();
-      if (pub) setPublication(pub as SeatingPublication);
-
-      const { data: assigns } = await supabase.from('seating_assignments').select('guest_id, table_id').eq('plan_id', planId);
-      const { data: guests } = await supabase.from('guests').select('id').eq('wedding_id', weddingId).eq('status', 'active').in('rsvp_status', ['accepted', 'pending']);
-      const { data: tables } = await supabase.from('seating_tables').select('id, capacity').eq('plan_id', planId);
-      const { data: conflicts } = await supabase.from('seating_conflicts').select('id').eq('seating_plan_id', planId).eq('severity', 'critical').in('status', ['open', 'reviewed']);
+      // Independent lookups run together (they used to run one after another), and
+      // the page renders once with its full checklist instead of growing as each lands.
+      const [planRes, pubRes, assignsRes, guestsRes, tablesRes, conflictsRes] = await Promise.all([
+        supabase.from('seating_plans').select('*').eq('id', planId).eq('wedding_id', weddingId).maybeSingle(),
+        supabase.from('seating_publications').select('*').eq('seating_plan_id', planId).eq('wedding_id', weddingId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('seating_assignments').select('guest_id, table_id').eq('plan_id', planId),
+        supabase.from('guests').select('id').eq('wedding_id', weddingId).eq('status', 'active').in('rsvp_status', ['accepted', 'pending']),
+        supabase.from('seating_tables').select('id, capacity').eq('plan_id', planId),
+        supabase.from('seating_conflicts').select('id').eq('seating_plan_id', planId).eq('severity', 'critical').in('status', ['open', 'reviewed']),
+      ]);
+      const p = planRes.data;
+      const pub = pubRes.data;
+      const assigns = assignsRes.data;
+      const guests = guestsRes.data;
+      const tables = tablesRes.data;
+      const conflicts = conflictsRes.data;
 
       const seatedIds = new Set((assigns || []).map((a: { guest_id: string }) => a.guest_id));
       const allGuestIds = (guests || []).map((g: { id: string }) => g.id);
@@ -125,7 +133,10 @@ export default function SeatingPublishPage() {
         { id: 'public_names_safe', label: 'Table names are guest-safe', status: 'not_tested', detail: 'Review table names for private notes.' },
         { id: 'lookup_configured', label: 'Guest lookup configured', status: 'not_tested', detail: 'Configure on this page.' },
       ];
+      if (pub) setPublication(pub as SeatingPublication);
       setChecks(checksList);
+      if (p) setPlan(p as SeatingPlan);
+      setLoaded(true);
     })();
   }, [weddingId, planId]);
 
@@ -174,8 +185,8 @@ export default function SeatingPublishPage() {
     setToast('Publication disabled. Plan returned to working status.');
   };
 
-  if (weddingLoading) {
-    return <AppShell><div className="h-[calc(100vh-80px)] flex items-center justify-center"><i className="ri-loader-4-line animate-spin text-xl text-foreground-400" /></div></AppShell>;
+  if (weddingLoading || (!plan && !loaded && !!weddingId && !!planId)) {
+    return <AppShell><div key="loading" className="h-[calc(100vh-80px)] flex items-center justify-center"><i className="ri-loader-4-line animate-spin text-xl text-foreground-400" /></div></AppShell>;
   }
   if (!plan) {
     return <AppShell><div className="h-[calc(100vh-80px)] flex flex-col items-center justify-center"><p className="text-sm text-foreground-500 mb-4">Plan not found</p><button onClick={() => navigate('/app/seating')} className="btn-outline text-xs py-2 cursor-pointer whitespace-nowrap">Back</button></div></AppShell>;

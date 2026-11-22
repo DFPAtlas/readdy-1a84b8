@@ -240,6 +240,8 @@ function Website({ data }: { data: Published }) {
                       <article key={p.id}>
                         {safeLink(p.photo_url) && (
                           <img
+                            loading="lazy"
+                            decoding="async"
                             className="rounded-xl w-full h-56 object-cover mb-3"
                             src={safeLink(p.photo_url)}
                             alt={p.name}

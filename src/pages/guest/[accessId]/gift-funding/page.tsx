@@ -18,7 +18,7 @@ function FundCard({ fund, basePath, coupleAccountReady }: { fund: GiftFundLight;
     >
       <div className="relative w-full h-44 bg-background-50 overflow-hidden flex-shrink-0">
         {fund.cover_image_path ? (
-          <img src={fund.cover_image_path} alt={fund.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img loading="lazy" decoding="async" src={fund.cover_image_path} alt={fund.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center">

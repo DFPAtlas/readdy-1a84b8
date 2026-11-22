@@ -16,6 +16,10 @@ export default function VideoHero({ videoSrc, posterSrc }: VideoHeroProps) {
   // Preload poster image so we know when either video or poster is ready
   useEffect(() => {
     const img = new Image();
+    // The hero stays behind the loading screen until this poster (or the video)
+    // is ready, so fetch it ahead of below-the-fold images.
+    img.setAttribute('fetchpriority', 'high');
+    img.decoding = 'async';
     img.src = posterSrc;
     img.onload = () => setPosterLoaded(true);
     img.onerror = () => setPosterLoaded(true); // still hide loader on error
@@ -83,6 +87,7 @@ export default function VideoHero({ videoSrc, posterSrc }: VideoHeroProps) {
         {/* Poster image — fallback only */}
         {showPoster && (
           <img
+            fetchPriority="high"
             src={posterSrc}
             alt=""
             className="absolute inset-0 w-full h-full object-cover"

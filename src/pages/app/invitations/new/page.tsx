@@ -5,6 +5,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { supabase } from '@/lib/supabase';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import type { InvitationTemplate } from '@/types/invitation';
 import { INVITATION_TYPE_OPTIONS, DELIVERY_METHOD_OPTIONS } from '@/types/invitation';
 
@@ -96,34 +97,62 @@ function NormalNewInvitationPage() {
     })();
   }, [weddingId]);
 
+  // Debounced so typing a name sends one search, not one per keystroke.
+  const debouncedGuestSearch = useDebouncedValue(guestSearch);
+  const debouncedHouseholdSearch = useDebouncedValue(householdSearch);
+
   useEffect(() => {
+    // Ignore responses that arrive after a newer search has started.
+    let cancelled = false;
     if (recipientType === 'household') {
       (async () => {
         let q = supabase.from('guest_households').select('id, display_name').eq('wedding_id', weddingId).eq('status', 'active');
-        if (householdSearch) q = q.ilike('display_name', `%${householdSearch}%`);
+        if (debouncedHouseholdSearch) q = q.ilike('display_name', `%${debouncedHouseholdSearch}%`);
         const { data } = await q.limit(20);
-        const hhOpts: HouseholdOption[] = [];
-        for (const h of (data || [])) {
-          const { count } = await supabase.from('guests').select('id', { count: 'exact', head: true }).eq('household_id', h.id).eq('status', 'active');
-          const { data: existingInv } = await supabase.from('invitations').select('id').eq('household_id', h.id).in('status', ['draft', 'ready', 'sent']);
-          hhOpts.push({ id: h.id, display_name: h.display_name, member_count: count || 0, has_active_invitation: (existingInv || []).length > 0 });
+        const rows = (data || []) as Array<{ id: string; display_name: string }>;
+        const ids = rows.map((h) => h.id);
+        // One query each for member counts and active invitations (was 2 per household).
+        const [membersRes, invitationsRes] = ids.length
+          ? await Promise.all([
+              supabase.from('guests').select('household_id').in('household_id', ids).eq('status', 'active'),
+              supabase.from('invitations').select('household_id').in('household_id', ids).in('status', ['draft', 'ready', 'sent']),
+            ])
+          : [{ data: [] }, { data: [] }];
+        if (cancelled) return;
+        const memberCounts = new Map<string, number>();
+        for (const m of (membersRes.data || []) as Array<{ household_id: string | null }>) {
+          if (m.household_id) memberCounts.set(m.household_id, (memberCounts.get(m.household_id) || 0) + 1);
         }
+        const invited = new Set(((invitationsRes.data || []) as Array<{ household_id: string | null }>).map((i) => i.household_id));
+        const hhOpts: HouseholdOption[] = rows.map((h) => ({
+          id: h.id,
+          display_name: h.display_name,
+          member_count: memberCounts.get(h.id) || 0,
+          has_active_invitation: invited.has(h.id),
+        }));
         setHouseholds(hhOpts);
       })();
     } else {
       (async () => {
         let q = supabase.from('guests').select('id, full_name, last_name, preferred_name, email, mobile_phone, household_id, invitation_group').eq('wedding_id', weddingId).eq('status', 'active');
-        if (guestSearch) q = q.or(`full_name.ilike.%${guestSearch}%,last_name.ilike.%${guestSearch}%,preferred_name.ilike.%${guestSearch}%`);
+        if (debouncedGuestSearch) q = q.or(`full_name.ilike.%${debouncedGuestSearch}%,last_name.ilike.%${debouncedGuestSearch}%,preferred_name.ilike.%${debouncedGuestSearch}%`);
         const { data } = await q.limit(20);
-        const gOpts: GuestOption[] = [];
-        for (const g of (data || [])) {
-          const { data: existingRecip } = await supabase.from('invitation_recipients').select('id').eq('guest_id', g.id);
-          gOpts.push({ ...g, has_active_invitation: (existingRecip || []).length > 0 });
-        }
+        const rows = (data || []) as Array<Omit<GuestOption, 'has_active_invitation'>>;
+        const ids = rows.map((g) => g.id);
+        // One query for existing recipients (was one per guest).
+        const { data: recipients } = ids.length
+          ? await supabase.from('invitation_recipients').select('guest_id').in('guest_id', ids)
+          : { data: [] };
+        if (cancelled) return;
+        const hasRecipient = new Set(((recipients || []) as Array<{ guest_id: string }>).map((r) => r.guest_id));
+        const gOpts: GuestOption[] = rows.map((g) => ({ ...g, has_active_invitation: hasRecipient.has(g.id) }));
         setGuests(gOpts);
       })();
     }
-  }, [recipientType, guestSearch, householdSearch, weddingId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [recipientType, debouncedGuestSearch, debouncedHouseholdSearch, weddingId]);
 
   const toggleGuest = (id: string) => {
     setSelectedGuestIds((prev) => prev.includes(id) ? prev.filter((gid) => gid !== id) : [...prev, id]);

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useDeferredValue } from 'react';
 import type { UnseatedGuest, TableWithData, RoomObject, SeatingZone } from '@/types/seating';
 
 type LayerKey = 'Tables' | 'Seats' | 'Venue objects' | 'Background' | 'Grid' | 'Zones' | 'Guest labels';
@@ -29,6 +29,8 @@ export default function LeftPanel({
   const [tab, setTab] = useState<Tab>('guests');
   const [collapsed, setCollapsed] = useState(false);
   const [search, setSearch] = useState('');
+  // Deferred so typing stays responsive while the list below re-filters.
+  const deferredSearch = useDeferredValue(search);
   const [guestFilter, setGuestFilter] = useState({ household: '', type: '', rsvp: '', party: '', dietary: false, accessibility: false });
 
   // Group unseated guests by household
@@ -51,7 +53,7 @@ export default function LeftPanel({
 
   const filteredGuests = useMemo(() => {
     return unseatedGuests.filter((g) => {
-      if (search && !g.full_name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (deferredSearch && !g.full_name.toLowerCase().includes(deferredSearch.toLowerCase())) return false;
       if (guestFilter.type && g.guest_type !== guestFilter.type) return false;
       if (guestFilter.rsvp && g.rsvp_status !== guestFilter.rsvp) return false;
       if (guestFilter.party && g.wedding_party_role !== guestFilter.party) return false;
@@ -59,7 +61,7 @@ export default function LeftPanel({
       if (guestFilter.accessibility && !g.has_accessibility) return false;
       return true;
     });
-  }, [unseatedGuests, search, guestFilter]);
+  }, [unseatedGuests, deferredSearch, guestFilter]);
 
   const tabs: { key: Tab; label: string; icon: string; count: number }[] = [
     { key: 'guests', label: 'Guests', icon: 'ri-group-line', count: unseatedGuests.length },
@@ -198,7 +200,7 @@ export default function LeftPanel({
         {tab === 'tables' && (
           <div className="p-2 space-y-0.5">
             {tables
-              .filter((t) => !search || t.name.toLowerCase().includes(search.toLowerCase()))
+              .filter((t) => !deferredSearch || t.name.toLowerCase().includes(deferredSearch.toLowerCase()))
               .map((table) => (
                 <button key={table.id}
                   onClick={() => onSelectTable(table.id, false)}

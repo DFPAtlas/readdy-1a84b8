@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useDeferredValue } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { supabase } from '@/lib/supabase';
@@ -73,6 +73,8 @@ function DemoGuestsListPage() {
   const { state, stats, addGuest, updateGuest, archiveGuest, restoreGuest, updateRsvp, moveGuestToHousehold, removeGuestFromHousehold, updateGuestTags, generateDemoId, addDemoActivity } = demo;
 
   const [search, setSearch] = useState('');
+  // Deferred so typing stays responsive while the list below re-filters.
+  const deferredSearch = useDeferredValue(search);
   const [rsvpFilter, setRsvpFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [groupFilter, setGroupFilter] = useState('');
@@ -123,8 +125,8 @@ function DemoGuestsListPage() {
     if (seatedFilter === 'seated') result = result.filter((g) => seatingAssignments.has(g.id));
     else if (seatedFilter === 'unseated') result = result.filter((g) => !seatingAssignments.has(g.id) && g.rsvp_status !== 'declined');
 
-    if (search.trim()) {
-      const q = search.toLowerCase().trim();
+    if (deferredSearch.trim()) {
+      const q = deferredSearch.toLowerCase().trim();
       result = result.filter((g) => {
         const hh = households.find((h) => h.id === g.household_id);
         return g.full_name.toLowerCase().includes(q)
@@ -144,7 +146,7 @@ function DemoGuestsListPage() {
     else if (sortKey === 'created_at_asc') result.sort((a, b) => (a.id || '').localeCompare(b.id || ''));
 
     return result;
-  }, [allGuests, statusFilter, rsvpFilter, typeFilter, groupFilter, reqFilter, householdFilter, seatedFilter, search, sortKey, households, seatingAssignments]);
+  }, [allGuests, statusFilter, rsvpFilter, typeFilter, groupFilter, reqFilter, householdFilter, seatedFilter, deferredSearch, sortKey, households, seatingAssignments]);
 
   const totalPages = Math.ceil(filteredGuests.length / PAGE_SIZE);
   const displayedGuests = filteredGuests.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);

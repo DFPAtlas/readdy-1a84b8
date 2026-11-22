@@ -18,6 +18,9 @@ const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
 // Keep route/JavaScript checks independent of third-party asset networks and a live backend.
 test.beforeEach(async ({page})=>{
+ // The cookie banner is a modal that opens on first paint; record consent so it
+ // never intercepts the clicks these gates make (the smoke harness does the same).
+ await page.addInitScript(()=>{try{localStorage.setItem('vowora_cookie_consent',JSON.stringify({version:1,timestamp:new Date().toISOString(),consented:true,categories:{essential:true,analytics:false,marketing:false}}));}catch{/* storage unavailable */}});
  await page.route('**/*',route=>{const request=route.request(),url=new URL(request.url());
   if(url.hostname==='example.supabase.co')return route.fulfill({status:200,contentType:'application/json',body:'null'});
   if(url.hostname!=='localhost'&&url.hostname!=='127.0.0.1'){
