@@ -53,6 +53,22 @@ function publicEnvProblems(file) {
   return problems;
 }
 
+
+// Server-only secrets must never be committed or reach the browser bundle.
+const SECRET_PATTERNS = [
+  [/\bsk_(?:live|test)_[A-Za-z0-9]{10,}/, "Stripe secret key"],
+  [/\brk_(?:live|test)_[A-Za-z0-9]{10,}/, "Stripe restricted key"],
+  [/\bwhsec_[A-Za-z0-9]{10,}/, "Stripe webhook secret"],
+  [/\bre_[A-Za-z0-9]{8,}_[A-Za-z0-9]{16,}/, "Resend API key"],
+  [/\bsb_secret_[A-Za-z0-9_-]{10,}/, "Supabase secret key"],
+  [/-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/, "private key"],
+];
+const CLIENT_SECRET_ENV = /import\.meta\.env\.(?!VITE_PUBLIC_)[A-Z0-9_]*(?:SECRET|SERVICE_ROLE|PRIVATE|API_KEY|TOKEN)[A-Z0-9_]*/;
+
+function isTestFile(file) {
+  return /(?:^|\/)(?:__tests__|tests)\/|\.(?:test|spec)\.[jt]sx?$/.test(file);
+}
+
 for (const file of files) {
   if (!existsSync(file)) continue;
   if (file === ".env") {
@@ -65,6 +81,16 @@ for (const file of files) {
     /^(?:<{7}\s|={7}$|>{7}\s)/m.test(readFileSync(file, "utf8"))
   )
     failures.push(`Merge conflict marker: ${file}`);
+  if (
+    !isTestFile(file) &&
+    /\.(?:ts|tsx|js|jsx|mjs|json|html|toml|ya?ml|md|sql|env|example)$|^\.env/.test(file)
+  ) {
+    const text = readFileSync(file, "utf8");
+    for (const [pattern, label] of SECRET_PATTERNS)
+      if (pattern.test(text)) failures.push(`Possible ${label} committed: ${file}`);
+    if (/^src\//.test(file) && CLIENT_SECRET_ENV.test(text))
+      failures.push(`Browser code reads a server secret from import.meta.env: ${file}`);
+  }
 }
 if (failures.length) {
   console.error(failures.join("\n"));

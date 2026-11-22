@@ -2,6 +2,7 @@ import { oneRelation } from "../_shared/relations.ts";
 
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, newGuestSessionSecret, sha256Hex } from "../_shared/guestAccess.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 
 const securityHeaders = {
@@ -36,7 +37,7 @@ function allHeaders(req: Request): Record<string, string> {
   return { ...edgeGuestCorsHeaders(req), ...securityHeaders };
 }
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: allHeaders(req) });
   }

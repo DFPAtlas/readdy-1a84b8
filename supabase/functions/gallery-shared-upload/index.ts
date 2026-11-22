@@ -17,6 +17,7 @@ import {
   uploadWindow,
   validSharedUploadToken,
 } from "../_shared/sharedUpload.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 type Db = SupabaseClient;
 
@@ -60,7 +61,7 @@ async function loadLink(db: Db, token: string): Promise<LinkState | null> {
   };
 }
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   const headers = { ...edgeGuestCorsHeaders(req), "Content-Type": "application/json" };
   const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
   if (req.method === "OPTIONS") return new Response("ok", { headers });

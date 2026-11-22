@@ -4,10 +4,11 @@
 //   GET  /functions/v1/wedding-sitemap  -> application/xml urlset
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { buildWeddingSitemap, siteOrigin, type SitemapSite } from "../_shared/weddingSitemap.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const EMPTY = buildWeddingSitemap([], "https://vowora.uk");
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method !== "GET" && req.method !== "HEAD") {
     return new Response("Method not allowed", { status: 405, headers: { Allow: "GET, HEAD" } });
   }
@@ -38,4 +39,4 @@ Deno.serve(async (req: Request) => {
       headers: { "Content-Type": "application/xml; charset=utf-8", "Retry-After": "3600", "Cache-Control": "no-store" },
     });
   }
-});
+}, { cors: false });

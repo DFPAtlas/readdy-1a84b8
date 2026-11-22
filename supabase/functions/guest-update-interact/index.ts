@@ -2,6 +2,7 @@ import { requireEntitlement, entitlementErrorResponse } from '../_shared/require
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,7 +14,7 @@ const corsHeaders = {
 // stored in guest_access_sessions.session_hash, so hash before every lookup.
 
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -76,7 +77,7 @@ Deno.serve(async (req: Request) => {
           }, { onConflict: "update_id,guest_id" });
 
         if (upsertErr) {
-          return new Response(JSON.stringify({ ok: false, error: upsertErr.message }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ ok: false, error: "Your response could not be saved. Please try again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
         return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -101,7 +102,7 @@ Deno.serve(async (req: Request) => {
           }, { onConflict: "update_id,guest_id" });
 
         if (upsertErr) {
-          return new Response(JSON.stringify({ ok: false, error: upsertErr.message }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ ok: false, error: "Your response could not be saved. Please try again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
         return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -134,7 +135,7 @@ Deno.serve(async (req: Request) => {
           }, { onConflict: "update_id,guest_id" });
 
         if (upsertErr) {
-          return new Response(JSON.stringify({ ok: false, error: upsertErr.message }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ ok: false, error: "Your response could not be saved. Please try again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
         return new Response(JSON.stringify({ ok: true, is_saved: newSaved }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -172,7 +173,7 @@ Deno.serve(async (req: Request) => {
             .upsert(rows, { onConflict: "update_id,guest_id" });
 
           if (upsertErr) {
-            return new Response(JSON.stringify({ ok: false, error: upsertErr.message }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+            return new Response(JSON.stringify({ ok: false, error: "Your response could not be saved. Please try again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
           }
         }
 
@@ -199,7 +200,7 @@ Deno.serve(async (req: Request) => {
           }, { onConflict: "update_id,guest_id" });
 
         if (upsertErr) {
-          return new Response(JSON.stringify({ ok: false, error: upsertErr.message }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ ok: false, error: "Your response could not be saved. Please try again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
         return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -222,7 +223,7 @@ Deno.serve(async (req: Request) => {
           }, { onConflict: "invitation_id,guest_id" });
 
         if (upsertErr) {
-          return new Response(JSON.stringify({ ok: false, error: upsertErr.message }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          return new Response(JSON.stringify({ ok: false, error: "Your response could not be saved. Please try again." }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
 
         return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });

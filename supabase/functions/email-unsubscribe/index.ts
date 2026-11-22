@@ -1,7 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders } from "../_shared/guestAccess.ts";
 import { unsubscribeToken } from "../_shared/unsubscribe.ts";
-Deno.serve(async (req) => {
+import { secureServe } from "../_shared/httpSecurity.ts";
+secureServe(async (req) => {
   const headers = {
     ...edgeGuestCorsHeaders(req),
     "Content-Type": "application/json",

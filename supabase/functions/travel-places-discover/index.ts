@@ -1,6 +1,7 @@
 import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,7 +35,7 @@ const CATEGORIES = [
   { key: "attraction", label: "Attractions", icon: "ri-landscape-line", types: ["tourist_attraction"] },
 ];
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -192,6 +193,6 @@ Deno.serve(async (req: Request) => {
     const denied = entitlementErrorResponse(err, corsHeaders);
     if (denied) return denied;
     console.error("travel-places-discover error:", err);
-    return new Response(JSON.stringify({ success: false, error: "internal_error", message: String(err) }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ success: false, error: "internal_error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
 });

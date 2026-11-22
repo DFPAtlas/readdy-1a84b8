@@ -11,10 +11,11 @@ import {
   lookupCodeHash,
   seatingLookupSecret,
 } from "../_shared/seatingLookup.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   const headers = { ...edgeGuestCorsHeaders(req), "Content-Type": "application/json" };
   const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
   if (req.method === "OPTIONS") return new Response("ok", { headers });
