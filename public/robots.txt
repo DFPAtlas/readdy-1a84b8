@@ -30,3 +30,8 @@ Disallow: /unsubscribe
 Disallow: /demo-start
 
 Sitemap: https://vowora.uk/sitemap.xml
+
+# Couple wedding websites whose couples allowed search indexing (Website → SEO).
+# Generated live by the wedding-sitemap Edge Function; a sitemap on another
+# host is accepted because it is listed here.
+Sitemap: https://fbtfomexfcwdwyxwcgot.supabase.co/functions/v1/wedding-sitemap
