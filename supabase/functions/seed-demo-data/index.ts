@@ -1,6 +1,7 @@
 import { sha256Hex } from "../_shared/guestAccess.ts";
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,7 +30,7 @@ const RECEPTION_EVENT = "df6f0aab-573a-40ee-97cd-364a862b2565";
 const EVENING_EVENT = "b2db65d5-9fb7-43b4-abf4-2aa68d8cbc09";
 const WELCOME_EVENT = "3a77c7f8-33e4-4c79-bb0d-0a9b25d92b0a";
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -472,7 +473,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     console.error("seed-demo-data error:", err);
     return new Response(
-      JSON.stringify({ success: false, error: String(err).slice(0, 500) }),
+      JSON.stringify({ success: false, error: "Demo data could not be seeded." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }

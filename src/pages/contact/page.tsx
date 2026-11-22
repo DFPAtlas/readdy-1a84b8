@@ -6,6 +6,7 @@ import Footer from '@/components/feature/Footer';
 import { usePageSeo, SITE_NAME, SITE_URL } from '@/hooks/usePageSeo';
 import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
 import { contactBreadcrumbs } from '@/lib/marketingBreadcrumbs';
+import { rateLimitMessage, takeAttempt } from '../../lib/clientRateLimit';
 
 const FORM_SUBMIT_URL = 'https://readdy.ai/api/form/dc0t20ddijqr49062060';
 
@@ -36,6 +37,13 @@ export default function ContactPage() {
     if (honeypot) {
       setStatus('success');
       form.reset();
+      return;
+    }
+
+    const contactWait = takeAttempt('contact');
+    if (contactWait) {
+      setErrorMessage(rateLimitMessage(contactWait));
+      setStatus('error');
       return;
     }
 

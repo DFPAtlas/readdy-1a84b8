@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const BUCKET = 'invitation-assets';
 
@@ -87,7 +88,7 @@ function getThumbPath(fullPath: string): string {
   return fullPath.replace(/\.png$/, '-thumb.png');
 }
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }

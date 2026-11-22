@@ -6,6 +6,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, sha256Hex } from "../_shared/guestAccess.ts";
 import { lookupCodeHash, normaliseGuestName, normaliseLookupCode } from "../_shared/seatingLookup.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const MAX_FAILED_ATTEMPTS = 10;
 const RATE_WINDOW_MINUTES = 15;
@@ -17,7 +18,7 @@ async function buildFingerprint(req: Request): Promise<string> {
   return await sha256Hex(`${ip}:${ua.slice(0, 64)}`);
 }
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   const headers = { ...edgeGuestCorsHeaders(req), "Content-Type": "application/json" };
   const reply = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers });
   if (req.method === "OPTIONS") return new Response("ok", { headers });

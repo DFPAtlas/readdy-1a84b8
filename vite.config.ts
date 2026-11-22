@@ -1,14 +1,15 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "node:path";
 import AutoImport from "unplugin-auto-import/vite";
+import { securityMetaPlugin } from "./vite.security";
 // import { readdyJsxRuntimeProxyPlugin } from "./vite.jsx-runtime-proxy";
 
 const base = process.env.BASE_PATH || "/";
 const isPreview = process.env.IS_PREVIEW ? true : false;
 //const proxyPlugins = isPreview ? [readdyJsxRuntimeProxyPlugin()] : [];
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   define: {
     __BASE_PATH__: JSON.stringify(base),
     __IS_PREVIEW__: JSON.stringify(isPreview),
@@ -19,6 +20,7 @@ export default defineConfig({
   plugins: [
     // ...proxyPlugins,
     react(),
+    securityMetaPlugin(loadEnv(mode, process.cwd(), "VITE_").VITE_PUBLIC_SUPABASE_URL || ""),
     AutoImport({
       imports: [
         {
@@ -83,4 +85,4 @@ export default defineConfig({
     port: 3000,
     host: "0.0.0.0",
   },
-});
+}));

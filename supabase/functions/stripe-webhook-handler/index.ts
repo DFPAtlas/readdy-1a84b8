@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 import Stripe from "npm:stripe@22.6.0";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -147,7 +148,7 @@ function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   return typeof raw === 'string' ? raw : raw.id;
 }
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -423,7 +424,7 @@ Deno.serve(async (req: Request) => {
     console.error('Webhook error:', err);
     return json({ error: 'Internal server error' }, 500);
   }
-});
+}, { cors: false });
 
 // ────────────────────────────────────────────────────────────────────────────
 // Cancellation confirmation email (Resend)

@@ -6,6 +6,7 @@ import {
   newGuestSessionSecret,
   edgeGuestCorsHeaders,
 } from "../_shared/guestAccess.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 const html = (value: unknown) =>
   String(value || "").replace(
     /[&<>"']/g,
@@ -14,7 +15,7 @@ const html = (value: unknown) =>
         c
       ]!,
   );
-Deno.serve(async (req) => {
+secureServe(async (req) => {
   const headers = {
     ...edgeGuestCorsHeaders(req),
     "Content-Type": "application/json",

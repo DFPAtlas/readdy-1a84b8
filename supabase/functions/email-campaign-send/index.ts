@@ -1,6 +1,7 @@
 import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { unsubscribeUrl } from "../_shared/unsubscribe.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const corsHeaders = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
 
@@ -113,7 +114,7 @@ function buildPlainText(campaign: Record<string, unknown>, recipientName: string
   return text;
 }
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
@@ -373,7 +374,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     const denied = entitlementErrorResponse(err, corsHeaders);
     if (denied) return denied;
-    const msg = err instanceof Error ? err.message : 'Internal error';
-    return new Response(JSON.stringify({ error: msg }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    console.error('email-campaign-send error:', err instanceof Error ? err.message : String(err));
+    return new Response(JSON.stringify({ error: 'The campaign could not be processed. Please try again.' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 });

@@ -1,6 +1,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 import { edgeGuestCorsHeaders } from '../_shared/guestAccess.ts';
-Deno.serve(async req=>{
+import { secureServe } from "../_shared/httpSecurity.ts";
+secureServe(async req=>{
  const headers={...edgeGuestCorsHeaders(req),'Content-Type':'application/json'};
  const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers});
  if(req.method==='OPTIONS')return reply({});if(req.method!=='POST')return reply({error:'Method not allowed'},405);

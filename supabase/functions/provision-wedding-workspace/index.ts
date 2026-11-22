@@ -1,6 +1,7 @@
 import { weddingLocalToUtc } from '../_shared/weddingTime.ts';
 
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,7 +89,7 @@ function validatePayload(p: unknown): { valid: false; error: string } | { valid:
 
 // ── Main handler ──
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

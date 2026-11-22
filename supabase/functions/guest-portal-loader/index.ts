@@ -2,6 +2,7 @@ import { getWeddingFeatures } from '../_shared/requireEntitlement.ts';
 import { oneRelation } from "../_shared/relations.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, sha256Hex, validGuestSessionSecret } from "../_shared/guestAccess.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 
 
@@ -32,7 +33,7 @@ function formatCompanionName(guest: { full_name: string; preferred_name: string 
   }
 }
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   const corsHeaders = edgeGuestCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return new Response(null, { status: 405, headers: corsHeaders });

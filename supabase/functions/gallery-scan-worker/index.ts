@@ -8,6 +8,7 @@
 // record_gallery_scan(); a failed or missing check never approves anything.
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { claimLimit, parseScanResult, secretsMatch } from "../_shared/scanWorker.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -15,7 +16,7 @@ const json = (body: unknown, status = 200) =>
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
   const expected = Deno.env.get("GALLERY_SCAN_WORKER_SECRET");
   if (!expected) return json({ error: "Scan worker is not configured" }, 503);
@@ -69,4 +70,4 @@ Deno.serve(async (req: Request) => {
     console.error("gallery-scan-worker error:", err instanceof Error ? err.message : err);
     return json({ error: "Server error" }, 500);
   }
-});
+}, { cors: false });

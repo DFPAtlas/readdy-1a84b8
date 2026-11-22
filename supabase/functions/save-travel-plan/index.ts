@@ -1,6 +1,7 @@
 import { requireEntitlement, entitlementErrorResponse } from '../_shared/requireEntitlement.ts';
 import { sha256Hex } from "../_shared/guestAccess.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { secureServe } from "../_shared/httpSecurity.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,7 +53,7 @@ function isDateString(value: unknown): value is string {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

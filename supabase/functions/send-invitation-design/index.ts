@@ -2,6 +2,7 @@ import { requireEntitlement, entitlementErrorResponse } from '../_shared/require
 import { unsubscribeUrl } from "../_shared/unsubscribe.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import { edgeGuestCorsHeaders, sha256Hex } from "../_shared/guestAccess.ts";
+import { secureServe } from "../_shared/httpSecurity.ts";
 interface SendRequest {
   invitationId: string;
   senderId: string;
@@ -143,7 +144,7 @@ const escapeHtml = (value: string) =>
         c
       ]!,
   );
-Deno.serve(async (req: Request) => {
+secureServe(async (req: Request) => {
   const headers = {
     ...edgeGuestCorsHeaders(req),
     "Content-Type": "application/json",
@@ -336,9 +337,8 @@ Deno.serve(async (req: Request) => {
         if (invError) throw invError;
         acceptedCount++;
       } catch (error) {
-        rejectionReasons.push(
-          `${email}: ${error instanceof Error ? error.message : "Sending failed"}`,
-        );
+        console.error("send-invitation-design recipient failed:", error instanceof Error ? error.message : String(error));
+        rejectionReasons.push(`${email}: Sending failed`);
       }
     }
     return reply(

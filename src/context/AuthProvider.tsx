@@ -4,6 +4,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { accountDestination } from '@/lib/signupIntent';
 import { mapAuthError, safeAuthLog } from '@/lib/authErrors';
 import type { User, Session } from '@supabase/supabase-js';
+import { rateLimitMessage, resetRateLimit, takeAttempt } from '../lib/clientRateLimit';
 
 // ── Profile type ──
 
@@ -145,6 +146,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     metadata?: { first_name?: string; last_name?: string; selected_plan?: string; signup_return_to?: string; marketing_consent?: boolean }
   ): Promise<{ success: boolean; needsVerification: boolean }> => {
     setAuthError(null);
+    const signUpWait = takeAttempt('signUp');
+    if (signUpWait) {
+      setAuthError(rateLimitMessage(signUpWait));
+      return { success: false, needsVerification: false };
+    }
 
     const displayName = metadata?.first_name && metadata?.last_name
       ? `${metadata.first_name} ${metadata.last_name}`
@@ -186,6 +192,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(async (email: string, password: string): Promise<boolean> => {
     setAuthError(null);
+    const signInWait = takeAttempt('signIn');
+    if (signInWait) {
+      setAuthError(rateLimitMessage(signInWait));
+      return false;
+    }
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -196,6 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // State will update via onAuthStateChange
+      resetRateLimit('signIn');
       return true;
     } catch (err) {
       setAuthError(mapAuthError(err));
@@ -222,6 +234,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const requestPasswordReset = useCallback(async (email: string): Promise<boolean> => {
     setAuthError(null);
+    const resetWait = takeAttempt('passwordReset');
+    // Neutral response either way, so throttling never reveals whether an account exists.
+    if (resetWait) return true;
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,

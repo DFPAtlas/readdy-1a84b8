@@ -1,6 +1,7 @@
 import { Webhook } from "npm:svix@1.99.1";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
-Deno.serve(async (req) => {
+import { secureServe } from "../_shared/httpSecurity.ts";
+secureServe(async (req) => {
   if (req.method !== "POST")
     return new Response("Method not allowed", { status: 405 });
   const secret = Deno.env.get("RESEND_WEBHOOK_SECRET");
@@ -41,4 +42,4 @@ Deno.serve(async (req) => {
       status: 500,
     });
   }
-});
+}, { cors: false });
