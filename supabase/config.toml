@@ -105,3 +105,6 @@ verify_jwt = false
 
 [functions.gallery-scan-worker]
 verify_jwt = false
+
+[functions.wedding-sitemap]
+verify_jwt = false
