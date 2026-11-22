@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { useAuth } from '@/context/AuthProvider';
@@ -8,9 +9,9 @@ export default function NewDesignPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading, isAuthenticated } = useAuth();
 
-  const handleCreated = (newId: string) => {
+  const handleCreated = useCallback((newId: string) => {
     navigate(`/app/invitations/${newId}/edit`, { replace: true });
-  };
+  }, [navigate]);
 
   if (authLoading) {
     return (

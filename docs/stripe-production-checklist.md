@@ -9,7 +9,9 @@ Set in Supabase Dashboard → Edge Function Secrets:
 | Secret | Used By |
 |---|---|
 | `STRIPE_SECRET_KEY` | `create-subscription-checkout`, `create-billing-portal-session`, `stripe-webhook-handler`, `gift-fund-create-checkout` |
-| `STRIPE_WEBHOOK_SECRET` | `stripe-webhook-handler` |
+| `STRIPE_WEBHOOK_SECRET` | `stripe-webhook-handler` (subscriptions endpoint's signing secret) |
+| `STRIPE_GIFT_FUND_WEBHOOK_SECRET` | `stripe-gift-fund-webhook`: signing secret of the gift-fund endpoint on your own account |
+| `STRIPE_GIFT_FUND_CONNECT_WEBHOOK_SECRET` | `stripe-gift-fund-webhook`: signing secret of the gift-fund endpoint for connected accounts |
 
 ## Webhook Endpoint
 
@@ -18,6 +20,19 @@ Configure in Stripe Dashboard → Webhooks:
 ```
 https://[PROJECT_REF].supabase.co/functions/v1/stripe-webhook-handler
 ```
+
+Gift funds need two more endpoints, both pointing at the same URL:
+
+```
+https://[PROJECT_REF].supabase.co/functions/v1/stripe-gift-fund-webhook
+```
+
+| Endpoint | Listen to | Events | Secret to set |
+|---|---|---|---|
+| Gift funds (platform) | Events on your account | `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.expired`, `payment_intent.payment_failed`, `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed` | `STRIPE_GIFT_FUND_WEBHOOK_SECRET` |
+| Gift funds (Connect) | Events on connected accounts | `account.updated` | `STRIPE_GIFT_FUND_CONNECT_WEBHOOK_SECRET` |
+
+Each endpoint has its own `whsec_…` signing secret. If one secret is shared between endpoints, Stripe deliveries to the others fail with `400 Invalid signature`.
 
 ## Required Webhook Events
 

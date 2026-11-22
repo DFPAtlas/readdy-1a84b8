@@ -97,7 +97,8 @@ test('checkout failure remains visible and can be retried',async({page})=>{
  await page.getByRole('button',{name:'Upgrade plan',exact:true}).click();
  await page.getByRole('button',{name:'Upgrade',exact:true}).nth(1).click();
  await page.getByRole('button',{name:'Continue to checkout',exact:true}).click();
- await expect(page.getByText('Edge Function returned a non-2xx status code',{exact:true})).toBeVisible();
+ await expect(page.getByText("We couldn't reach our payment provider. Please try again in a moment.",{exact:true})).toBeVisible();
+ await expect(page.getByText('Edge Function returned a non-2xx status code')).toHaveCount(0);
  await expect(page.getByRole('button',{name:'Continue to checkout',exact:true})).toBeEnabled();
  await expect(page.getByRole('button',{name:'Go back',exact:true})).toBeVisible();
 });

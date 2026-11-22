@@ -69,6 +69,24 @@ jobs:
         with:
           name: browser-test-results
           path: test-results/
+  browser-sweep:
+    name: Full route sweep (links, empty and failing data, sign-in redirects)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e:sweep
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-sweep-results
+          path: test-results/
   security:
     name: Dependency and secret checks
     runs-on: ubuntu-latest
