@@ -13,6 +13,30 @@ export default function DemoStartPage() {
     noindex: true,
   });
 
+  // The demo data provider only exists in demo builds (VITE_DEMO_MODE=true).
+  // On the live site this URL is still reachable, so show a plain notice
+  // instead of crashing.
+  return isDemoMode ? <DemoLauncher /> : <DemoUnavailable />;
+}
+
+function DemoUnavailable() {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-background-50 px-6">
+      <div className="max-w-md text-center">
+        <h1 className="font-heading text-2xl text-foreground-900 mb-3">The demo isn&rsquo;t available here</h1>
+        <p className="text-sm text-foreground-500 mb-6">
+          The demonstration wedding only runs on the demo build of Vowora. Create a free account to try it with your own plans.
+        </p>
+        <div className="flex items-center justify-center gap-3">
+          <Link to="/signup" className="btn-primary text-sm whitespace-nowrap">Get started</Link>
+          <Link to="/" className="btn-outline text-sm whitespace-nowrap">Back to home</Link>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function DemoLauncher() {
   const { state, stats, resetDemo, resetGallery } = useDemoData();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [resetDone, setResetDone] = useState(false);

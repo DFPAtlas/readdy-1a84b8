@@ -99,7 +99,7 @@ test('checkout failure remains visible and can be retried',async({page})=>{
  await page.getByRole('button',{name:'Continue to checkout',exact:true}).click();
  await expect(page.getByText('Edge Function returned a non-2xx status code',{exact:true})).toBeVisible();
  await expect(page.getByRole('button',{name:'Continue to checkout',exact:true})).toBeEnabled();
- await expect(page.getByRole('button',{name:'Cancel',exact:true})).toBeVisible();
+ await expect(page.getByRole('button',{name:'Go back',exact:true})).toBeVisible();
 });
 test('signup hides verification recovery until an account is created',async({page})=>{
  await page.goto('/signup');

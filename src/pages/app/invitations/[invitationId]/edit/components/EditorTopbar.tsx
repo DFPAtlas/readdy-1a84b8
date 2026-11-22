@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Breadcrumbs from '@/components/base/Breadcrumbs';
 import { INVITATION_EDITOR_TRAIL } from '@/hooks/useAppBreadcrumbs';
+
+// Before the first save there is no invitation yet, so the trail names the new design.
+const NEW_DESIGN_TRAIL = [...INVITATION_EDITOR_TRAIL.slice(0, -1), { label: 'New design' }];
 import type { SaveState } from '../types';
 
 interface EditorTopbarProps {
@@ -146,7 +149,7 @@ export default function EditorTopbar({
 
         {/* Editable title */}
         <div className="min-w-0 py-1">
-          <Breadcrumbs compact items={INVITATION_EDITOR_TRAIL} className="mb-0.5" />
+          <Breadcrumbs compact items={invitationId ? INVITATION_EDITOR_TRAIL : NEW_DESIGN_TRAIL} className="mb-0.5" />
           <div className="min-w-0">
             {editing ? (
               <input
