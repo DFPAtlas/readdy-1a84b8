@@ -5,6 +5,7 @@ import { accountDestination } from '@/lib/signupIntent';
 import { mapAuthError, safeAuthLog } from '@/lib/authErrors';
 import type { User, Session } from '@supabase/supabase-js';
 import { rateLimitMessage, resetRateLimit, takeAttempt } from '../lib/clientRateLimit';
+import '../lib/securityBootstrap';
 
 // ── Profile type ──
 

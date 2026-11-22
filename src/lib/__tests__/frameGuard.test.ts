@@ -27,3 +27,14 @@ describe('buildContentSecurityPolicy', () => {
     expect(buildContentSecurityPolicy('')).toContain('https://*.supabase.co');
   });
 });
+
+import { ensureMeta } from '../securityBootstrap';
+
+describe('ensureMeta', () => {
+  it('adds a meta tag once and never duplicates it', () => {
+    document.head.innerHTML = '';
+    expect(ensureMeta(document, 'meta[name="referrer"]', { name: 'referrer', content: 'no-referrer' })).toBe(true);
+    expect(ensureMeta(document, 'meta[name="referrer"]', { name: 'referrer', content: 'no-referrer' })).toBe(false);
+    expect(document.head.querySelectorAll('meta[name="referrer"]').length).toBe(1);
+  });
+});
