@@ -36,6 +36,8 @@ export default function FinalCTA() {
       {/* Background image with parallax */}
       <div className="absolute inset-0">
         <img
+          loading="lazy"
+          decoding="async"
           src="https://readdy.ai/api/search-image?query=Elegant%20wedding%20reception%20table%20setting%20with%20soft%20candlelight%2C%20cream%20linen%2C%20fresh%20floral%20arrangements%20in%20muted%20rose%20and%20sage%20tones%2C%20delicate%20glassware%2C%20warm%20ambient%20lighting%2C%20shallow%20depth%20of%20field%2C%20romantic%20atmosphere%2C%20editorial%20photography&width=1800&height=900&seq=final-cta-bg&orientation=landscape"
           alt=""
           className="absolute inset-0 w-full h-[115%] object-cover object-center will-change-transform"

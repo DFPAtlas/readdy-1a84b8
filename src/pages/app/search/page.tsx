@@ -1,6 +1,6 @@
 import WorkspaceSearch from '@/components/feature/WorkspaceSearch';
 import type * as React from "react";
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, useDeferredValue } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
@@ -92,6 +92,8 @@ function DemoSearchPage() {
   const WNAME = `${state.wedding.partner_one_name} & ${state.wedding.partner_two_name}`;
 
   const [query, setQuery] = useState('');
+  // Deferred so typing stays responsive while the list below re-filters.
+  const deferredQuery = useDeferredValue(query);
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [recentSearches, setRecentSearches] = useState<string[]>(loadRecentSearches);
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -278,8 +280,8 @@ function DemoSearchPage() {
 
   // Filter results
   const results = useMemo(() => {
-    if (!query.trim()) return new Map<string, SearchResult[]>();
-    const q = query.toLowerCase();
+    if (!deferredQuery.trim()) return new Map<string, SearchResult[]>();
+    const q = deferredQuery.toLowerCase();
     let filtered = allResults.filter(
       (r) =>
         r.name.toLowerCase().includes(q) ||
@@ -297,7 +299,7 @@ function DemoSearchPage() {
       grouped.set(r.type, arr);
     });
     return grouped;
-  }, [allResults, query, typeFilter]);
+  }, [allResults, deferredQuery, typeFilter]);
 
   const totalResults = useMemo(() => {
     let count = 0;
@@ -524,7 +526,7 @@ function DemoSearchPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm text-foreground-800 font-label font-medium truncate">
-                              {highlightMatch(r.name, query)}
+                              {highlightMatch(r.name, deferredQuery)}
                             </p>
                             <p className="text-xs text-foreground-500 mt-0.5 truncate">{r.secondary}</p>
                           </div>

@@ -98,6 +98,7 @@ export default function ContactPage() {
               {/* Left — text with background image */}
               <div className="w-full lg:w-1/2 relative min-h-[400px] md:min-h-[500px] flex items-end">
                 <img
+                  fetchPriority="high"
                   src="https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/c3680c9c-b07d-431c-a765-e22a03260722_compressed_36_20230222190453_5449968_large.webp"
                   alt=""
                   className="absolute inset-0 w-full h-full object-cover object-top"

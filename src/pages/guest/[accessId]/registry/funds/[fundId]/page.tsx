@@ -73,7 +73,7 @@ export default function GuestFundDetailPage() {
         <div className="lg:col-span-3 space-y-6">
           <div className="w-full h-80 rounded-xl bg-background-50 overflow-hidden">
             {fund.image ? (
-              <img src={fund.image} alt={fund.title} className="w-full h-full object-cover" />
+              <img fetchPriority="high" src={fund.image} alt={fund.title} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-secondary-50">
                 <i className="ri-plane-line text-5xl text-secondary-300" />

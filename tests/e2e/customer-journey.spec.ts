@@ -41,6 +41,8 @@ test('unfinished customer saves setup without a dashboard redirect',async({page}
  await expect(page.getByText('Setup progress saved.',{exact:false})).toBeVisible();
 });
 test('completed customer dashboard and core planning routes render',async({page})=>{
+ // Visits 11 routes; on a cold dev server that takes ~23s, too close to the 30s default.
+ test.setTimeout(60_000);
  await mockAccount(page,true,true);
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await signIn(page);

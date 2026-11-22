@@ -160,7 +160,7 @@ export default function GuestGiftFundDetailPage() {
         <div className="lg:col-span-3 space-y-6">
           {fund.cover_image_path && (
             <div className="w-full h-56 rounded-xl overflow-hidden bg-background-50">
-              <img src={fund.cover_image_path} alt={fund.title} className="w-full h-full object-cover" />
+              <img fetchPriority="high" src={fund.cover_image_path} alt={fund.title} className="w-full h-full object-cover" />
             </div>
           )}
 

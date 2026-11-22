@@ -36,6 +36,8 @@ export default function TravelConcierge() {
           <div className="bg-white border border-secondary-100 rounded-xl overflow-hidden">
             <div className="aspect-[16/7] bg-background-100 relative overflow-hidden">
               <img
+                loading="lazy"
+                decoding="async"
                 src="https://readdy.ai/api/search-image?query=Elegant%20minimal%20map%20illustration%20showing%20a%20stylised%20town%20layout%20with%20subtle%20roads%20and%20landmarks%2C%20soft%20warm%20cream%20and%20taupe%20colour%20palette%2C%20clean%20cartographic%20design%2C%20no%20text%20labels%2C%20artistic%20watercolour%20wash%20style%2C%20light%20airy%20feel%2C%20elegant%20wedding%20aesthetic&width=1400&height=620&seq=travel-map-preview&orientation=landscape"
                 alt="Map preview showing wedding venue and nearby places"
                 className="w-full h-full object-cover"
@@ -77,6 +79,8 @@ export default function TravelConcierge() {
                 <div key={listing.name} className="bg-background-50 rounded-lg p-3 border border-secondary-100 hover:border-primary-200 transition-colors cursor-pointer">
                   <div className="w-full h-20 rounded-md bg-background-200 mb-2 overflow-hidden">
                     <img
+                      loading="lazy"
+                      decoding="async"
                       src={listingImages[listing.name] || ''}
                       alt={listing.name}
                       className="w-full h-full object-cover object-top"

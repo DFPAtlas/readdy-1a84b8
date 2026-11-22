@@ -13,17 +13,33 @@ export interface WeddingEntitlements {
   features: Record<PaidFeature, boolean>;
   usage: Partial<Record<keyof typeof PLAN_LIMITS.free, number>>;
 }
+type EntitlementResult = { weddingId: string; userId: string; data: WeddingEntitlements | null; error: string | null };
+
+// Last result per wedding + user, shared across mounts. Paid pages render
+// straight away on later navigations (no "Checking your subscription…" flash)
+// while the check still re-runs in the background, as before.
+const lastResults = new Map<string, EntitlementResult>();
+const cacheKey = (weddingId: string | null | undefined, userId: string | null | undefined) =>
+  weddingId && userId ? `${weddingId}:${userId}` : '';
+
 export function useWeddingEntitlements() {
-  const { weddingId } = useActiveWedding();
+  const { weddingId, loading: weddingLoading } = useActiveWedding();
   const { isDemoSession, user } = useAuth();
   const demo = useDemoDataSafe();
-  const [result, setResult] = useState<{ weddingId: string; userId: string; data: WeddingEntitlements | null; error: string | null } | null>(null);
+  const [result, setResultState] = useState<EntitlementResult | null>(() => lastResults.get(cacheKey(weddingId, user?.id)) ?? null);
+  const setResult = useCallback((next: EntitlementResult | null | ((previous: EntitlementResult | null) => EntitlementResult | null)) => {
+    setResultState((previous) => {
+      const value = typeof next === 'function' ? next(previous) : next;
+      if (value && !value.error) lastResults.set(cacheKey(value.weddingId, value.userId), value);
+      return value;
+    });
+  }, []);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision(n => n + 1), []);
   useEffect(() => {
     if (isDemoMode || isDemoSession || !weddingId || !user?.id) return;
     let cancelled = false;
-    setResult(previous => previous?.weddingId === weddingId && previous?.userId === user.id ? previous : null);
+    setResult(previous => previous?.weddingId === weddingId && previous?.userId === user.id ? previous : lastResults.get(cacheKey(weddingId, user.id)) ?? null);
     supabase.rpc('get_wedding_entitlements', { p_wedding_id: weddingId }).then(({ data, error }) => {
       if (cancelled) return;
       if (error || !data || !Object.hasOwn(PLAN_LIMITS, data.planKey) || !data.features || !data.usage) {
@@ -31,7 +47,7 @@ export function useWeddingEntitlements() {
       } else setResult({ weddingId, userId: user.id, data: data as WeddingEntitlements, error: null });
     });
     return () => { cancelled = true; };
-  }, [weddingId, user?.id, isDemoSession, revision]);
+  }, [weddingId, user?.id, isDemoSession, revision, setResult]);
   useEffect(() => {
     if (isDemoMode || isDemoSession || !weddingId) return;
     const timer = window.setInterval(refresh, 60000);
@@ -53,5 +69,8 @@ export function useWeddingEntitlements() {
   }
   const expired = current?.data?.planKey !== 'free' && current?.data?.accessUntil && Date.parse(current.data.accessUntil) <= Date.now();
   const data = expired && current?.data ? { ...current.data, planKey: 'free' as const, limits: PLAN_LIMITS.free, features: Object.fromEntries(Object.keys(FEATURE_PLANS).map(f => [f, false])) as Record<PaidFeature, boolean> } : current?.data || null;
-  return { data, loading: !!weddingId && !current, error: current?.error || (!weddingId ? 'Select a wedding to check its subscription.' : null), refresh };
+  // While the active wedding is still resolving, report loading rather than the
+  // "select a wedding" error, so paying customers never see a paywall flash.
+  const resolvingWedding = !weddingId && weddingLoading;
+  return { data, loading: resolvingWedding || (!!weddingId && !current), error: current?.error || (!weddingId && !resolvingWedding ? 'Select a wedding to check its subscription.' : null), refresh };
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
-import type { DemoDataContextValue } from '@/demo/DemoDataProvider';
+import type { DemoDataContextValue } from '@/demo/demoContext';
 import type { FaqRelatedLink, FaqCategory } from '@/types/access';
 
 // ── Types ──

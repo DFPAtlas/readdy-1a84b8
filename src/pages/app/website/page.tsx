@@ -1288,7 +1288,7 @@ function PreviewContent({ config, wedding }: { config: ReturnType<typeof useWedd
                     </div>
                     {hasImg && !!cfg.image_url && (
                       <div className="flex-1">
-                        <img src={cfg.image_url as string} alt="" className="w-full h-64 object-cover rounded-lg" />
+                        <img loading="lazy" decoding="async" src={cfg.image_url as string} alt="" className="w-full h-64 object-cover rounded-lg" />
                       </div>
                     )}
                   </div>

@@ -1,6 +1,6 @@
 import { useContext } from 'react';
-import { DemoDataContext } from '@/demo/DemoDataProvider';
-import type { DemoDataContextValue } from '@/demo/DemoDataProvider';
+import { DemoDataContext } from '@/demo/demoContext';
+import type { DemoDataContextValue } from '@/demo/demoContext';
 
 /**
  * Safe version of useDemoData — returns null when DemoDataProvider is

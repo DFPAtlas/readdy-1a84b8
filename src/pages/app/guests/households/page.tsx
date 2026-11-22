@@ -6,6 +6,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useGuestService } from '@/hooks/useGuestService';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 function DemoHouseholdsPage() {
   const navigate = useNavigate();
@@ -137,6 +138,8 @@ function NormalHouseholdsPage() {
   const [loading, setLoading] = useState(true);
   const [households, setHouseholds] = useState<Array<{ id: string; wedding_id: string; display_name: string; formal_invitation_name?: string; status: string; member_count: number; invitation_delivery_method: string; members: Array<{ id: string; full_name: string; last_name?: string; preferred_name?: string }> }>>([]);
   const [search, setSearch] = useState('');
+  // Debounced: the search runs as a database query.
+  const debouncedSearch = useDebouncedValue(search);
   const [statusFilter, setStatusFilter] = useState('active');
 
   const fetchHouseholds = useCallback(async () => {
@@ -144,7 +147,7 @@ function NormalHouseholdsPage() {
     try {
       let q = supabase.from('guest_households').select('*').eq('wedding_id', weddingId).order('display_name');
       if (statusFilter) q = q.eq('status', statusFilter);
-      if (search) q = q.ilike('display_name', `%${search}%`);
+      if (debouncedSearch) q = q.ilike('display_name', `%${debouncedSearch}%`);
       const { data } = await q;
       const hhs = (data || []) as typeof households;
       // Fetch all members in one query instead of N+1
@@ -166,7 +169,7 @@ function NormalHouseholdsPage() {
       });
       setHouseholds(enriched as typeof households);
     } catch { /* silent */ } finally { setLoading(false); }
-  }, [weddingId, statusFilter, search]);
+  }, [weddingId, statusFilter, debouncedSearch]);
 
   useEffect(() => { fetchHouseholds(); }, [fetchHouseholds]);
 

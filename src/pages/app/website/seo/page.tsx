@@ -220,7 +220,8 @@ export default function WebsiteSeoPage() {
   if (!seoState) {
     return (
       <AppShell>
-      <div className="min-h-[40vh] flex items-center justify-center">
+      {/* keyed so React swaps the loader for the page instead of morphing it (layout shift) */}
+      <div key="loading" className="min-h-[40vh] flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-primary-50 text-primary-500 mb-4">
             <i className="ri-loader-4-line animate-spin text-2xl" />

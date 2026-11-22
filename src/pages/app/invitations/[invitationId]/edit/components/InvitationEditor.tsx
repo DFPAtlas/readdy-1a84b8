@@ -1283,8 +1283,11 @@ export default function InvitationEditor({
           </div>
         )}
 
-        {/* Centre canvas — full width on mobile with bottom padding for the action bar */}
-        <div className="flex-1 min-w-0 lg:pb-0 pb-[64px]">
+        {/* Centre canvas — full width on mobile with bottom padding for the action bar.
+            flex-col lets the workspace fill this column's height; without it the
+            workspace sized to the artboard, and auto-fit zoom shrank the artboard in a
+            loop down to 25% (and shifted the layout on every step). */}
+        <div className="flex-1 min-w-0 lg:pb-0 pb-[64px] flex flex-col">
           <CanvasWorkspace
             document={document}
             selectedId={selectedId}

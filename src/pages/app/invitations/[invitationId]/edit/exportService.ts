@@ -1,4 +1,3 @@
-import { toBlob } from 'html-to-image';
 import { supabase } from '@/lib/supabase';
 
 // ── Constants ──
@@ -159,6 +158,9 @@ export function prepareImagesForExport(container: HTMLElement): void {
 
 export async function capturePng(element: HTMLElement): Promise<Blob | null> {
   try {
+    // html-to-image is only needed when a PNG export runs, so the editor loads
+    // without it.
+    const { toBlob } = await import('html-to-image');
     const blob = await toBlob(element, {
       backgroundColor: EXPORT_BG,
       pixelRatio: 1, // We already set the element size to the export dimensions

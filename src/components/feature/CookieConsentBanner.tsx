@@ -25,9 +25,11 @@ export function CookieConsentBanner({ onConsentChange }: CookieConsentBannerProp
   useEffect(() => {
     const existing = loadConsentState();
     if (!existing) {
-      // Small delay so the banner doesn't flash on SSR-like first paint
-      const timer = setTimeout(() => setVisible(true), 600);
-      return () => clearTimeout(timer);
+      // Show in the first frame. This app is client-rendered (no SSR flash to
+      // avoid), and a delayed banner became the page's Largest Contentful Paint
+      // for every first-time visitor, adding ~600ms to LCP on most routes.
+      setVisible(true);
+      return;
     }
     // Already consented — notify parent
     onConsentChange?.(existing);

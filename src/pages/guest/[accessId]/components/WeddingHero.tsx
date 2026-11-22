@@ -30,6 +30,7 @@ export default function WeddingHero({ data, basePath }: WeddingHeroProps) {
       {/* Background image */}
       <div className="relative h-[320px] md:h-[420px] w-full">
         <img
+          fetchPriority="high"
           src="https://readdy.ai/api/search-image?query=Soft%20romantic%20floral%20wedding%20background%20with%20delicate%20blush%20pink%20roses%20and%20ivory%20peonies%20scattered%20across%20a%20cream%20canvas%2C%20subtle%20warm%20golden%20bokeh%20light%2C%20elegant%20and%20dreamy%20atmosphere%2C%20fine%20art%20wedding%20photography%20style%2C%20gentle%20organic%20composition%20with%20negative%20space%20for%20text%20overlay&width=1600&height=500&seq=wedora-hero-dashboard&orientation=landscape"
           alt=""
           className="w-full h-full object-cover object-top motion-safe:animate-fadeIn"

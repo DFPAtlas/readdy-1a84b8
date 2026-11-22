@@ -84,6 +84,9 @@ export default function OperationsDashboardPage() {
   const [journeyMetrics, setJourneyMetrics] = useState<JourneyMetric[]>([]);
   const [overallStatus, setOverallStatus] = useState<HealthStatus>('unknown');
   const [queryError, setQueryError] = useState<string | null>(null);
+  // True after the first health fetch settles. Until then the data sections are
+  // replaced by one reserved block, so they don't push each other down as they fill.
+  const [loadedOnce, setLoadedOnce] = useState(false);
 
   const fetchHealth = useCallback(async () => {
     setRefreshing(true);
@@ -185,6 +188,7 @@ export default function OperationsDashboardPage() {
       setOverallStatus('fail');
     } finally {
       setRefreshing(false);
+      setLoadedOnce(true);
     }
   }, [timeRange]);
 
@@ -305,6 +309,10 @@ export default function OperationsDashboardPage() {
           </div>
         </div>
 
+        {!loadedOnce ? (
+          <div key="operations-loading" className="min-h-[60vh] rounded-lg bg-background-100 animate-pulse" aria-hidden="true" />
+        ) : (
+        <>
         {/* Summary cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
           {summaryCards.map((card) => (
@@ -394,6 +402,8 @@ export default function OperationsDashboardPage() {
             This page does not display secret values, API keys, webhook secrets, or private customer data. All health data is aggregated and safe for operational review.
           </p>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

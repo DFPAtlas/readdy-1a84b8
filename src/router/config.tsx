@@ -4,9 +4,13 @@ import type * as React from "react";
 import { lazy, Suspense } from "react";
 import { Navigate } from "react-router-dom";
 import type { RouteObject } from "react-router-dom";
-import AuthLayout from "@/components/feature/AuthLayout";
-import GuestPortalLayout from "@/components/feature/GuestPortalLayout";
 import PageLoader from "@/components/base/PageLoader";
+
+// Layouts are split out too: the signed-in app shell (navigation, notifications,
+// wedding selector, demo guide) and the guest portal shell are not needed on
+// marketing, auth or couple-website pages.
+const AuthLayout = lazy(() => import("@/components/feature/AuthLayout"));
+const GuestPortalLayout = lazy(() => import("@/components/feature/GuestPortalLayout"));
 
 // ── Helper: wraps a lazy component in Suspense ──
 function LazyRoute({ comp: Comp }: { comp: React.LazyExoticComponent<React.ComponentType<any>> }) {
@@ -245,7 +249,7 @@ const routes: RouteObject[] = [
   // ── Guest portal routes ──
   {
     path: "/guest/:accessId",
-    element: <GuestPortalLayout />,
+    element: <LazyRoute comp={GuestPortalLayout} />,
     children: [
       { index: true, element: <LazyRoute comp={GuestHomePage} /> },
       { path: "details", element: <LazyRoute comp={GuestDetailsPage} /> },
@@ -293,7 +297,7 @@ const routes: RouteObject[] = [
   // ── Protected app routes ──
   {
     path: "/app",
-    element: <AuthLayout />,
+    element: <LazyRoute comp={AuthLayout} />,
     children: [
       { path: "onboarding", element: <LazyRoute comp={OnboardingPage} /> },
       { path: "dashboard", element: <LazyRoute comp={DashboardPage} /> },

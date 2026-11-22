@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
@@ -21,6 +21,8 @@ function ResponseOverview({ rows: guests, subtitle, badge, loading, error }: Res
   const navigate = useNavigate();
 
   const [search, setSearch] = useState('');
+  // Deferred so typing stays responsive while the list below re-filters.
+  const deferredSearch = useDeferredValue(search);
   const [statusFilter, setStatusFilter] = useState('');
   const [dietaryFilter, setDietaryFilter] = useState(false);
   const [allergyFilter, setAllergyFilter] = useState(false);
@@ -44,8 +46,8 @@ function ResponseOverview({ rows: guests, subtitle, badge, loading, error }: Res
 
   const filteredGuests = useMemo(() => {
     let result = [...guests];
-    if (search) {
-      const q = search.toLowerCase();
+    if (deferredSearch) {
+      const q = deferredSearch.toLowerCase();
       result = result.filter((g) =>
         g.full_name.toLowerCase().includes(q) ||
         g.last_name.toLowerCase().includes(q) ||
@@ -61,7 +63,7 @@ function ResponseOverview({ rows: guests, subtitle, badge, loading, error }: Res
     if (accessibilityFilter) result = result.filter((g) => !!g.accessibility);
     if (plusOneFilter) result = result.filter((g) => g.plus_one_status === 'allowed' || g.plus_one_status === 'named');
     return result;
-  }, [guests, search, statusFilter, dietaryFilter, allergyFilter, accessibilityFilter, plusOneFilter]);
+  }, [guests, deferredSearch, statusFilter, dietaryFilter, allergyFilter, accessibilityFilter, plusOneFilter]);
 
   if (loading || error) {
     return (

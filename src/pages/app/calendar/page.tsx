@@ -489,7 +489,8 @@ export default function CalendarPage() {
     return (
       <AppShell>
         <div className="max-w-6xl mx-auto">
-          <div className="animate-pulse space-y-6">
+          {/* keyed so React swaps the skeleton for the page instead of morphing it (layout shift) */}
+          <div key="loading-skeleton" className="animate-pulse space-y-6">
             <div className="h-8 w-48 bg-background-200 rounded" />
             <div className="h-4 w-96 bg-background-200 rounded" />
             <div className="h-[500px] bg-background-200 rounded-xl" />

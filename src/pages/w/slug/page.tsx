@@ -241,6 +241,7 @@ function PublicWeddingPageContent({
       <section className="relative min-h-[600px] md:min-h-[700px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <img
+            fetchPriority="high"
             src="https://readdy.ai/api/search-image?query=Elegant%20romantic%20English%20garden%20wedding%20scene%20with%20soft%20spring%20flowers%20in%20bloom%2C%20historic%20stone%20architecture%2C%20warm%20golden%20hour%20natural%20light%2C%20fine%20art%20editorial%20wedding%20photography%2C%20dreamy%20bokeh%20background%2C%20pastel%20color%20palette%20with%20ivory%20and%20blush%20tones%2C%20no%20people%20visible%2C%20atmospheric%20and%20serene&width=1600&height=900&seq=wedora-public-hero&orientation=landscape"
             alt=""
             className="w-full h-full object-cover object-center"

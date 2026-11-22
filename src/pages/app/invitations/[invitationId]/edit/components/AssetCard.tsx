@@ -57,6 +57,7 @@ export default function AssetCard({ asset, assetLookupMap, compact = false }: As
         <div className="w-full aspect-square flex items-center justify-center bg-[#faf7f2] overflow-hidden relative">
           {!imgError ? (
             <img
+              decoding="async"
               src={asset.thumbnailUrl}
               alt={asset.name}
               className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity"
@@ -108,6 +109,7 @@ export default function AssetCard({ asset, assetLookupMap, compact = false }: As
       <div className="w-full h-[72px] flex items-center justify-center bg-[#faf7f2] overflow-hidden relative">
         {!imgError ? (
           <img
+            decoding="async"
             src={asset.thumbnailUrl}
             alt={asset.name}
             className="max-w-full max-h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity"

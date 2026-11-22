@@ -115,7 +115,7 @@ export default function SignupPage() {
   return (
     <div className="relative min-h-screen flex flex-col overflow-hidden">
       <div className="absolute inset-0 z-0">
-        <img src={RINGS_BG} alt="" className="w-full h-full object-cover" aria-hidden="true" />
+        <img fetchPriority="high" src={RINGS_BG} alt="" className="w-full h-full object-cover" aria-hidden="true" />
         <div className="absolute inset-0 bg-white/70" />
       </div>
 

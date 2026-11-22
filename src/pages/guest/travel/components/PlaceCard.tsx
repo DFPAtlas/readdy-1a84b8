@@ -30,6 +30,8 @@ export default function PlaceCard({ place, onSave, onSelect, isSaved }: PlaceCar
       {hasImage ? (
         <div className="relative h-40 w-full bg-background-50 overflow-hidden">
           <img
+            loading="lazy"
+            decoding="async"
             src={place.image_url ?? undefined}
             alt={place.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

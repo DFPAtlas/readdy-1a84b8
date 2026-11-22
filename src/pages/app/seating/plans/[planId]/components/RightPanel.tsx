@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useDeferredValue } from 'react';
 import type { TableWithData, RoomObject, UnseatedGuest } from '@/types/seating';
 import { OBJECT_TYPE_LABELS } from '@/types/seating';
 
@@ -38,6 +38,8 @@ export default function RightPanel({
   onRemoveGuest, onAssignGuestToSeat, onDuplicateObject, unseatedGuests, onClose,
 }: RightPanelProps) {
   const [guestSearch, setGuestSearch] = useState('');
+  // Deferred so typing stays responsive while the list below re-filters.
+  const deferredGuestSearch = useDeferredValue(guestSearch);
   const [isExpanded, setIsExpanded] = useState(false);
   const hasSelection = !!(selectedTable || selectedObject);
 
@@ -191,7 +193,7 @@ export default function RightPanel({
                 <input type="text" value={guestSearch} onChange={(e) => setGuestSearch(e.target.value)} placeholder="Quick assign..." className="w-full pl-6 pr-2 py-1 rounded border border-secondary-200 text-[10px] focus:outline-none focus:border-primary-400" />
               </div>
               <div className="max-h-32 overflow-y-auto space-y-0.5">
-                {unseatedGuests.filter((g) => !guestSearch || g.full_name.toLowerCase().includes(guestSearch.toLowerCase())).slice(0, 10).map((g) => (
+                {unseatedGuests.filter((g) => !deferredGuestSearch || g.full_name.toLowerCase().includes(deferredGuestSearch.toLowerCase())).slice(0, 10).map((g) => (
                   <button key={g.id} onClick={() => onAssignGuestToSeat(g.id, selectedTable.id)}
                     className="w-full flex items-center gap-1.5 p-1.5 rounded text-left hover:bg-background-50 transition-colors cursor-pointer">
                     <span className="text-[10px] font-label text-foreground-700 truncate flex-1">{g.full_name}</span>

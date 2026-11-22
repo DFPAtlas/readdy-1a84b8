@@ -156,6 +156,7 @@ export default function PricingPage() {
         {/* Hero */}
         <section className="relative py-16 md:py-24 overflow-hidden">
           <img
+            fetchPriority="high"
             src="https://readdy.ai/api/search-image?query=Elegant%20minimal%20wedding%20table%20setting%20with%20soft%20linen%2C%20dried%20flowers%2C%20candlelight%20and%20gold%20cutlery%2C%20warm%20neutral%20cream%20and%20taupe%20tones%2C%20shallow%20depth%20of%20field%2C%20editorial%20style%20photography%2C%20serene%20luxury%20atmosphere&width=1600&height=700&seq=pricing-hero-bg-v2&orientation=landscape"
             alt=""
             className="absolute inset-0 w-full h-full object-cover object-top"
