@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { billingErrorMessage } from '@/lib/billingErrors';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useAuth } from '@/context/AuthProvider';
@@ -139,7 +140,7 @@ export function useSubscription(weddingId: string | null) {
       body: { planKey, weddingId, billingInterval: 'month' },
     });
 
-    if (invokeErr) throw invokeErr;
+    if (invokeErr) throw new Error(await billingErrorMessage(invokeErr));
     return data as { url: string; sessionId: string };
   }, [weddingId, isDemoSession]);
 
@@ -152,7 +153,7 @@ export function useSubscription(weddingId: string | null) {
       body: {},
     });
 
-    if (invokeErr) throw invokeErr;
+    if (invokeErr) throw new Error(await billingErrorMessage(invokeErr));
     return data as { url: string };
   }, [isDemoSession]);
 

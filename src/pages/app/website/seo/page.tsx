@@ -125,7 +125,7 @@ function Field({ label, children, hint }: { label: string; children: React.React
 export default function WebsiteSeoPage() {
   const navigate = useNavigate();
   const { activeWedding } = useActiveWedding();
-  const { config: publishedConfig, draftConfig, saveStatus, publishStatus, setSeo, saveDraft } = useWeddingWebsiteBuilder();
+  const { config: publishedConfig, draftConfig, loading: builderLoading, error: loadError, retry, saveStatus, publishStatus, setSeo, saveDraft } = useWeddingWebsiteBuilder();
   const [imageUploading, setImageUploading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -199,6 +199,23 @@ export default function WebsiteSeoPage() {
       showToast('error', 'Failed to save');
     }
   };
+
+  if (!seoState && !builderLoading && loadError) {
+    return (
+      <AppShell>
+      <div className="min-h-[40vh] flex items-center justify-center">
+        <div className="text-center max-w-sm">
+          <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-red-50 text-red-500 mb-4">
+            <i className="ri-error-warning-line text-2xl" />
+          </div>
+          <p className="text-sm text-foreground-700 mb-1">We couldn&rsquo;t load your SEO settings.</p>
+          <p className="text-xs text-foreground-500 mb-4">Check your connection and try again.</p>
+          <button onClick={() => retry()} className="btn-outline text-sm cursor-pointer whitespace-nowrap">Try again</button>
+        </div>
+      </div>
+      </AppShell>
+    );
+  }
 
   if (!seoState) {
     return (

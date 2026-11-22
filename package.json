@@ -60,7 +60,8 @@
     "test": "vitest run",
     "test:database": "node scripts/check-database.mjs",
     "check:edge": "deno check --node-modules-dir=manual --config supabase/functions/deno.json supabase/functions/*/index.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test --grep-invert @sweep",
+    "test:e2e:sweep": "playwright test --grep @sweep"
   },
   "type": "module",
   "version": "0.0.0",

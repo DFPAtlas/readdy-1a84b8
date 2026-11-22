@@ -69,9 +69,19 @@ Deno.serve(async (req: Request) => {
   const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? Deno.env.get("VITE_PUBLIC_SUPABASE_URL"))!;
   const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  // Every Stripe webhook endpoint has its own signing secret, and Supabase
+  // secrets are project-wide. Gift funds need two endpoints pointing here:
+  // one for the platform account (checkout and charge events from
+  // destination charges) and one for connected accounts (account.updated).
+  // Accept any configured gift-fund secret; the shared STRIPE_WEBHOOK_SECRET
+  // stays as a fallback so existing setups keep working.
+  const webhookSecrets = [
+    Deno.env.get("STRIPE_GIFT_FUND_WEBHOOK_SECRET"),
+    Deno.env.get("STRIPE_GIFT_FUND_CONNECT_WEBHOOK_SECRET"),
+    Deno.env.get("STRIPE_WEBHOOK_SECRET"),
+  ].filter((v): v is string => !!v && v.trim().length > 0);
 
-  if (!stripeKey || !webhookSecret) {
+  if (!stripeKey || webhookSecrets.length === 0) {
     return new Response(JSON.stringify({ error: "Stripe webhook not configured." }), {
       status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -91,12 +101,18 @@ Deno.serve(async (req: Request) => {
     }
 
     const rawBody = await req.text();
-    let event: Stripe.Event;
-
-    try {
-      event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret, undefined, Stripe.createSubtleCryptoProvider());
-    } catch (err) {
-      console.error("Webhook signature verification failed:", err);
+    let event: Stripe.Event | null = null;
+    let lastError: unknown = null;
+    for (const secret of webhookSecrets) {
+      try {
+        event = await stripe.webhooks.constructEventAsync(rawBody, signature, secret, undefined, Stripe.createSubtleCryptoProvider());
+        break;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    if (!event) {
+      console.error("Webhook signature verification failed:", lastError);
       return new Response(JSON.stringify({ error: "Invalid signature" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

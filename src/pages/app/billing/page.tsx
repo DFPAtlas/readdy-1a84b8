@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { isDemoMode } from '@/demo/demoConfig';
@@ -69,6 +69,19 @@ export default function BillingPage() {
 
   const { subscription, loading, error, fetch, startCheckout, openBillingPortal, getInvoices } = useSubscription(weddingId);
   const access = useWeddingEntitlements();
+
+  // After Stripe Checkout, the plan only changes once Stripe's webhook has
+  // been processed, which can take a few seconds. Re-check a few times so the
+  // page catches up without the customer reloading.
+  const refreshLatest = useRef<() => void>(() => undefined);
+  refreshLatest.current = () => { fetch(); access.refresh(); };
+  const [awaitingActivation, setAwaitingActivation] = useState(false);
+  useEffect(() => {
+    if (!awaitingActivation) return;
+    const timers = [3_000, 8_000, 15_000, 30_000].map((ms) => window.setTimeout(() => refreshLatest.current(), ms));
+    const done = window.setTimeout(() => setAwaitingActivation(false), 31_000);
+    return () => { timers.forEach(window.clearTimeout); window.clearTimeout(done); };
+  }, [awaitingActivation]);
   const currentPlanKey = access.data?.planKey || 'free';
   const entitlements = useEntitlements(currentPlanKey);
 
@@ -91,6 +104,7 @@ export default function BillingPage() {
     if (checkoutStatus === 'success') {
       fetch();
       access.refresh();
+      setAwaitingActivation(true);
       setToast({ type: 'success', message: 'Your subscription is being activated. This may take a moment.' });
       // Clean URL
       const newParams = new URLSearchParams(searchParams);

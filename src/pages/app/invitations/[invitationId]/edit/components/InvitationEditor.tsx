@@ -318,6 +318,18 @@ export default function InvitationEditor({
 
   // ── Load or create on mount ──
 
+  // The create-new path runs once (creationGuardRef). If this effect re-runs
+  // while that request is in flight (StrictMode, or a parent re-render
+  // passing a new onCreated), the first run must still apply its result,
+  // otherwise the editor sits on "Loading…" with the new design unused.
+  const onCreatedRef = useRef(onCreated);
+  onCreatedRef.current = onCreated;
+  const editorMountedRef = useRef(true);
+  useEffect(() => {
+    editorMountedRef.current = true;
+    return () => { editorMountedRef.current = false; };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -371,7 +383,7 @@ export default function InvitationEditor({
         const normalized = normalizeDocument(DEFAULT_INVITATION);
         const result = await createInvitationDesign(userId, normalized, 'Untitled Invitation', weddingId);
 
-        if (cancelled) return;
+        if (!editorMountedRef.current) return;
 
         if (result.success && result.id) {
           persistedIdRef.current = result.id;
@@ -384,9 +396,10 @@ export default function InvitationEditor({
           setEditingId(null);
 
           // Notify parent to update URL
-          if (onCreated) {
+          if (onCreatedRef.current) {
             // Small delay to let state settle before navigation
-            setTimeout(() => onCreated(result.id!), 0);
+            const notify = onCreatedRef.current;
+            setTimeout(() => notify(result.id!), 0);
           }
         } else {
           // No data returned
@@ -404,7 +417,7 @@ export default function InvitationEditor({
     return () => {
       cancelled = true;
     };
-  }, [invitationId, userId, weddingId, onCreated]);
+  }, [invitationId, userId, weddingId]);
 
   // ── Derived history availability ──
   const canUndo = history.index > 0;

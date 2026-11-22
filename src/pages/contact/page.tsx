@@ -57,7 +57,12 @@ export default function ContactPage() {
         setStatus('success');
         form.reset();
       } else {
-        const serverMsg = (parsed?.meta as Record<string, string>)?.message || responseText || 'Something went wrong. Please try again.';
+        // Only show the endpoint's own short JSON message; a raw response body
+        // can be a whole HTML error page.
+        const metaMsg = (parsed?.meta as Record<string, string>)?.message;
+        const serverMsg = typeof metaMsg === 'string' && metaMsg.trim() && metaMsg.length <= 200
+          ? metaMsg
+          : 'Something went wrong. Please try again.';
         if (typeof serverMsg === 'string' && serverMsg.toLowerCase().includes('spam')) {
           setErrorMessage('Your message could not be sent. Please try again.');
         } else {
