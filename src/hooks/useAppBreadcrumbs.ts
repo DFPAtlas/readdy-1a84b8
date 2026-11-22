@@ -144,6 +144,8 @@ const NON_LINKABLE_SEGMENTS = new Set(['account', 'admin', 'design']);
 /** Layouts that own the whole viewport, where a trail bar would crowd the workspace. */
 const WORKSPACE_ROUTES: RegExp[] = [
   /^\/app\/invitations\/[^/]+\/edit$/,
+  // Same full-screen editor as /edit, whose top bar draws its own trail.
+  /^\/app\/invitations\/design\/new$/,
   /^\/app\/seating\/plans\/[^/]+$/,
 ];
 

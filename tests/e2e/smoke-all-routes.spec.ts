@@ -26,7 +26,6 @@ import {
   mockBackend,
   PLAN_NAME,
   PROPOSAL_TITLE,
-  SEATING_CANVAS_ROUTE,
   seedBrowserState,
   watchForRuntimeErrors,
   type CollectedErrors,
@@ -37,6 +36,7 @@ import {
   INVITATION_EDITOR_ROUTE,
   PUBLIC_ROUTES,
   PROPOSAL_ROUTE,
+  SEATING_CANVAS_ROUTE,
   SEATING_GROUPS_ROUTE,
   TRAIL_NAVIGATION_ROUTES,
   type SmokeRoute,
@@ -277,13 +277,13 @@ test.describe('Smoke — layout integrity', () => {
       await seedBrowserState(page, { authenticated: true });
       await mockBackend(page);
 
-      for (const route of routes) {
-        await page.goto(route.path);
-        await expectRouteRendered(page, route.path);
-        await expectNoHorizontalOverflow(page, route.path);
+      for (const path of routes) {
+        await page.goto(path);
+        await expectRouteRendered(page, path);
+        await expectNoHorizontalOverflow(page, path);
 
         await page.waitForTimeout(250);
-        expectNoRuntimeErrors(errors, route.path);
+        expectNoRuntimeErrors(errors, path);
         errors.pageErrors.length = 0;
         errors.consoleErrors.length = 0;
       }

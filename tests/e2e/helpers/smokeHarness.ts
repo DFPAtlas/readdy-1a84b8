@@ -502,6 +502,26 @@ export async function mockBackend(page: Page): Promise<void> {
     }
     return route.fulfill(externalReply(request.resourceType()));
   });
+
+  // Supabase Realtime (used by the gallery pages) opens a WebSocket that
+  // page.route() never sees. Accept it locally and stay silent, so the page
+  // behaves as if connected with no live changes, instead of logging a
+  // connection failure to a host that does not exist.
+  await page.routeWebSocket(
+    (url) => url.hostname === SUPABASE_HOST,
+    (ws) => {
+      ws.onMessage((message) => {
+        try {
+          const msg = JSON.parse(String(message));
+          if (msg && typeof msg === 'object' && 'ref' in msg && 'topic' in msg) {
+            ws.send(JSON.stringify({ ...msg, event: 'phx_reply', payload: { status: 'ok', response: {} } }));
+          }
+        } catch {
+          // Not a Realtime frame: ignore.
+        }
+      });
+    },
+  );
 }
 
 // ── Runtime error collection ──
