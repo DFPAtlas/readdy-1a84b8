@@ -102,3 +102,6 @@ verify_jwt = false
 
 [functions.gallery-shared-upload]
 verify_jwt = false
+
+[functions.gallery-scan-worker]
+verify_jwt = false

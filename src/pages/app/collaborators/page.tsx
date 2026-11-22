@@ -5,6 +5,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { useAuth } from '@/context/AuthProvider';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
+import { supabase } from '@/lib/supabase';
 import { useCollaborators } from '@/hooks/useSettings';
 import {
   ROLE_SHORT_LABELS,
@@ -40,7 +41,7 @@ function SettingsCard({ title, description, children }: {
 
 function NormalCollaboratorsPage() {
   const { user } = useAuth();
-  const { weddingId, role: currentUserRole, permissions } = useActiveWedding();
+  const { weddingId, role: currentUserRole, permissions, refetch: refetchWedding } = useActiveWedding();
   const { collaborators, loading, error, fetch, inviteCollaborator, revokeInvitation, removeCollaborator, changeRole } = useCollaborators(weddingId);
   const [activeTab, setActiveTab] = useState<CollaboratorTab>('active');
   const [showInvite, setShowInvite] = useState(false);
@@ -118,8 +119,16 @@ function NormalCollaboratorsPage() {
     setTransferring(true);
     setActionError(null);
     try {
-      // Ownership transfer not yet implemented in backend
-      setActionError('Ownership transfer requires backend support. Contact support.');
+      const { error: rpcError } = await supabase.rpc('transfer_wedding_ownership', {
+        p_wedding_id: weddingId,
+        p_new_owner_member_id: transferTarget,
+      });
+      if (rpcError) throw new Error(rpcError.message || 'Transfer failed');
+      setShowOwnershipTransfer(false);
+      setTransferTarget(null);
+      setTransferConfirm('');
+      // Your own role is now partner: reload the member list and your permissions.
+      await Promise.all([fetch(), refetchWedding()]);
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Transfer failed');
     } finally {

@@ -22,11 +22,13 @@
 
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { join, relative, resolve } from 'node:path';
+import { cwd } from 'node:process';
 import { DEFAULT_OG_IMAGE, SITE_URL } from '@/hooks/usePageSeo';
 
-const PROJECT_ROOT = resolve(fileURLToPath(new URL('../../../', import.meta.url)));
+// Vitest runs from the project root. import.meta.url is an http:// URL under
+// the jsdom environment, so it cannot be turned into a file path here.
+const PROJECT_ROOT = resolve(cwd());
 const PUBLIC_DIR = join(PROJECT_ROOT, 'public');
 const PAGES_DIR = join(PROJECT_ROOT, 'src', 'pages');
 

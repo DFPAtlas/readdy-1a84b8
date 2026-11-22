@@ -18,8 +18,8 @@ function timeAgo(dateStr: string): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function DemoNotificationCentre() {
-  const { notifications, unreadCount, markRead, markUnread, markAllRead, filteredNotifications, resetNotifications } = useNotifications();
+function NotificationCentre() {
+  const { notifications, unreadCount, markRead, markUnread, markAllRead, filteredNotifications, resetNotifications, loading } = useNotifications();
   const demoData = useDemoDataSafe();
 
   const [filters, setFilters] = useState<NotificationFilters>({
@@ -160,7 +160,9 @@ function DemoNotificationCentre() {
         </div>
 
         {/* Notification list */}
-        {filtered.length === 0 ? (
+        {loading && notifications.length === 0 ? (
+          <div className="text-center py-20 text-sm text-foreground-500">Loading notifications…</div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-background-100 text-foreground-300 mb-4">
               <i className="ri-notification-off-line text-2xl" />
@@ -248,5 +250,5 @@ function DemoNotificationCentre() {
 }
 
 export default function NotificationsPage() {
-  return <DemoNotificationCentre />;
+  return <NotificationCentre />;
 }

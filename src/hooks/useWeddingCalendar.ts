@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useWeddingEvents } from '@/hooks/useWeddingEvents';
 import { useTasks } from '@/hooks/useTasks';
@@ -11,6 +11,7 @@ import type { WeddingEvent } from '@/hooks/useWeddingEvents';
 import type { WeddingTask } from '@/types/tasks';
 import type { WeddingSupplier } from '@/types/suppliers';
 import type { DemoExpense, DemoPayment } from '@/demo/demoTypes';
+import { supabase } from '@/lib/supabase';
 
 // ── Normalise helpers ──
 
@@ -157,6 +158,44 @@ function demoPaymentToCalendarItem(p: DemoPayment, expenses: DemoExpense[]): Cal
   };
 }
 
+interface BudgetPaymentRow {
+  id: string;
+  wedding_id: string;
+  expense_id: string | null;
+  payment_type: string | null;
+  amount: number | string | null;
+  due_at: string | null;
+  status: string | null;
+  notes: string | null;
+}
+
+export function paymentToCalendarItem(p: BudgetPaymentRow, expenseTitles: Map<string, string>, today: string): CalendarItem {
+  const due = (p.due_at || '').slice(0, 10);
+  const expense = p.expense_id ? expenseTitles.get(p.expense_id) : undefined;
+  const overdue = p.status === 'overdue' || (p.status === 'scheduled' && !!due && due < today);
+  const kind = p.payment_type === 'deposit' ? 'Deposit' : p.payment_type === 'final' ? 'Final payment' : 'Payment';
+  return {
+    id: `pay-${p.id}`,
+    source: 'budget_payment',
+    title: expense ? `${kind}: ${expense}` : `${kind} due`,
+    description: p.notes || null,
+    date: due,
+    startTime: null,
+    endTime: null,
+    startAt: null,
+    endAt: null,
+    allDay: true,
+    status: overdue ? 'overdue' : (p.status || 'scheduled'),
+    priority: overdue ? 'high' : 'medium',
+    location: null,
+    assignee: null,
+    linkRoute: '/app/budget/payments',
+    sourceId: p.id,
+    weddingId: p.wedding_id,
+    category: 'Payment',
+  };
+}
+
 function demoSupplierToCalendarItem(s: { id: string; name: string; category: string; status: string; contact_name?: string; next_action?: string; next_action_date?: string }): CalendarItem {
   return {
     id: `sup-${s.id}`,
@@ -296,6 +335,54 @@ export function useWeddingCalendar(): UseWeddingCalendarReturn {
   const tasksHook = useTasks();
   const suppliersHook = useSuppliers();
 
+  // Budget payment due dates (no shared hook loads these yet)
+  const [payments, setPayments] = useState<BudgetPaymentRow[]>([]);
+  const [expenseTitles, setExpenseTitles] = useState<Map<string, string>>(new Map());
+  const [paymentsLoading, setPaymentsLoading] = useState(!isDemoMode);
+  const [paymentsVersion, setPaymentsVersion] = useState(0);
+
+  useEffect(() => {
+    if (demoMode || !weddingId) {
+      setPayments([]);
+      setPaymentsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setPaymentsLoading(true);
+    (async () => {
+      const { data, error: payErr } = await supabase
+        .from('budget_payments')
+        .select('id, wedding_id, expense_id, payment_type, amount, due_at, status, notes')
+        .eq('wedding_id', weddingId)
+        .not('due_at', 'is', null)
+        .neq('status', 'cancelled');
+      if (cancelled) return;
+      if (payErr) {
+        // Budget may not be on this plan or role: leave payments off the
+        // calendar rather than failing the whole calendar.
+        setPayments([]);
+        setPaymentsLoading(false);
+        return;
+      }
+      const rows = (data || []) as BudgetPaymentRow[];
+      const ids = [...new Set(rows.map((r) => r.expense_id).filter((id): id is string => !!id))];
+      const titles = new Map<string, string>();
+      if (ids.length) {
+        const { data: exp } = await supabase.from('budget_expenses').select('id, title').in('id', ids);
+        for (const e of (exp || []) as { id: string; title: string | null }[]) if (e.title) titles.set(e.id, e.title);
+      }
+      if (cancelled) return;
+      setPayments(rows);
+      setExpenseTitles(titles);
+      setPaymentsLoading(false);
+    })().catch(() => {
+      if (cancelled) return;
+      setPayments([]);
+      setPaymentsLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [demoMode, weddingId, paymentsVersion]);
+
   const setFilters = useCallback((partial: Partial<CalendarFilters>) => {
     setFiltersState((prev) => ({ ...prev, ...partial }));
   }, []);
@@ -359,6 +446,13 @@ export function useWeddingCalendar(): UseWeddingCalendarReturn {
         if (t.due_date) all.push(taskToCalendarItem(t));
       }
     }
+    if (filters.sources.includes('budget_payment')) {
+      const today = new Date().toISOString().slice(0, 10);
+      for (const p of payments) {
+        // Paid instalments stay on the calendar as a record, like completed tasks.
+        if (p.due_at) all.push(paymentToCalendarItem(p, expenseTitles, today));
+      }
+    }
     const supSourcesOk = filters.sources.includes('supplier_appointment') || filters.sources.includes('supplier_deadline');
     if (supSourcesOk) {
       for (const s of suppliersHook.suppliers) {
@@ -371,7 +465,7 @@ export function useWeddingCalendar(): UseWeddingCalendarReturn {
     }
 
     return all;
-  }, [demoMode, eventsHook.events, tasksHook.filteredTasks, suppliersHook.suppliers, filters.sources]);
+  }, [demoMode, eventsHook.events, tasksHook.filteredTasks, suppliersHook.suppliers, payments, expenseTitles, filters.sources]);
 
   const allItems = demoMode ? demoAllItems : prodAllItems;
 
@@ -379,7 +473,7 @@ export function useWeddingCalendar(): UseWeddingCalendarReturn {
 
   const conflicts = useMemo(() => detectConflicts(items), [items]);
 
-  const loading = demoMode ? false : (eventsHook.loading || tasksHook.loading || suppliersHook.loading);
+  const loading = demoMode ? false : (eventsHook.loading || tasksHook.loading || suppliersHook.loading || paymentsLoading);
   const error = demoMode ? null : (eventsHook.error || tasksHook.error || suppliersHook.error);
 
   const refetchEvents = eventsHook.refetch;
@@ -390,6 +484,7 @@ export function useWeddingCalendar(): UseWeddingCalendarReturn {
       refetchEvents();
       refreshTasks();
       fetchSuppliers();
+      setPaymentsVersion((v) => v + 1);
     }
   }, [demoMode, refetchEvents, refreshTasks, fetchSuppliers]);
 
