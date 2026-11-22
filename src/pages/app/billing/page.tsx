@@ -141,6 +141,15 @@ export default function BillingPage() {
     setCheckoutLoading(true);
     setCheckoutError(null);
     try {
+      // An existing subscriber cannot open a second Checkout Session — plan
+      // changes (with proration) belong in the Stripe billing portal.
+      if (!isDemoSession && !isDemoMode && subscription?.stripeSubscriptionId) {
+        const portal = await openBillingPortal();
+        if (!portal?.url) throw new Error('Could not open the billing portal. Please try again.');
+        setShowUpgradeConfirm(null);
+        window.location.href = portal.url;
+        return;
+      }
       const result = await startCheckout(planKey);
       if (!result?.url) throw new Error('Checkout could not be started. Please try again.');
       window.location.href = result.url;
@@ -149,7 +158,7 @@ export default function BillingPage() {
     } finally {
       setCheckoutLoading(false);
     }
-  }, [startCheckout]);
+  }, [startCheckout, openBillingPortal, subscription, isDemoSession]);
 
   const handlePortal = useCallback(async () => {
     setPortalLoading(true);
@@ -184,6 +193,16 @@ export default function BillingPage() {
   if (loading) return <BillingSkeleton />;
 
   const isDemo = isDemoSession || isDemoMode;
+
+  // Existing subscribers cannot start a second Checkout Session — plan changes are
+  // completed in the Stripe billing portal, so the buttons must say so up front.
+  const hasActiveSubscription = !isDemo && Boolean(subscription?.stripeSubscriptionId);
+
+  // A pending cancellation turns the dialog into a reactivation flow.
+  const cancellationScheduled = Boolean(subscription?.cancelAtPeriodEnd);
+  const scheduledEndLabel = subscription?.currentPeriodEnd
+    ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+    : 'the end of your billing period';
 
   return (
     <AppShell>
@@ -322,6 +341,15 @@ export default function BillingPage() {
                         ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
                         : 'the end of the current period'}.
                       After this date, you will be moved to the Free plan.
+                      <button
+                        onClick={() => setShowCancelConfirm(true)}
+                        className="mt-2 flex items-center gap-1.5 text-xs font-label font-semibold text-amber-900 underline hover:no-underline cursor-pointer whitespace-nowrap"
+                      >
+                        <span className="w-4 h-4 flex items-center justify-center">
+                          <i className="ri-refresh-line text-sm" />
+                        </span>
+                        Reactivate subscription
+                      </button>
                     </div>
                   </div>
                 )}
@@ -435,14 +463,16 @@ export default function BillingPage() {
                           onClick={() => setShowUpgradeConfirm(plan.planKey)}
                           className="w-full py-2.5 rounded-lg bg-primary-500 text-white text-sm font-label font-semibold hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap"
                         >
-                          {canDowngrade ? 'Downgrade' : 'Upgrade'}
+                          {hasActiveSubscription
+                            ? 'Change plan in portal'
+                            : canDowngrade ? 'Downgrade' : 'Upgrade'}
                         </button>
                       ) : canDowngrade ? (
                         <button
                           onClick={() => setShowUpgradeConfirm(plan.planKey)}
                           className="w-full py-2.5 rounded-lg border border-secondary-200 text-foreground-700 text-sm font-label font-semibold hover:bg-background-100 transition-colors cursor-pointer whitespace-nowrap"
                         >
-                          Downgrade
+                          {hasActiveSubscription ? 'Change plan in portal' : 'Downgrade'}
                         </button>
                       ) : (
                         <button
@@ -645,6 +675,12 @@ export default function BillingPage() {
                     Demo mode — this simulates a plan change. No real payment is made.
                   </div>
                 )}
+                {!isDemo && hasActiveSubscription && (
+                  <div className="px-3 py-2 rounded-lg bg-primary-50 border border-primary-100 text-[11px] text-primary-700">
+                    <i className="ri-external-link-line mr-1.5" />
+                    You&rsquo;ll be taken to the Stripe billing portal to change your plan. Nothing is charged here — Stripe applies any proration.
+                  </div>
+                )}
                 {!isDemo && (
                   <p className="text-xs text-foreground-500">
                     You will be redirected to Stripe to complete this change securely.
@@ -666,48 +702,126 @@ export default function BillingPage() {
                   onClick={() => setShowUpgradeConfirm(null)}
                   className="flex-1 py-2.5 rounded-lg border border-secondary-200 text-foreground-700 font-label text-sm font-semibold hover:bg-secondary-50 transition-colors cursor-pointer whitespace-nowrap"
                 >
-                  Cancel
+                  Go back
                 </button>
                 <button
                   onClick={() => handleCheckout(showUpgradeConfirm)}
                   disabled={checkoutLoading}
                   className="flex-1 py-2.5 rounded-lg bg-primary-500 text-white font-label text-sm font-semibold hover:bg-primary-600 transition-colors cursor-pointer whitespace-nowrap disabled:opacity-50"
                 >
-                  {checkoutLoading ? 'Redirecting...' : 'Continue to checkout'}
+                  {checkoutLoading
+                    ? 'Redirecting...'
+                    : hasActiveSubscription ? 'Continue to billing portal' : 'Continue to checkout'}
                 </button>
               </div>
+
+              {isPaidPlan && !subscription?.cancelAtPeriodEnd && (
+                <div className="mt-4 pt-4 border-t border-secondary-200/70 text-center">
+                  <p className="text-xs text-foreground-500">
+                    Not changing plan after all?
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowUpgradeConfirm(null);
+                      setShowCancelConfirm(true);
+                    }}
+                    className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-label font-semibold text-red-600 hover:text-red-700 hover:underline transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    <i className="ri-close-circle-line text-sm" />
+                    Cancel subscription instead
+                  </button>
+                  <p className="text-[11px] text-foreground-400 mt-1">
+                    {isDemo
+                      ? 'Cancellation is simulated in demo mode.'
+                      : 'Cancellation is handled in the Stripe billing portal.'}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* ── CANCEL CONFIRMATION MODAL ── */}
+        {/* ── CANCEL / REACTIVATE CONFIRMATION MODAL ── */}
         {showCancelConfirm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowCancelConfirm(false)}>
             <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                  <i className="ri-close-circle-line text-lg text-red-600" />
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                    cancellationScheduled ? 'bg-emerald-100' : 'bg-red-100'
+                  }`}
+                >
+                  <i
+                    className={`text-lg ${
+                      cancellationScheduled ? 'ri-refresh-line text-emerald-600' : 'ri-close-circle-line text-red-600'
+                    }`}
+                  />
                 </div>
                 <div>
-                  <h3 className="font-label text-sm font-semibold text-foreground-900">Cancel subscription?</h3>
-                  <p className="text-xs text-foreground-500">Your access will continue until the end of the billing period</p>
+                  <h3 className="font-label text-sm font-semibold text-foreground-900">
+                    {cancellationScheduled ? 'Reactivate subscription?' : 'Cancel subscription?'}
+                  </h3>
+                  <p className="text-xs text-foreground-500">
+                    {cancellationScheduled
+                      ? `Currently scheduled to end on ${scheduledEndLabel}`
+                      : 'Your access will continue until the end of the billing period'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Scheduled end date — always visible so the outcome is unambiguous */}
+              <div className="rounded-lg border border-secondary-200 bg-background-100 px-4 py-3 mb-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-label text-foreground-500 uppercase tracking-wide">
+                      {cancellationScheduled ? 'Access ends' : 'End of current period'}
+                    </span>
+                    <p className="text-sm font-label font-semibold text-foreground-900 mt-0.5">{scheduledEndLabel}</p>
+                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-label font-semibold whitespace-nowrap ${
+                    cancellationScheduled ? 'bg-amber-100 text-amber-700' : 'bg-secondary-100 text-secondary-600'
+                  }`}>
+                    {cancellationScheduled ? 'Cancelling' : `Renews as ${currentPlan?.name || 'current plan'}`}
+                  </span>
                 </div>
               </div>
 
               <div className="space-y-2 mb-5">
-                <p className="text-sm text-foreground-700">
-                  You&rsquo;ll keep access to <strong>{currentPlan?.name}</strong> features until{' '}
-                  {subscription?.currentPeriodEnd
-                    ? new Date(subscription.currentPeriodEnd).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-                    : 'the end of your billing period'}.
-                </p>
-                <p className="text-xs text-foreground-500">
-                  After that, you&rsquo;ll be moved to the Free plan. Your data remains safe and can be accessed when you reactivate.
-                </p>
+                {cancellationScheduled ? (
+                  <>
+                    <p className="text-sm text-foreground-700">
+                      Your <strong>{currentPlan?.name}</strong> plan stays active until{' '}
+                      <strong>{scheduledEndLabel}</strong>, after which you move to Free.
+                    </p>
+                    <p className="text-xs text-foreground-500">
+                      Reactivating before that date keeps your plan, your billing date, and all your wedding data exactly as they are.
+                      Nothing extra is charged today.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-foreground-700">
+                      You&rsquo;ll keep access to <strong>{currentPlan?.name}</strong> features until{' '}
+                      <strong>{scheduledEndLabel}</strong>.
+                    </p>
+                    <p className="text-xs text-foreground-500">
+                      After that, you&rsquo;ll be moved to the Free plan. Your data remains safe and can be accessed when you reactivate.
+                    </p>
+                  </>
+                )}
                 {isDemo && (
                   <div className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-700 mt-2">
-                    Demo: cancellation is simulated. In production, you&rsquo;d be redirected to the Stripe billing portal.
+                    {cancellationScheduled
+                      ? 'Demo: reactivation is simulated. In production, you\u2019d be redirected to the Stripe billing portal.'
+                      : 'Demo: cancellation is simulated. In production, you\u2019d be redirected to the Stripe billing portal.'}
                   </div>
+                )}
+                {!isDemo && (
+                  <p className="text-[11px] text-foreground-400">
+                    {cancellationScheduled
+                      ? 'Handled securely in the Stripe billing portal.'
+                      : 'Handled securely in the Stripe billing portal — you can undo this there.'}
+                  </p>
                 )}
               </div>
 
@@ -716,23 +830,34 @@ export default function BillingPage() {
                   onClick={() => setShowCancelConfirm(false)}
                   className="flex-1 py-2.5 rounded-lg border border-secondary-200 text-foreground-700 font-label text-sm font-semibold hover:bg-secondary-50 transition-colors cursor-pointer whitespace-nowrap"
                 >
-                  Keep subscription
+                  {cancellationScheduled ? 'Leave it ending' : 'Keep subscription'}
                 </button>
                 <button
                   onClick={() => {
                     if (isDemo && demo) {
-                      demo.updateSubscription?.({ planKey: 'free', status: 'active' });
+                      demo.updateSubscription?.(
+                        cancellationScheduled
+                          ? { planKey: currentPlanKey, status: 'active' }
+                          : { planKey: 'free', status: 'active' },
+                      );
                       fetch();
                       setShowCancelConfirm(false);
-                      setToast({ type: 'success', message: 'Demo: Subscription cancelled' });
+                      setToast({
+                        type: 'success',
+                        message: cancellationScheduled ? 'Demo: Subscription reactivated' : 'Demo: Subscription cancelled',
+                      });
                     } else {
                       handlePortal();
                       setShowCancelConfirm(false);
                     }
                   }}
-                  className="flex-1 py-2.5 rounded-lg bg-red-500 text-white font-label text-sm font-semibold hover:bg-red-600 transition-colors cursor-pointer whitespace-nowrap"
+                  className={`flex-1 py-2.5 rounded-lg text-white font-label text-sm font-semibold transition-colors cursor-pointer whitespace-nowrap ${
+                    cancellationScheduled ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-500 hover:bg-red-600'
+                  }`}
                 >
-                  {isDemo ? 'Cancel (demo)' : 'Manage in Stripe'}
+                  {cancellationScheduled
+                    ? isDemo ? 'Reactivate (demo)' : 'Reactivate in Stripe'
+                    : isDemo ? 'Cancel (demo)' : 'Manage in Stripe'}
                 </button>
               </div>
             </div>

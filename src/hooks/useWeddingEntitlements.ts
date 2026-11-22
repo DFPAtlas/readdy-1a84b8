@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
-import { PLAN_LIMITS, FEATURE_PLANS, hasFeature, type EntitlementPlan, type PaidFeature } from '../../supabase/functions/_shared/entitlementConfig';
+import { PLAN_LIMITS, FEATURE_PLANS, hasFeature, type EntitlementPlan, type PaidFeature } from '@/lib/entitlementConfig';
 
 export interface WeddingEntitlements {
   planKey: EntitlementPlan;

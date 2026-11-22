@@ -1,6 +1,14 @@
 import { useSearchParams, Link } from 'react-router-dom';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function ContributionCancelPage() {
+  usePageSeo({
+    title: 'Contribution Cancelled — Vowora',
+    description: 'Your wedding gift contribution was cancelled and no payment was taken. This status page is excluded from search engines.',
+    path: '/guest/fund/contribution/cancel',
+    noindex: true,
+  });
+
   const [searchParams] = useSearchParams();
   const fundId = searchParams.get('fund_id');
 

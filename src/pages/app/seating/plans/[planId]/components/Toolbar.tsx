@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from 'react';
 import type { SeatingPlan, UndoEntry, CanvasWarning } from '@/types/seating';
 import { PLAN_STATUS_LABELS, PLAN_STATUS_COLOURS, EVENT_TYPE_LABELS } from '@/types/seating';
 import ToolbarHoverTooltip from './ToolbarHoverTooltip';
+import Breadcrumbs from '@/components/base/Breadcrumbs';
+import { seatingPlanTrail } from '@/hooks/useAppBreadcrumbs';
 
 interface ToolbarProps {
   plan: SeatingPlan; planId: string; weddingId: string;
@@ -67,11 +69,12 @@ export default function Toolbar({
   ];
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 border-b border-secondary-100 flex-shrink-0 h-12">
+    <div className="flex items-center gap-2 px-4 py-1.5 border-b border-secondary-100 flex-shrink-0 min-h-12">
       {/* Left: back + plan info */}
       <div className="flex items-center gap-2 min-w-0 flex-shrink-0">
         <button onClick={onBack} className="w-7 h-7 flex items-center justify-center rounded text-foreground-400 hover:text-foreground-600 cursor-pointer" title="Back to plans"><i className="ri-arrow-left-line text-sm" /></button>
         <div className="min-w-0 hidden sm:block">
+          <Breadcrumbs compact items={seatingPlanTrail(plan.name)} className="mb-0.5" />
           <div className="flex items-center gap-2">
             <h1 className="font-heading text-sm text-foreground-900 truncate max-w-[180px]">{plan.name}</h1>
             <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-label font-semibold flex-shrink-0 ${PLAN_STATUS_COLOURS[plan.status]}`}>{PLAN_STATUS_LABELS[plan.status]}</span>

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { supabase } from '@/lib/supabase';
+import { rememberSeatingProposalTitle } from '@/lib/seatingProposalNames';
 import type { SeatingPlan, AssistantProposal, ProposalAssignment, MoveStatus } from '@/types/seating';
 import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLOURS } from '@/types/seating';
 
@@ -34,6 +35,7 @@ export default function ProposalReviewPage() {
       const { data: propData } = await supabase.from('seating_assistant_proposals').select('*').eq('id', proposalId).single();
       if (!propData) { navigate('/app/seating'); return; }
       setProposal(propData as AssistantProposal);
+      rememberSeatingProposalTitle(proposalId, (propData as AssistantProposal).scope);
 
       const { data: assignsData } = await supabase.from('seating_proposal_assignments').select('*, guest:guest_id(id, full_name, guest_type), current_table:current_table_id(id, name), proposed_table:proposed_table_id(id, name)').eq('proposal_id', proposalId).order('created_at');
       setAssignments((assignsData || []) as ProposalAssignment[]);

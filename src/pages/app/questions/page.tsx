@@ -6,6 +6,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import type { FaqRelatedLink } from '@/types/access';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
+import AppShell from '@/components/feature/AppShell';
 
 const TABS = [
   { key: 'inbox', label: 'Inbox', icon: 'ri-mail-line' },
@@ -24,6 +25,7 @@ export default function QuestionsPage() {
   }, [setSearchParams]);
 
   return (
+    <AppShell>
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
@@ -66,6 +68,7 @@ export default function QuestionsPage() {
       {activeTab === 'faqs' && <FaqsTab />}
       {activeTab === 'insights' && <InsightsTab />}
     </div>
+    </AppShell>
   );
 }
 

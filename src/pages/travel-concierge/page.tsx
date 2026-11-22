@@ -3,6 +3,8 @@ import Footer from '@/components/feature/Footer';
 import { Link } from 'react-router-dom';
 import { travelCategories } from '@/mocks/vowora';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { travelConciergeBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 const steps = [
   {
@@ -40,15 +42,19 @@ const steps = [
 export default function TravelConciergePage() {
   usePageSeo({
     title: 'Travel Concierge — Help Guests Find Their Way | Vowora',
-    description: 'Vowora Travel Concierge helps guests find hotels, restaurants, transport and local services near your venues. You approve every place before it appears on the guest map.',
+    description: 'Vowora Travel Concierge helps guests find hotels, restaurants and transport near your venues. You approve every place before it appears on the guest map.',
     path: '/travel-concierge',
     keywords: 'wedding travel concierge, guest accommodation, wedding venue map, hotels near wedding venue, wedding transport',
+    breadcrumbs: travelConciergeBreadcrumbs,
   });
 
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24">
+        <div className="mx-auto max-w-7xl px-4 pt-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={travelConciergeBreadcrumbs} />
+        </div>
         {/* Hero */}
         <section className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">

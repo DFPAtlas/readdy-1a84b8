@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/lib/supabase";
@@ -42,9 +42,9 @@ export default function PlatformAdminGuard({
       <main className="p-8">
         <h1 className="text-2xl">Administrator access required</h1>
         <p className="mt-3">This page is available to Vowora platform staff.</p>
-        <a className="underline block mt-4" href="/app/dashboard">
+        <Link className="underline block mt-4" to="/app/dashboard">
           Return to your wedding
-        </a>
+        </Link>
       </main>
     );
   return (

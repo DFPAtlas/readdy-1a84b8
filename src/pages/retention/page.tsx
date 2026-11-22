@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { retentionBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 export default function RetentionPage() {
   usePageSeo({
     title: 'Data Retention & Deletion Schedule — Vowora',
-    description: 'How long Vowora keeps each category of personal data, from wedding and guest data to payment records, cookies and backups, plus how deletion requests are handled.',
+    description: 'How long Vowora keeps each category of personal data, from wedding and guest data to payment records, cookies and backups, and how deletions are handled.',
     path: '/retention',
     keywords: 'Vowora data retention, deletion schedule, data minimisation, guest deletion rights',
+    breadcrumbs: retentionBreadcrumbs,
   });
 
   return (
@@ -16,6 +19,7 @@ export default function RetentionPage() {
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24 pb-16">
         <div className="max-w-4xl mx-auto px-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={retentionBreadcrumbs} className="mb-5" />
           <span className="section-label">Legal</span>
           <h1 className="font-heading text-4xl md:text-5xl text-foreground-900 mt-3 mb-2">Data Retention &amp; Deletion Schedule</h1>
           <p className="text-sm text-foreground-500 mb-10">Last updated: July 2026</p>

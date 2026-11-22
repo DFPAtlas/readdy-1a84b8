@@ -93,13 +93,6 @@ export default function HelpArticlePage() {
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs text-foreground-400 mb-6">
-          <Link to="/app/help" className="hover:text-foreground-600 transition-colors cursor-pointer">Help Centre</Link>
-          <i className="ri-arrow-right-s-line text-sm" />
-          {category && <Link to={`/app/help#cat-${category.key}`} className="hover:text-foreground-600 transition-colors cursor-pointer">{category.label}</Link>}
-        </div>
-
         {/* Header */}
         <div className="mb-8">
           {category && (

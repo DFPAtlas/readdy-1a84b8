@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.57.4";
 import Stripe from "npm:stripe@22.6.0";
 
 const corsHeaders = {
@@ -26,6 +26,41 @@ function isValidTransition(from: string, to: string): boolean {
   return allowed.includes(to);
 }
 
+/**
+ * Resolve a contribution from a Charge.
+ * `contribution_id` is written to payment_intent_data.metadata, so it is not
+ * guaranteed to be present on the Charge. Fall back to the stored payment
+ * intent id, then to the PaymentIntent metadata.
+ */
+async function contributionIdFromCharge(
+  stripe: Stripe,
+  supabase: SupabaseClient,
+  charge: Stripe.Charge,
+): Promise<string | null> {
+  if (charge.metadata?.contribution_id) return charge.metadata.contribution_id;
+
+  const paymentIntentId = typeof charge.payment_intent === "string"
+    ? charge.payment_intent
+    : charge.payment_intent?.id ?? null;
+  if (!paymentIntentId) return null;
+
+  const { data, error } = await supabase
+    .from("gift_fund_contributions")
+    .select("id")
+    .eq("stripe_payment_intent_id", paymentIntentId)
+    .limit(1);
+  if (error) throw error;
+  if (data && data.length > 0) return data[0].id;
+
+  try {
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    return intent.metadata?.contribution_id || null;
+  } catch (err) {
+    console.error("Could not resolve payment intent for charge attribution:", err);
+    return null;
+  }
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -42,7 +77,9 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
   const stripe = new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
 
   try {
@@ -78,7 +115,6 @@ Deno.serve(async (req: Request) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
     }
 
     // ── Record event ──
@@ -119,18 +155,14 @@ Deno.serve(async (req: Request) => {
     }
 
     // Record the event
-    const { error: eventInsertErr } = await supabase
+    await supabase
       .from("gift_fund_events")
       .upsert({
         contribution_id: contributionId || null,
         stripe_event_id: event.id,
         event_type: event.type,
         processing_status: "received",
-      }, {onConflict:"stripe_event_id"}).throwOnError();
-
-    if (eventInsertErr) {
-      throw eventInsertErr;
-    }
+      }, { onConflict: "stripe_event_id" }).throwOnError();
 
     // ── Process by event type ──
 
@@ -213,7 +245,9 @@ Deno.serve(async (req: Request) => {
             .eq("id", cId)
             .maybeSingle().throwOnError();
 
-          if (contribution && contribution.payment_status === "processing") {
+          // Abandoned sessions may still be 'pending' when session creation
+          // itself never completed, so both non-final states must be released.
+          if (contribution && ["pending", "processing"].includes(contribution.payment_status)) {
             await supabase
               .from("gift_fund_contributions")
               .update({ payment_status: "cancelled" })
@@ -250,7 +284,7 @@ Deno.serve(async (req: Request) => {
 
       case "charge.refunded": {
         const charge = event.data.object as Stripe.Charge;
-        const cId = charge.metadata?.contribution_id;
+        const cId = await contributionIdFromCharge(stripe, supabase, charge);
 
         if (cId) {
           const { data: contribution } = await supabase
@@ -278,9 +312,9 @@ Deno.serve(async (req: Request) => {
       case "charge.dispute.created": {
         const dispute = event.data.object as Stripe.Dispute;
         const charge = dispute.charge as string;
-        // Find contribution by payment intent from charge
+        // Find contribution by metadata, payment intent, or PaymentIntent metadata
         const chargeObj = await stripe.charges.retrieve(charge);
-        const cId = chargeObj.metadata?.contribution_id;
+        const cId = await contributionIdFromCharge(stripe, supabase, chargeObj);
 
         if (cId) {
           const { data: contribution } = await supabase
@@ -305,7 +339,7 @@ Deno.serve(async (req: Request) => {
         const dispute = event.data.object as Stripe.Dispute;
         const charge = dispute.charge as string;
         const chargeObj = await stripe.charges.retrieve(charge);
-        const cId = chargeObj.metadata?.contribution_id;
+        const cId = await contributionIdFromCharge(stripe, supabase, chargeObj);
 
         if (cId) {
           const newStatus = dispute.status === "won" ? "dispute_won" : "dispute_lost";

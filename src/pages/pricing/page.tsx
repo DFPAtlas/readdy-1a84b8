@@ -9,15 +9,20 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { getActivePlans, formatPrice, getComparisonFeatures, isUpgrade, isDowngrade } from '@/lib/plans';
 import type { BillingPlanKey } from '@/types/billing';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { pricingBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
 
 export default function PricingPage() {
   usePageSeo({
     title: 'Pricing & Plans — Vowora Wedding Planning',
-    description: 'Simple, transparent Vowora pricing. Start free and upgrade as your wedding grows. Compare Free, Essential, Complete and Luxury plans, all with no credit card to begin.',
+    description: 'Simple, transparent Vowora pricing. Start free and upgrade as your wedding grows. Compare Free, Essential, Complete and Luxury plans with no card needed to begin.',
     path: '/pricing',
+    image: 'https://readdy.ai/api/search-image?query=Elegant%20flat-lay%20editorial%20photograph%20of%20warm%20cream%20paper%20cards%20arranged%20on%20soft%20sage%20linen%20with%20dried%20eucalyptus%20sprigs%2C%20terracotta%20ribbon%20and%20a%20small%20brass%20ring%2C%20soft%20diffused%20natural%20window%20light%2C%20minimal%20calm%20wedding%20planning%20mood%2C%20muted%20warm%20neutral%20palette%2C%20no%20text%2C%20high%20detail%2C%20editorial%20photography%2C%20landscape%20composition&width=1200&height=630&seq=og-pricing-2026-a1&orientation=landscape',
+    imageAlt: 'Vowora pricing — warm cream and sage wedding planning stationery with terracotta ribbon',
     keywords: 'wedding planning pricing, wedding website cost, wedding planner subscription, Vowora plans',
+    breadcrumbs: pricingBreadcrumbs,
     structuredData: {
       '@context': 'https://schema.org',
       '@type': 'FAQPage',
@@ -141,6 +146,9 @@ export default function PricingPage() {
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24">
+        <div className="mx-auto max-w-7xl px-4 pt-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={pricingBreadcrumbs} />
+        </div>
         {/* Hero */}
         <section className="relative py-16 md:py-24 overflow-hidden">
           <img

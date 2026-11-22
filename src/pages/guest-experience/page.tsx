@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { guestExperienceBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 const guestFeatures = [
   {
@@ -63,16 +65,20 @@ const guestFeatures = [
 
 export default function GuestExperiencePage() {
   usePageSeo({
-    title: 'Guest Experience — Vowora',
-    description: 'Every guest gets a personal wedding page with RSVP, meal choices, dietary and accessibility needs, travel and accommodation, plus the full wedding schedule. Mobile-first and effortless.',
+    title: 'The Guest Experience — RSVP, Travel & Wedding Day — Vowora',
+    description: 'Every guest gets a personal wedding page: RSVP, meal choices, dietary and accessibility needs, travel, accommodation and the full day\u2019s schedule.',
     path: '/guest-experience',
     keywords: 'wedding guest experience, personal invitation links, RSVP form, wedding schedule, guest travel and accommodation',
+    breadcrumbs: guestExperienceBreadcrumbs,
   });
 
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24">
+        <div className="mx-auto max-w-7xl px-4 pt-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={guestExperienceBreadcrumbs} />
+        </div>
         {/* Hero */}
         <section className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">

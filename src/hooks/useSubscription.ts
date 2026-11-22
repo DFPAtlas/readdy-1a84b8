@@ -145,8 +145,7 @@ export function useSubscription(weddingId: string | null) {
 
   const openBillingPortal = useCallback(async () => {
     if (isDemoSession || isDemoMode) {
-      alert('Billing portal is not available in demo mode.');
-      return null;
+      throw new Error('Billing portal is not available in demo mode.');
     }
 
     const { data, error: invokeErr } = await supabase.functions.invoke('create-billing-portal-session', {
@@ -188,7 +187,19 @@ export function useSubscription(weddingId: string | null) {
         },
       ];
     }
-    return [];
+
+    try {
+      const { data, error: invokeErr } = await supabase.functions.invoke('list-billing-invoices', {
+        body: {},
+      });
+      if (invokeErr) throw invokeErr;
+      const invoices = (data as { invoices?: BillingInvoice[] } | null)?.invoices;
+      return Array.isArray(invoices) ? invoices : [];
+    } catch (err) {
+      // Never fail the whole billing page because invoice history is unavailable.
+      console.error('Failed to load billing invoices:', err);
+      return [];
+    }
   }, [isDemoSession]);
 
   return {

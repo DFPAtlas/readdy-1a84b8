@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { edgeFunctionUrl } from '@/lib/edgeFunctions';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const LOADER_URL = edgeFunctionUrl('guest-portal-loader');
 
 export default function ContributionSuccessPage() {
+  usePageSeo({
+    title: 'Gift Contribution Received — Vowora',
+    description: 'Your wedding gift contribution was received. This status page confirms your payment and is excluded from search engines.',
+    path: '/guest/fund/contribution/success',
+    noindex: true,
+  });
+
   const [searchParams] = useSearchParams();
   const contributionId = searchParams.get('contribution_id');
   const [status, setStatus] = useState<'confirming' | 'confirmed' | 'error'>('confirming');

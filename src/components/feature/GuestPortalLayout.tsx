@@ -7,6 +7,9 @@ import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { buildDemoGuestPortalData } from '@/demo/demoGuestPortalMapping';
 import { useDemoTheme } from '@/hooks/useDemoTheme';
+import useGuestBreadcrumbs from '@/hooks/useGuestBreadcrumbs';
+import { usePrivateRouteSeo } from '@/hooks/usePrivateRouteSeo';
+import Breadcrumbs from '@/components/base/Breadcrumbs';
 
 // ── NAV ITEMS ──
 
@@ -37,6 +40,7 @@ function GuestPortalContent() {
   const { accessId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const guestBreadcrumbs = useGuestBreadcrumbs();
   const { data, loading, error } = useGuestPortal();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -46,16 +50,8 @@ function GuestPortalContent() {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  // ── Security: noindex, nofollow meta tag ──
-  useEffect(() => {
-    const meta = document.createElement('meta');
-    meta.name = 'robots';
-    meta.content = 'noindex, nofollow';
-    document.head.appendChild(meta);
-    return () => {
-      try { document.head.removeChild(meta); } catch { /* already removed */ }
-    };
-  }, []);
+  // ── Security: unique title + noindex, nofollow for the whole guest portal ──
+  usePrivateRouteSeo(guestBreadcrumbs[guestBreadcrumbs.length - 1]?.label || 'Guest Portal');
 
   // ── Keyboard: Escape closes drawer ──
   useEffect(() => {
@@ -364,19 +360,9 @@ function GuestPortalContent() {
 
         <main id="main-content" className="flex-1" tabIndex={-1} role="main" aria-label="Guest portal content">
           {/* Breadcrumb bar for sub-pages */}
-          {currentPath !== '' && (
-            <div className="max-w-6xl mx-auto px-4 md:px-6 py-2">
-              <nav className="flex items-center gap-2 text-xs text-foreground-400" aria-label="Breadcrumb">
-                <Link to={basePath} className="hover:text-foreground-600 transition-colors cursor-pointer whitespace-nowrap">
-                  <i className="ri-home-4-line text-[10px]" /> Home
-                </Link>
-                {visibleNavItems.filter((ni) => ni.href !== '' && currentPath.startsWith(ni.href)).slice(0, 1).map((ni) => (
-                  <span key={ni.label} className="flex items-center gap-2">
-                    <i className="ri-arrow-right-s-line text-[10px]" />
-                    <span className="text-foreground-600 font-medium">{ni.label}</span>
-                  </span>
-                ))}
-              </nav>
+          {guestBreadcrumbs.length > 1 && (
+            <div className="max-w-6xl mx-auto px-4 md:px-6 pt-3">
+              <Breadcrumbs items={guestBreadcrumbs} />
             </div>
           )}
           <Outlet />

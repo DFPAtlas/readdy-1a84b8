@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthProvider';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useWeddingEntitlements } from '@/hooks/useWeddingEntitlements';
 import { paidRouteFeature } from '@/lib/paidRoutes';
-import { FEATURE_PLANS, type PaidFeature } from '../../../supabase/functions/_shared/entitlementConfig';
+import { FEATURE_PLANS, type PaidFeature } from '@/lib/entitlementConfig';
 import AppShell from './AppShell';
 function PaidRoute({ feature, children }: { feature: PaidFeature; children: ReactNode }) {
   const { data, loading, error, refresh } = useWeddingEntitlements();

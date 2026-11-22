@@ -7,6 +7,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { PUBLIC_SITE_HOST } from '@/lib/env';
 import type { SeoConfig } from '@/types/website';
 import { SOCIAL_IMAGE_TYPES, uploadSocialImage } from '@/lib/websiteImages';
+import AppShell from '@/components/feature/AppShell';
 
 // ── Character counter with color ──
 function CharCount({ current, max, warningAt }: { current: number; max: number; warningAt: number }) {
@@ -201,6 +202,7 @@ export default function WebsiteSeoPage() {
 
   if (!seoState) {
     return (
+      <AppShell>
       <div className="min-h-[40vh] flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-primary-50 text-primary-500 mb-4">
@@ -209,6 +211,7 @@ export default function WebsiteSeoPage() {
           <p className="text-sm text-foreground-500">Loading SEO settings...</p>
         </div>
       </div>
+      </AppShell>
     );
   }
 
@@ -216,6 +219,7 @@ export default function WebsiteSeoPage() {
   const isPublished = publishStatus === 'published';
 
   return (
+    <AppShell>
     <div className="max-w-5xl mx-auto">
       {/* Header */}
       <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
@@ -528,5 +532,6 @@ export default function WebsiteSeoPage() {
         </div>
       )}
     </div>
+    </AppShell>
   );
 }

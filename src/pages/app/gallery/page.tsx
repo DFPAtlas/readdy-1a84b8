@@ -11,6 +11,7 @@ import ModerationTab from './components/ModerationTab';
 import LiveWallTab from './components/LiveWallTab';
 import SettingsTab from './components/SettingsTab';
 import GallerySkeleton from './components/GallerySkeleton';
+import AppShell from '@/components/feature/AppShell';
 
 const TABS = [
   { key: 'media', label: 'Media', icon: 'ri-image-line' },
@@ -68,6 +69,7 @@ export default function GalleryHubPage() {
   const previewGuestUrl = isDemoMode ? '/guest/demo-session/gallery' : null;
 
   return (
+    <AppShell>
     <div className="max-w-7xl mx-auto">
       {/* Toast */}
       {toast && (
@@ -227,5 +229,6 @@ export default function GalleryHubPage() {
         }
       `}</style>
     </div>
+    </AppShell>
   );
 }

@@ -166,6 +166,10 @@ export function usePublicSeoMetadata({
     const prevTags = head.querySelectorAll('[data-seo="true"]');
     prevTags.forEach((t) => t.remove());
 
+    // A marketing page may have left its own per-page tags behind; clear those
+    // too so a couple's wedding website never inherits another page's preview.
+    head.querySelectorAll('[data-page-seo]').forEach((t) => t.remove());
+
     const createMeta = (
       content: string,
       attrs: { name?: string; property?: string },

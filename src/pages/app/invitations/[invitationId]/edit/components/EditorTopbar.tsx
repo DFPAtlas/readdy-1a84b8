@@ -1,6 +1,8 @@
 import type * as React from "react";
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Breadcrumbs from '@/components/base/Breadcrumbs';
+import { INVITATION_EDITOR_TRAIL } from '@/hooks/useAppBreadcrumbs';
 import type { SaveState } from '../types';
 
 interface EditorTopbarProps {
@@ -140,30 +142,33 @@ export default function EditorTopbar({
           <i className="ri-arrow-left-s-line text-xl" />
         </button>
 
-        <div className="h-5 w-px bg-[#eee7df] flex-shrink-0" />
+        <div className="h-7 w-px bg-[#eee7df] flex-shrink-0" />
 
         {/* Editable title */}
-        <div className="min-w-0">
-          {editing ? (
-            <input
-              ref={inputRef}
-              type="text"
-              value={draftTitle}
-              onChange={(e) => setDraftTitle(e.target.value)}
-              onBlur={handleBlur}
-              onKeyDown={handleKeyDown}
-              className="text-sm font-label font-semibold text-foreground-900 bg-transparent border-none outline-none p-0 w-full min-w-[200px] placeholder:text-foreground-400"
-              placeholder="Untitled Invitation"
-            />
-          ) : (
-            <button
-              onClick={() => setEditing(true)}
-              className="text-sm font-label font-semibold text-foreground-900 hover:text-primary-600 transition-colors cursor-pointer text-left whitespace-nowrap truncate max-w-[280px] block"
-              title="Click to rename"
-            >
-              {draftTitle || 'Untitled Invitation'}
-            </button>
-          )}
+        <div className="min-w-0 py-1">
+          <Breadcrumbs compact items={INVITATION_EDITOR_TRAIL} className="mb-0.5" />
+          <div className="min-w-0">
+            {editing ? (
+              <input
+                ref={inputRef}
+                type="text"
+                value={draftTitle}
+                onChange={(e) => setDraftTitle(e.target.value)}
+                onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
+                className="text-sm font-label font-semibold text-foreground-900 bg-transparent border-none outline-none p-0 w-full min-w-[200px] placeholder:text-foreground-400"
+                placeholder="Untitled Invitation"
+              />
+            ) : (
+              <button
+                onClick={() => setEditing(true)}
+                className="text-sm font-label font-semibold text-foreground-900 hover:text-primary-600 transition-colors cursor-pointer text-left whitespace-nowrap truncate max-w-[280px] block"
+                title="Click to rename"
+              >
+                {draftTitle || 'Untitled Invitation'}
+              </button>
+            )}
+          </div>
           <p className={`text-[10px] font-label ${status.className}`} aria-live="polite" aria-atomic="true">
             {saveState === 'saving' && (
               <i className="ri-loader-4-line animate-spin mr-1" />

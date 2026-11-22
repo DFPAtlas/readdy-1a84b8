@@ -6,6 +6,7 @@ import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { mapToSeatingPlan, mapToTablesWithData, mapToRoomObjects, mapToUnseatedGuests, mapToAllGuestInfos } from '@/demo/demoSeatingMapping';
 import { supabase } from '@/lib/supabase';
 import { generateSeatPositions, type SeatPosition } from '@/lib/seating/generateSeats';
+import { rememberSeatingPlanName } from '@/lib/seatingPlanNames';
 import Canvas from './components/Canvas';
 import LeftPanel from './components/LeftPanel';
 import RightPanel from './components/RightPanel';
@@ -134,6 +135,7 @@ export default function SeatingPlanWorkspacePage() {
       if (!planRes.data) { setError('Plan not found'); setLoading(false); return; }
 
       const planData = planRes.data as SeatingPlan;
+      rememberSeatingPlanName(planId, planData.name);
       setPlan(planData);
       setZoom(planData.default_zoom || 0.85);
       setShowGrid(planData.grid_enabled ?? true);
@@ -177,7 +179,9 @@ export default function SeatingPlanWorkspacePage() {
   const fetchDemoData = useCallback(() => {
     if (!demo) return;
     const dPlan = demo.state.seatingPlan;
-    setPlan(mapToSeatingPlan(dPlan));
+    const demoPlan = mapToSeatingPlan(dPlan);
+    rememberSeatingPlanName(planId, demoPlan.name);
+    setPlan(demoPlan);
     const dTables = mapToTablesWithData(dPlan, demo.state.guests);
     setTables(dTables);
     setRoomObjects(mapToRoomObjects(dPlan));

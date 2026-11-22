@@ -2,6 +2,9 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { featuresBreadcrumbs } from '@/lib/marketingBreadcrumbs';
+import { SITE_URL } from '@/hooks/usePageSeo';
 
 const features = [
   {
@@ -80,16 +83,36 @@ const features = [
 
 export default function FeaturesPage() {
   usePageSeo({
-    title: 'Wedding Planning Features — Vowora',
-    description: 'Explore every Vowora feature: wedding website builder, guest list, digital invitations, RSVP collection, email updates, collaborators and more — in one calm workspace.',
+    title: 'Wedding Planning Features & Tools for Couples — Vowora',
+    description: 'Explore Vowora features: wedding website builder, guest list and households, digital invitations, RSVP collection, updates and collaborators — in one workspace.',
     path: '/features',
+    image: 'https://readdy.ai/api/search-image?query=Serene%20overhead%20workspace%20scene%20with%20a%20tidy%20planner%2C%20cream%20notebook%2C%20sage%20green%20ceramic%20mug%2C%20dried%20flowers%20and%20a%20tablet%20showing%20abstract%20soft%20charts%2C%20warm%20natural%20daylight%2C%20minimal%20calm%20aesthetic%2C%20muted%20cream%20and%20terracotta%20tones%2C%20no%20readable%20text%2C%20high%20detail%2C%20editorial%20photography%2C%20landscape%20composition&width=1200&height=630&seq=og-features-2026-b2&orientation=landscape',
+    imageAlt: 'Vowora features — calm overhead planning workspace with planner, mug and tablet',
     keywords: 'wedding planning features, wedding website builder, guest list management, digital invitations, RSVP collection',
+    breadcrumbs: featuresBreadcrumbs,
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      name: 'Vowora wedding planning platform',
+      serviceType: 'Wedding planning software',
+      url: `${SITE_URL}/features`,
+      description:
+        'A wedding planning platform with a wedding website builder, guest list and household management, digital invitations, RSVP collection, guest updates and collaborator access.',
+      provider: {
+        '@type': 'Organization',
+        name: 'Vowora',
+        url: SITE_URL,
+      },
+    },
   });
 
   return (
     <div className="min-h-screen bg-background-50">
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24">
+        <div className="mx-auto max-w-7xl px-4 pt-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={featuresBreadcrumbs} />
+        </div>
         {/* Hero */}
         <section className="py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">

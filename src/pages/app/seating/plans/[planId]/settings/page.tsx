@@ -4,6 +4,7 @@ import AppShell from '@/components/feature/AppShell';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { supabase } from '@/lib/supabase';
 import type { SeatingPlan, PlanStatus, EventType } from '@/types/seating';
+import { rememberSeatingPlanName } from '@/lib/seatingPlanNames';
 import { EVENT_TYPE_LABELS, PLAN_STATUS_LABELS } from '@/types/seating';
 
 const EVENT_TYPES: EventType[] = ['wedding_breakfast', 'reception', 'evening_celebration', 'ceremony', 'rehearsal_dinner', 'welcome_event', 'day_after_brunch', 'custom'];
@@ -32,6 +33,7 @@ export default function PlanSettingsPage() {
         if (planRes.error) throw planRes.error;
         if (!planRes.data) { setError('Plan not found'); setLoading(false); return; }
         setForm(planRes.data as SeatingPlan);
+        rememberSeatingPlanName(planId, (planRes.data as SeatingPlan).name);
         if (eventsRes.data) setWeddingEvents(eventsRes.data);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Failed');
@@ -68,6 +70,7 @@ export default function PlanSettingsPage() {
         updated_at: new Date().toISOString(),
       };
       await supabase.from('seating_plans').update(update).eq('id', planId);
+      rememberSeatingPlanName(planId, form.name);
       await supabase.from('seating_activity_log').insert({ wedding_id: weddingId, seating_plan_id: planId, action: 'plan_settings_changed', summary: 'Settings updated' });
       setToast({ msg: 'Settings saved', type: 'success' });
       setTimeout(() => setToast(null), 2500);

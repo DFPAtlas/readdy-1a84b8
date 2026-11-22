@@ -5,6 +5,7 @@ import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
 import { supabase } from '@/lib/supabase';
 import type { SeatingPlan } from '@/types/seating';
+import { rememberSeatingPlanName } from '@/lib/seatingPlanNames';
 import { EVENT_TYPE_LABELS, PLAN_STATUS_LABELS, PLAN_STATUS_COLOURS } from '@/types/seating';
 
 // ── Demo plans list ──
@@ -75,7 +76,9 @@ function NormalSeatingPlansPage() {
 
       const { data, error: fetchErr } = await query;
       if (fetchErr) throw fetchErr;
-      setPlans((data || []) as SeatingPlan[]);
+      const planRows = (data || []) as SeatingPlan[];
+      planRows.forEach((plan) => rememberSeatingPlanName(plan.id, plan.name));
+      setPlans(planRows);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load plans');
     } finally {

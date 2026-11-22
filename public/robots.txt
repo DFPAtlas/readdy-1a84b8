@@ -1,0 +1,32 @@
+# Vowora — crawl policy
+# Public marketing pages are crawlable. Authenticated, guest and transactional
+# areas are excluded because they contain personal wedding data.
+
+User-agent: *
+Allow: /
+Allow: /w/
+
+# Authenticated workspace and platform administration
+Disallow: /app
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /api
+
+# Authentication and account recovery
+Disallow: /auth
+Disallow: /login
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /join
+
+# Personal and token-based guest surfaces
+Disallow: /guest
+Disallow: /invite
+Disallow: /photos
+Disallow: /live-wall
+
+# Transactional and internal pages
+Disallow: /unsubscribe
+Disallow: /demo-start
+
+Sitemap: https://vowora.uk/sitemap.xml

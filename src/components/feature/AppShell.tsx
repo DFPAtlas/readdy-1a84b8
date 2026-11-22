@@ -11,6 +11,8 @@ import { RELEASE_VERSION, IS_DEMO_MODE as IS_DEMO_MODE_ENV } from '@/lib/env';
 import WeddingSelector from '@/components/feature/WeddingSelector';
 import DemoGuide from '@/components/feature/DemoGuide';
 import FocusTrap from '@/components/base/FocusTrap';
+import Breadcrumbs from '@/components/base/Breadcrumbs';
+import useAppBreadcrumbs from '@/hooks/useAppBreadcrumbs';
 import type { AppNotification } from '@/types/notifications';
 import { getNotificationIcon, getPriorityColor } from '@/types/notifications';
 
@@ -151,6 +153,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [accountUserId]);
   const { activeWedding } = useActiveWedding();
   const { unreadCount, notifications, markRead, markAllRead } = useNotifications();
+  const appBreadcrumbs = useAppBreadcrumbs();
   const menuRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -797,6 +800,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </header>
+
+        {/* Breadcrumb trail — shown on every app page except full-height workspaces */}
+        {appBreadcrumbs.length > 0 && (
+          <div className="px-4 pt-4 md:px-6 lg:px-8">
+            <Breadcrumbs items={appBreadcrumbs} />
+          </div>
+        )}
 
         {/* Page content */}
         <main id="main-content" className="p-4 md:p-6 lg:p-8" tabIndex={-1} role="main" aria-label="Page content">

@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { privacyBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 export default function PrivacyPage() {
   usePageSeo({
-    title: 'Privacy Notice — Vowora',
-    description: 'How Vowora collects, uses, shares and protects personal data for couples, wedding party members, guests and suppliers, following UK GDPR and the Data Protection Act 2018.',
+    title: 'Privacy Notice — How Your Wedding Data Is Protected — Vowora',
+    description: 'How Vowora collects, uses, shares and protects personal data for couples, wedding parties, guests and suppliers under UK GDPR and the Data Protection Act 2018.',
     path: '/privacy',
     keywords: 'Vowora privacy notice, UK GDPR, data protection, wedding data privacy',
+    breadcrumbs: privacyBreadcrumbs,
   });
 
   return (
@@ -16,6 +19,7 @@ export default function PrivacyPage() {
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={privacyBreadcrumbs} className="mb-5" />
           <span className="section-label">Legal</span>
           <h1 className="font-heading text-4xl md:text-5xl text-foreground-900 mt-3 mb-2">Privacy Notice</h1>
           <p className="text-sm text-foreground-500 mb-10">Last updated: July 2026 &middot; Version 2.0</p>

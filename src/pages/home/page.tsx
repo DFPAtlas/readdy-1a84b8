@@ -11,7 +11,8 @@ import DashboardPreview from './components/DashboardPreview';
 import Collaboration from './components/Collaboration';
 import Testimonials from './components/Testimonials';
 import FinalCTA from './components/FinalCTA';
-import { usePageSeo, SITE_NAME, SITE_URL } from '@/hooks/usePageSeo';
+import { usePageSeo } from '@/hooks/usePageSeo';
+import { buildHomeStructuredData } from '@/lib/siteStructuredData';
 
 
 const HERO_VIDEO_SRC = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/fcb360ae-2bce-458b-965b-13ec843d00e1_Firefly--want-you-to-generate-an-MP4-video-that-can-be-used-on-a-hero-page-a-video-is-to-have-a-whit.mp4';
@@ -20,25 +21,10 @@ const HERO_POSTER_SRC = 'https://readdy.ai/api/search-image?query=Clean%20modern
 export default function Home() {
   usePageSeo({
     title: 'Vowora — Your Wedding, Beautifully Organised',
-    description: 'Vowora helps couples create a wedding website, manage every guest, collect RSVPs, share updates and help everyone plan their journey — all from one beautiful place.',
+    description: 'Vowora helps couples build a wedding website, manage every guest, collect RSVPs and share updates, so everyone can plan the celebration with confidence.',
     path: '/',
     keywords: 'wedding planning, wedding website, guest management, RSVP, wedding organisation, wedding travel, destination wedding',
-    structuredData: [
-      {
-        '@context': 'https://schema.org',
-        '@type': 'Organization',
-        name: SITE_NAME,
-        url: SITE_URL,
-        logo: `${SITE_URL}/og-image.jpg`,
-        description: 'Wedding planning platform for couples and their guests.',
-      },
-      {
-        '@context': 'https://schema.org',
-        '@type': 'WebSite',
-        name: SITE_NAME,
-        url: SITE_URL,
-      },
-    ],
+    structuredData: buildHomeStructuredData(),
   });
 
   return (

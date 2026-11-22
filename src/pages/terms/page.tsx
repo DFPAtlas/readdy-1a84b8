@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { termsBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 export default function TermsPage() {
   usePageSeo({
-    title: 'Terms of Service — Vowora',
-    description: 'The terms governing your use of the Vowora wedding planning platform: accounts, acceptable use, user content, payments, availability, termination and liability.',
+    title: 'Terms of Service — Account Rules & User Content — Vowora',
+    description: 'The terms governing your use of the Vowora wedding planning platform, covering accounts, acceptable use, user content, payments, termination and liability.',
     path: '/terms',
     keywords: 'Vowora terms of service, wedding platform terms, acceptable use, user content policy',
+    breadcrumbs: termsBreadcrumbs,
   });
 
   return (
@@ -16,6 +19,7 @@ export default function TermsPage() {
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={termsBreadcrumbs} className="mb-5" />
           <span className="section-label">Legal</span>
           <h1 className="font-heading text-4xl md:text-5xl text-foreground-900 mt-3 mb-2">Terms of Service</h1>
           <p className="text-sm text-foreground-500 mb-10">Last updated: July 2026 &middot; Version 2.0</p>

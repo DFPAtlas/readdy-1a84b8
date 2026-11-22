@@ -1,4 +1,3 @@
-import { resolvePublicSiteOrigin } from "../_shared/publicSiteOrigin.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
 import Stripe from "npm:stripe@22.6.0";
 
@@ -9,6 +8,26 @@ const corsHeaders = {
 
 const VALID_PLAN_KEYS = ['free', 'essential', 'complete', 'luxury'];
 
+// A subscription in one of these states must be changed in the Stripe billing
+// portal, not by opening a second Checkout Session.
+const MANAGED_IN_PORTAL_STATUSES = ['active', 'trialing', 'past_due', 'unpaid', 'paused'];
+
+// Only HTTP(S) origins are valid for public links and hosted checkout redirects.
+function resolvePublicSiteOrigin(configured: string | undefined): string {
+  try {
+    const url = new URL(configured?.trim() || 'https://vowora.uk');
+    if ((url.protocol === 'https:' || url.protocol === 'http:') && !url.username && !url.password) return url.origin;
+  } catch { /* Invalid deployment configuration uses the canonical public site. */ }
+  return 'https://vowora.uk';
+}
+
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -17,32 +36,31 @@ Deno.serve(async (req: Request) => {
   try {
     const authHeader = req.headers.get('Authorization') || '';
     if (!authHeader.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Unauthorized' }, 401);
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+    if (!supabaseUrl || !anonKey || !serviceRoleKey) {
+      console.error('Missing Supabase environment configuration');
+      return json({ error: 'Server not configured' }, 500);
+    }
+
+    // The anon client is used ONLY to verify the caller's JWT.
+    const auth = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const { data: { user }, error: authErr } = await auth.auth.getUser();
     if (authErr || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Unauthorized' }, 401);
     }
 
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) {
-      return new Response(JSON.stringify({ error: 'Stripe not configured' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Stripe not configured' }, 500);
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2026-08-26.dahlia" });
@@ -50,14 +68,17 @@ Deno.serve(async (req: Request) => {
     const { planKey, weddingId, billingInterval = 'month' } = body;
 
     if (!planKey || !VALID_PLAN_KEYS.includes(planKey)) {
-      return new Response(JSON.stringify({ error: 'Invalid plan' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Invalid plan' }, 400);
+    }
+    if (!weddingId || typeof weddingId !== 'string') {
+      return json({ error: 'Missing wedding' }, 400);
+    }
+    if (!['month', 'year'].includes(billingInterval)) {
+      return json({ error: 'Invalid billing interval' }, 400);
     }
 
-    // Verify wedding membership
-    const { data: membership, error: memErr } = await supabase
+    // Verify wedding ownership with the *user-scoped* client (RLS applies).
+    const { data: membership, error: memErr } = await auth
       .from('wedding_members')
       .select('id, role')
       .eq('wedding_id', weddingId)
@@ -66,17 +87,29 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (memErr || membership?.role !== 'owner') {
-      return new Response(JSON.stringify({ error: 'Not a member of this wedding' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Not a member of this wedding' }, 403);
     }
 
-    const { data: existingSubscription } = await supabase.from('wedora_subscriptions').select('status,stripe_subscription_id,trial_start').eq('wedding_id', weddingId).maybeSingle();
-    if (existingSubscription && ['active','trialing','past_due','unpaid','paused'].includes(existingSubscription.status)) return new Response(JSON.stringify({ error: 'Manage your existing subscription in the billing portal to change plans.' }), { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    // Billing tables are read-only for authenticated users under RLS, so all
+    // privileged reads/writes below run through a service-role client scoped to
+    // the membership we just verified server-side.
+    const db = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
-    // Resolve plan from DB (server-side, never trust client price IDs)
-    const { data: plan, error: planErr } = await supabase
+    const { data: existingSubscription, error: existingSubErr } = await db
+      .from('wedora_subscriptions')
+      .select('status,stripe_subscription_id,trial_start')
+      .eq('wedding_id', weddingId)
+      .maybeSingle();
+    if (existingSubErr) throw existingSubErr;
+
+    if (existingSubscription && MANAGED_IN_PORTAL_STATUSES.includes(existingSubscription.status)) {
+      return json({ error: 'Manage your existing subscription in the billing portal to change plans.' }, 409);
+    }
+
+    // Resolve plan from the database (server-side, never trust client price IDs).
+    const { data: plan, error: planErr } = await db
       .from('wedora_subscription_plans')
       .select('*')
       .eq('plan_code', planKey)
@@ -84,28 +117,22 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (planErr || !plan) {
-      return new Response(JSON.stringify({ error: 'Plan not found' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Plan not found' }, 400);
     }
 
-    if (!['month','year'].includes(billingInterval)) return new Response(JSON.stringify({error:'Invalid billing interval'}), {status:400,headers:{...corsHeaders,'Content-Type':'application/json'}});
     const stripePriceId = billingInterval === 'year' ? plan.stripe_yearly_price_id : plan.stripe_price_id;
     if (!stripePriceId) {
-      return new Response(JSON.stringify({ error: 'Plan not available for purchase' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Plan not available for purchase' }, 400);
     }
 
-    // Get or create Stripe customer
+    // Get or create the Stripe customer, then persist the mapping.
     let stripeCustomerId: string;
-    const { data: existingCustomer } = await supabase
+    const { data: existingCustomer, error: customerReadErr } = await db
       .from('wedora_customers')
       .select('stripe_customer_id')
       .eq('user_id', user.id)
       .maybeSingle();
+    if (customerReadErr) throw customerReadErr;
 
     if (existingCustomer?.stripe_customer_id) {
       stripeCustomerId = existingCustomer.stripe_customer_id;
@@ -116,29 +143,42 @@ Deno.serve(async (req: Request) => {
       });
       stripeCustomerId = customer.id;
 
-      await supabase.from('wedora_customers').upsert({
+      const { error: customerWriteErr } = await db.from('wedora_customers').upsert({
         user_id: user.id,
         stripe_customer_id: stripeCustomerId,
         email: user.email,
         stripe_account_id: plan.stripe_account_id,
       }, { onConflict: 'user_id' });
+      if (customerWriteErr) throw customerWriteErr;
     }
 
     // Build success/cancel URLs
-    const basePath = '';
     const origin = resolvePublicSiteOrigin(Deno.env.get('PUBLIC_SITE_URL'));
-    const pathPrefix = basePath ? `/${basePath}` : '';
 
-    const successUrl = `${origin}${pathPrefix}/app/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${origin}${pathPrefix}/app/billing?checkout=cancelled`;
+    const successUrl = `${origin}/app/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${origin}/app/billing?checkout=cancelled`;
 
     // Trials are introductory: changing/restarting a subscription must not reset a paid trial.
-    const { data: previousTrials, error: trialHistoryError } = await supabase.from('wedora_subscriptions').select('id').eq('user_id', user.id).not('stripe_subscription_id', 'is', null).limit(1);
-    const { data: legacyTrials, error: legacyTrialError } = await supabase.from('subscription_records').select('id').eq('user_id', user.id).not('stripe_subscription_id', 'is', null).limit(1);
+    const { data: previousTrials, error: trialHistoryError } = await db
+      .from('wedora_subscriptions')
+      .select('id')
+      .eq('user_id', user.id)
+      .not('stripe_subscription_id', 'is', null)
+      .limit(1);
+    const { data: legacyTrials, error: legacyTrialError } = await db
+      .from('subscription_records')
+      .select('id')
+      .eq('user_id', user.id)
+      .not('stripe_subscription_id', 'is', null)
+      .limit(1);
     if (trialHistoryError || legacyTrialError) throw new Error('Unable to check introductory trial eligibility.');
     const trialEligible = !previousTrials?.length && !legacyTrials?.length && !existingSubscription?.trial_start;
 
-    // Create checkout session
+    // Short idempotency window: a double-click or retried request within the same
+    // minute returns the same Checkout Session instead of creating a second one.
+    const idempotencyWindow = Math.floor(Date.now() / 60000);
+    const idempotencyKey = `checkout:${weddingId}:${planKey}:${billingInterval}:${user.id}:${idempotencyWindow}`;
+
     const session = await stripe.checkout.sessions.create({
       integration_identifier: "vowora_checkout_" + Array.from(crypto.getRandomValues(new Uint8Array(8)), byte => String.fromCharCode(97 + byte % 26)).join(""),
       customer: stripeCustomerId,
@@ -161,10 +201,10 @@ Deno.serve(async (req: Request) => {
       },
       allow_promotion_codes: true,
       billing_address_collection: 'auto',
-    });
+    }, { idempotencyKey });
 
-    // Record pending checkout
-    await supabase.from('wedora_subscriptions').upsert({
+    // Record pending checkout (service role — the authenticated role has no write policy here).
+    const { error: pendingErr } = await db.from('wedora_subscriptions').upsert({
       user_id: user.id,
       wedding_id: weddingId,
       plan_id: plan.id,
@@ -173,16 +213,11 @@ Deno.serve(async (req: Request) => {
       status: 'incomplete',
       quantity: 1,
     }, { onConflict: 'wedding_id' });
+    if (pendingErr) throw pendingErr;
 
-    return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return json({ url: session.url, sessionId: session.id });
   } catch (err) {
     console.error('Checkout error:', err);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return json({ error: 'Internal server error' }, 500);
   }
 });

@@ -23,7 +23,7 @@ export function AppRoutes() {
   useEffect(() => {
     window.REACT_APP_NAVIGATE = navigate;
     navigateResolver(navigate);
-  });
+  }, [navigate]);
 
   return createElement(
     ErrorBoundary,

@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { useDemoDataSafe } from '@/demo/useDemoDataSafe';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 // ── Demo wall (preserved from existing) ──
 
@@ -174,5 +175,13 @@ function DemoLiveWall() {
 
 export default function LivePhotoWallPage() {
   const { slug } = useParams();
+
+  usePageSeo({
+    title: 'Live Photo Wall — Vowora',
+    description: 'A live slideshow of wedding photos shared by guests. Private event display, not intended for search engines.',
+    path: `/live-wall/${slug || ''}`,
+    noindex: true,
+  });
+
   return isDemoMode && slug === DEMO_CONFIG.publicSlug ? <DemoLiveWall /> : <PublicPhotoWall slug={slug} />;
 }

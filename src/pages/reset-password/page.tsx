@@ -4,10 +4,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useAuth } from '@/context/AuthProvider';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
 
 export default function ResetPasswordPage() {
+  usePageSeo({
+    title: 'Set a New Password — Vowora',
+    description: 'Choose a new password for your Vowora account. This secure page is only reachable from the password reset link we email to you.',
+    path: '/reset-password',
+    noindex: true,
+  });
+
   const navigate = useNavigate();
   const { updatePassword, authError, clearAuthError } = useAuth();
   const [password, setPassword] = useState('');

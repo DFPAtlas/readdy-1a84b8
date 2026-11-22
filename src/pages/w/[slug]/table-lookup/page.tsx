@@ -2,6 +2,7 @@ import type * as React from "react";
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { edgeFunctionUrl } from '@/lib/edgeFunctions';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 // All lookups go through the seating-table-lookup Edge Function: guest and seating
 // tables are never readable by anonymous visitors.
@@ -18,6 +19,13 @@ async function callLookup(body: Record<string, unknown>): Promise<Record<string,
 
 export default function PublicTableLookupPage() {
   const { slug } = useParams<{ slug: string }>();
+
+  usePageSeo({
+    title: 'Find Your Table — Vowora',
+    description: 'Look up your wedding table and seat using the personal code on your invitation. Private seating lookup, excluded from search engines.',
+    path: `/w/${slug || ''}/table-lookup`,
+    noindex: true,
+  });
 
   const [searchName, setSearchName] = useState('');
   const [lookupCode, setLookupCode] = useState('');

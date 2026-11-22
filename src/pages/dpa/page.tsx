@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { dpaBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 export default function DPAPage() {
   usePageSeo({
-    title: 'Data Processing Addendum — Vowora',
-    description: 'An outline of the Data Processing Addendum Vowora offers business customers under Article 28 of the UK GDPR, covering processor obligations, subprocessing, transfers and security.',
+    title: 'Data Processing Addendum — GDPR Article 28 Terms — Vowora',
+    description: 'An outline of the Data Processing Addendum Vowora offers business customers under Article 28 of the UK GDPR, covering obligations, transfers and security.',
     path: '/dpa',
     keywords: 'Vowora DPA, data processing addendum, UK GDPR Article 28, business customer data protection',
+    breadcrumbs: dpaBreadcrumbs,
   });
 
   return (
@@ -16,6 +19,7 @@ export default function DPAPage() {
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={dpaBreadcrumbs} className="mb-5" />
           <span className="section-label">Legal</span>
           <h1 className="font-heading text-4xl md:text-5xl text-foreground-900 mt-3 mb-2">Data Processing Addendum</h1>
           <p className="text-sm text-foreground-500 mb-10">Last updated: July 2026</p>

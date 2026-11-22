@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { cookiesBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 export default function CookieNoticePage() {
   usePageSeo({
-    title: 'Cookie Notice — Vowora',
-    description: 'How Vowora uses cookies and browser local storage, the exact storage keys we set, how long each is kept, how to change your choices, and which third parties we contact.',
+    title: 'Cookie Notice — Cookies, Storage & Your Choices — Vowora',
+    description: 'How Vowora uses cookies and local storage, the storage keys we set, how long each is kept, how to change your choices and which third parties we contact.',
     path: '/cookies',
     keywords: 'Vowora cookie notice, cookie consent, analytics cookies, UK PECR',
+    breadcrumbs: cookiesBreadcrumbs,
   });
 
   return (
@@ -16,6 +19,7 @@ export default function CookieNoticePage() {
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={cookiesBreadcrumbs} className="mb-5" />
           <span className="section-label">Legal</span>
           <h1 className="font-heading text-4xl md:text-5xl text-foreground-900 mt-3 mb-2">Cookie Notice</h1>
           <p className="text-sm text-foreground-500 mb-10">Last updated: November 2026</p>

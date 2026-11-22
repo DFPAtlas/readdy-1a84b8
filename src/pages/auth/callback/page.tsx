@@ -4,8 +4,16 @@ import { confirmationDestination } from '@/lib/authCallback';
 import type { EmailOtpType } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { isDemoMode } from '@/demo/demoConfig';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function AuthCallbackPage() {
+  usePageSeo({
+    title: 'Verifying Your Email — Vowora',
+    description: 'Confirming your Vowora account. This page completes email verification and then takes you straight to your wedding workspace.',
+    path: '/auth/callback',
+    noindex: true,
+  });
+
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = params.get("next");

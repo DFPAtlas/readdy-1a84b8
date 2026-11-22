@@ -2,13 +2,16 @@ import { Link } from 'react-router-dom';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
 import { usePageSeo } from '@/hooks/usePageSeo';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { contentRulesBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 export default function ContentRulesPage() {
   usePageSeo({
-    title: 'Community & Content Rules — Vowora',
-    description: 'What is and is not acceptable when sharing content on Vowora: photo and video uploads, prohibited content, how to report content and how we enforce these rules.',
+    title: 'Community & Content Rules — Uploads & Safety — Vowora',
+    description: 'What is and is not acceptable when sharing content on Vowora: photo and video uploads, prohibited content, how to report content and how we enforce it.',
     path: '/content-rules',
     keywords: 'Vowora content rules, community guidelines, report content, user-generated content policy',
+    breadcrumbs: contentRulesBreadcrumbs,
   });
 
   return (
@@ -16,6 +19,7 @@ export default function ContentRulesPage() {
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 md:px-6 lg:px-8">
+          <PublicBreadcrumbs items={contentRulesBreadcrumbs} className="mb-5" />
           <span className="section-label">Legal</span>
           <h1 className="font-heading text-4xl md:text-5xl text-foreground-900 mt-3 mb-2">Community &amp; Content Rules</h1>
           <p className="text-sm text-foreground-500 mb-10">Last updated: July 2026</p>

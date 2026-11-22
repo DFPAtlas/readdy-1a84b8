@@ -3,10 +3,18 @@ import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { isDemoMode } from '@/demo/demoConfig';
 import { useAuth } from '@/context/AuthProvider';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4a6e-8202-84a3a77c69f8/065bb409-a687-4c47-ac84-cf74a32a70b0_compressed_pexels-nick-greaux-15231247.webp';
 
 export default function ForgotPasswordPage() {
+  usePageSeo({
+    title: 'Reset Your Password — Vowora',
+    description: 'Request a secure password reset link for your Vowora account. Enter your email address and we will send you a link to choose a new password.',
+    path: '/forgot-password',
+    noindex: true,
+  });
+
   const [status, setStatus] = useState<'idle' | 'submitting' | 'sent'>('idle');
   const formRef = useRef<HTMLFormElement>(null);
   const { requestPasswordReset } = useAuth();

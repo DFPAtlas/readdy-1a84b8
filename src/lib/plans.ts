@@ -5,7 +5,7 @@ import type { BillingPlanKey, PlanConfig, PlanLimits } from '@/types/billing';
 // Stripe price IDs come from wedora_subscription_plans in the database.
 // The frontend NEVER sends raw Stripe price IDs to the backend.
 
-import { PLAN_LIMITS } from '../../supabase/functions/_shared/entitlementConfig';
+import { PLAN_LIMITS } from '@/lib/entitlementConfig';
 const FREE_LIMITS: PlanLimits = PLAN_LIMITS.free;
 const ESSENTIAL_LIMITS: PlanLimits = PLAN_LIMITS.essential;
 const COMPLETE_LIMITS: PlanLimits = PLAN_LIMITS.complete;

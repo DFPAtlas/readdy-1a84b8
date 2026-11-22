@@ -1,4 +1,4 @@
-import type { PaidFeature } from '../../supabase/functions/_shared/entitlementConfig';
+import type { PaidFeature } from '@/lib/entitlementConfig';
 export function paidRouteFeature(path: string): PaidFeature | null {
   // Basic RSVP response collection stays on Free.
   if (path === '/app/invitations/responses') return null;

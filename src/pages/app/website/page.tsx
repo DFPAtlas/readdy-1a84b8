@@ -35,6 +35,7 @@ import {
   defaultContactConfig,
   defaultRsvpConfig,
 } from '@/types/website';
+import AppShell from '@/components/feature/AppShell';
 
 // ── Helpers ──
 
@@ -293,6 +294,7 @@ export default function WeddingWebsiteBuilderPage() {
 
   if (loading) {
     return (
+      <AppShell>
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-primary-50 text-primary-500 mb-4">
@@ -301,11 +303,13 @@ export default function WeddingWebsiteBuilderPage() {
           <p className="text-sm text-foreground-500">Loading website builder...</p>
         </div>
       </div>
+      </AppShell>
     );
   }
 
   if (error && !draftConfig) {
     return (
+      <AppShell>
       <div className="max-w-xl mx-auto py-16 text-center">
         <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-full bg-secondary-100 text-foreground-300 mb-4">
           <i className="ri-error-warning-line text-2xl" />
@@ -315,6 +319,7 @@ export default function WeddingWebsiteBuilderPage() {
           Retry
         </button>
       </div>
+      </AppShell>
     );
   }
 
@@ -325,7 +330,8 @@ export default function WeddingWebsiteBuilderPage() {
   const previewWidth = previewMode === 'mobile' ? 375 : previewMode === 'tablet' ? 768 : '100%';
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -m-4 md:-m-6 lg:-m-8">
+    <AppShell>
+    <div className="h-[calc(100vh-6rem)] flex flex-col -m-4 md:-m-6 lg:-m-8">
       {/* ── Top Bar ── */}
       <header className="flex-shrink-0 h-14 border-b border-secondary-100 bg-white flex items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-3 min-w-0">
@@ -532,6 +538,7 @@ export default function WeddingWebsiteBuilderPage() {
         </div>
       )}
     </div>
+    </AppShell>
   );
 }
 

@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { edgeFunctionUrl } from '@/lib/edgeFunctions';
 import { formatMinor, toMinor, toMajor } from '@/lib/budgetMoney';
 import type { CurrencyCode } from '@/lib/budgetMoney';
+import AppShell from '@/components/feature/AppShell';
 
 const CONNECT_URL = edgeFunctionUrl('gift-fund-connect');
 
@@ -237,18 +238,21 @@ export default function GiftFundingSetupPage() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-10 animate-pulse space-y-6">
+      <AppShell>
+      <div className="max-w-4xl mx-auto animate-pulse space-y-6">
         <div className="h-8 w-48 bg-secondary-100 rounded-lg" />
         <div className="h-32 bg-secondary-100 rounded-xl" />
         <div className="h-40 bg-secondary-100 rounded-xl" />
       </div>
+      </AppShell>
     );
   }
 
   const canActivateFunds = accountStatus.status === 'ready';
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 md:py-10">
+    <AppShell>
+    <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
@@ -543,5 +547,6 @@ export default function GiftFundingSetupPage() {
         Payments are processed securely by Stripe. We do not store or have access to your bank details.
       </p>
     </div>
+    </AppShell>
   );
 }

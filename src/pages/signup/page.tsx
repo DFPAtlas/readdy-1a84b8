@@ -11,10 +11,11 @@ const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4
 
 export default function SignupPage() {
   usePageSeo({
-    title: 'Create Your Account — Vowora',
+    title: 'Create Your Free Account — Start Planning Today — Vowora',
     description: 'Create your free Vowora account and bring every wedding detail together: website, guest list, invitations, RSVPs and updates in one calm place.',
     path: '/signup',
     keywords: 'create Vowora account, wedding website signup, free wedding planning account',
+    noindex: false,
   });
 
   const [showPassword, setShowPassword] = useState(false);

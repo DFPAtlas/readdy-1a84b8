@@ -5,6 +5,7 @@ import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { isDemoMode } from '@/demo/demoConfig';
 import { PUBLIC_SITE_HOST } from '@/lib/env';
 import { useWeddingEntitlements } from '@/hooks/useWeddingEntitlements';
+import AppShell from '@/components/feature/AppShell';
 import type { BillingPlanKey } from '@/types/billing';
 
 // ── Domain status types ──
@@ -233,6 +234,7 @@ export default function WebsiteDomainPage() {
   };
 
   return (
+    <AppShell>
     <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="mb-8">
@@ -578,5 +580,6 @@ export default function WebsiteDomainPage() {
         </div>
       )}
     </div>
+    </AppShell>
   );
 }

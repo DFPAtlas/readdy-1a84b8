@@ -5,8 +5,23 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { supabase } from '@/lib/supabase';
 import PublicNavbar from '@/components/feature/PublicNavbar';
 import Footer from '@/components/feature/Footer';
+import PublicBreadcrumbs from '@/components/feature/PublicBreadcrumbs';
+import { usePageSeo } from '@/hooks/usePageSeo';
+
+const emailPreferencesBreadcrumbs = [
+  { label: 'Home', path: '/' },
+  { label: 'Email preferences' },
+];
 
 export default function UnsubscribePage() {
+  usePageSeo({
+    title: 'Email Preferences — Vowora',
+    description: 'Manage which wedding emails you receive from Vowora. Update your preferences or unsubscribe using the secure link included in your invitation email.',
+    path: '/unsubscribe',
+    breadcrumbs: emailPreferencesBreadcrumbs,
+    noindex: true,
+  });
+
   const [searchParams] = useSearchParams();
   const emailParam = searchParams.get('email') || '';
   const tokenParam = searchParams.get('token') || '';
@@ -53,6 +68,7 @@ export default function UnsubscribePage() {
       <PublicNavbar transparent={false} />
       <main className="pt-20 md:pt-24 pb-16">
         <div className="max-w-lg mx-auto px-4 md:px-6">
+          <PublicBreadcrumbs items={emailPreferencesBreadcrumbs} className="mb-5" />
           <div className="text-center mb-8">
             <div className="w-14 h-14 mx-auto flex items-center justify-center rounded-full bg-accent-100 text-accent-600 mb-4">
               <i className="ri-mail-close-line text-2xl" />

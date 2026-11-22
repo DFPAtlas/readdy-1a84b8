@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AppShell from '@/components/feature/AppShell';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { supabase } from '@/lib/supabase';
+import { rememberSeatingProposalTitle } from '@/lib/seatingProposalNames';
 import type { SeatingPlan, AssistantProposal, SeatingConflict } from '@/types/seating';
 import { PROPOSAL_STATUS_LABELS, PROPOSAL_STATUS_COLOURS } from '@/types/seating';
 
@@ -55,7 +56,9 @@ export default function SeatingAssistantPage() {
       setPlan(planData as SeatingPlan);
 
       const { data: proposalsData } = await supabase.from('seating_assistant_proposals').select('*').eq('seating_plan_id', planId).order('generated_at', { ascending: false });
-      setProposals((proposalsData || []) as AssistantProposal[]);
+      const proposalList = (proposalsData || []) as AssistantProposal[];
+      proposalList.forEach((p) => rememberSeatingProposalTitle(p.id, p.scope));
+      setProposals(proposalList);
     } catch { /* */ } finally { setLoading(false); }
   }, [weddingId, planId, navigate]);
 

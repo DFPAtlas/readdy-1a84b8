@@ -3,8 +3,16 @@ import { Link } from 'react-router-dom';
 import { isDemoMode, DEMO_CONFIG } from '@/demo/demoConfig';
 import { useDemoData } from '@/demo/useDemoData';
 import { getLastInitialised } from '@/demo/demoStorage';
+import { usePageSeo } from '@/hooks/usePageSeo';
 
 export default function DemoStartPage() {
+  usePageSeo({
+    title: 'Demo Launcher — Vowora',
+    description: 'Internal presentation launcher for the Vowora demonstration wedding. Not part of the public website.',
+    path: '/demo-start',
+    noindex: true,
+  });
+
   const { state, stats, resetDemo, resetGallery } = useDemoData();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [resetDone, setResetDone] = useState(false);
