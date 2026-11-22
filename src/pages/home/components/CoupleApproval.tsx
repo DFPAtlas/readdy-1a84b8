@@ -39,7 +39,7 @@ export default function CoupleApproval() {
           <div className="w-full lg:w-1/2">
             <div className="bg-white border border-secondary-100 rounded-xl p-6">
               <div className="flex items-center justify-between mb-5">
-                <h4 className="font-label text-sm font-semibold text-foreground-900">Approval queue</h4>
+                <h3 className="font-label text-sm font-semibold text-foreground-900">Approval queue</h3>
                 <ApprovalBadge />
               </div>
 

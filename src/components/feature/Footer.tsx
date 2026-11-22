@@ -39,9 +39,9 @@ export default function Footer() {
 
           {/* Product links */}
           <div>
-            <h4 className="font-label text-xs tracking-widest uppercase text-foreground-500 mb-4">
+            <h2 className="font-label text-xs tracking-widest uppercase text-foreground-500 mb-4">
               <Link to="/features" className="hover:text-foreground-700 transition-colors cursor-pointer">Product</Link>
-            </h4>
+            </h2>
             <ul className="space-y-3">
               {footerLinks.product.map((link) => (
                 <li key={link.href}>
@@ -58,9 +58,9 @@ export default function Footer() {
 
           {/* Company links */}
           <div>
-            <h4 className="font-label text-xs tracking-widest uppercase text-foreground-500 mb-4">
+            <h2 className="font-label text-xs tracking-widest uppercase text-foreground-500 mb-4">
               <Link to="/about" className="hover:text-foreground-700 transition-colors cursor-pointer">Company</Link>
-            </h4>
+            </h2>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
@@ -77,7 +77,7 @@ export default function Footer() {
 
           {/* Legal links */}
           <div>
-            <h4 className="font-label text-xs tracking-widest uppercase text-foreground-500 mb-4">Legal</h4>
+            <h2 className="font-label text-xs tracking-widest uppercase text-foreground-500 mb-4">Legal</h2>
             <ul className="space-y-3">
               {footerLinks.legal.map((link) => (
                 <li key={link.href}>

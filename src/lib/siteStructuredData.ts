@@ -1,4 +1,5 @@
 import { SITE_NAME, SITE_URL, DEFAULT_OG_IMAGE } from '@/hooks/usePageSeo';
+import type { PlanConfig } from '@/types/billing';
 
 /**
  * Site-level structured data for the homepage.
@@ -56,7 +57,7 @@ export function buildHomeStructuredData(): Record<string, unknown> {
   const webPage = {
     '@type': 'WebPage',
     '@id': webPageId,
-    name: `${SITE_NAME} — Your Wedding, Beautifully Organised`,
+    name: `${SITE_NAME} — Wedding Website, Guest List & RSVP Planner`,
     url: `${SITE_URL}/`,
     description:
       'Vowora helps couples create a wedding website, manage every guest, collect RSVPs, share updates and help everyone plan their journey.',
@@ -70,5 +71,43 @@ export function buildHomeStructuredData(): Record<string, unknown> {
   return {
     '@context': 'https://schema.org',
     '@graph': [organization, website, webPage],
+  };
+}
+/**
+ * Pricing page: the product and one Offer per plan, built from the same plan
+ * list the page renders, so the structured prices can never drift from the
+ * visible ones.
+ */
+export function buildPricingStructuredData(plans: PlanConfig[]): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    '@id': `${SITE_URL}/pricing#software`,
+    name: SITE_NAME,
+    url: `${SITE_URL}/`,
+    applicationCategory: 'LifestyleApplication',
+    operatingSystem: 'Web',
+    description:
+      'Wedding planning software for couples: wedding website, guest list, invitations, RSVPs, seating, budget and guest updates in one place.',
+    publisher: { '@id': `${SITE_URL}/#organization` },
+    offers: plans.map((plan) => ({
+      '@type': 'Offer',
+      name: plan.name,
+      description: plan.description,
+      price: (plan.monthlyPriceMinor / 100).toFixed(2),
+      priceCurrency: plan.currency.toUpperCase(),
+      url: `${SITE_URL}/pricing`,
+      ...(plan.isFree
+        ? {}
+        : {
+            priceSpecification: {
+              '@type': 'UnitPriceSpecification',
+              price: (plan.monthlyPriceMinor / 100).toFixed(2),
+              priceCurrency: plan.currency.toUpperCase(),
+              billingDuration: 'P1M',
+              unitText: 'month',
+            },
+          }),
+    })),
   };
 }

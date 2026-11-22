@@ -2,8 +2,10 @@
  * Single source of truth for what is indexable and what is not.
  *
  * - `INDEXABLE_PUBLIC_ROUTES` mirrors the routes that are allowed into search
- *   results. `public/sitemap.xml` is generated from this list, so adding a page
- *   here (and regenerating the sitemap) is the only step needed to expose it.
+ *   results. `public/sitemap.xml` is generated from this list by
+ *   scripts/generate-sitemap.mjs on every build (`prebuild`), with each
+ *   page's <lastmod> taken from git; CI fails if the two drift
+ *   (`npm run check:sitemap`).
  * - `NOINDEX_PREFIXES` lists the private areas that must never be crawled.
  * - `describePrivateRoute` gives each private screen a unique document title
  *   (useful for browser history and support tickets) while its `robots` tag
@@ -151,6 +153,35 @@ const SEGMENT_LABELS: Record<string, string> = {
   'gallery-control': 'Gallery Control',
   new: 'New',
   edit: 'Edit',
+  'gift-funding': 'Gift Funds',
+  setup: 'Budget Setup',
+};
+
+/**
+ * Labels that several sections share (a budget report and a seating report
+ * are both "Reports"). These are prefixed with their section so every
+ * private title stays unique.
+ */
+const SHARED_LABEL_SEGMENTS = new Set(['settings', 'reports', 'exports', 'suppliers', 'assistant', 'versions', 'audit']);
+
+/** Section names used as that prefix, keyed by the parent path segment. */
+const SECTION_PREFIX: Record<string, string> = {
+  budget: 'Budget',
+  plans: 'Seating Plan',
+  seating: 'Seating',
+  admin: 'Admin',
+  website: 'Website',
+};
+
+/** What a record page is called, keyed by the list segment its id sits under. */
+const RECORD_LABELS: Record<string, string> = {
+  guests: 'Guest Details',
+  households: 'Household Details',
+  invitations: 'Invitation Details',
+  templates: 'Invitation Template',
+  plans: 'Seating Plan',
+  assistant: 'Seating Assistant Proposal',
+  help: 'Help Article',
 };
 
 /** Explicit titles for screens whose path alone reads awkwardly. */
@@ -162,6 +193,8 @@ const PATH_TITLE_OVERRIDES: Record<string, string> = {
   '/app/guests/households/new': 'Add a Household',
   '/app/seating/new': 'Create a Seating Plan',
   '/app/admin/operations': 'Operations Dashboard',
+  '/app/admin/support': 'Support Cases',
+  '/app/admin/dashboard': 'Operations Dashboard',
   '/app/admin/system-readiness': 'System Readiness',
   '/app/account/privacy': 'Privacy & Data',
   '/app/account/security': 'Account Security',
@@ -189,17 +222,42 @@ export function describePrivateRoute(pathname: string): string {
   const override = PATH_TITLE_OVERRIDES[clean];
   if (override) return override;
 
-  const segments = clean
-    .split('/')
-    .filter(Boolean)
-    .filter((segment) => !/^[0-9a-f-]{8,}$/i.test(segment) && !/^\d+$/.test(segment));
+  const isId = (segment: string) => /^[0-9a-f-]{8,}$/i.test(segment) || /^\d+$/.test(segment);
+  const raw = clean.split('/').filter(Boolean);
+
+  // A record page (…/guests/<id>, …/plans/<id>) is named after the record,
+  // not the list it belongs to.
+  if (raw.length >= 2 && isId(raw[raw.length - 1])) {
+    const record = RECORD_LABELS[raw[raw.length - 2]];
+    if (record) return record;
+  }
+
+  const segments = raw.filter((segment) => !isId(segment));
 
   const last = segments[segments.length - 1];
   const previous = segments[segments.length - 2];
 
   if (last && EDIT_PREFIX_SEGMENTS.has(last) && previous) {
-    const base = SEGMENT_LABELS[previous] || prettifySegment(previous);
+    const recordId = raw[raw.length - 2];
+    const base = isId(recordId) && RECORD_LABELS[previous]
+      ? RECORD_LABELS[previous]
+      : SEGMENT_LABELS[previous] || prettifySegment(previous);
     return `${last === 'new' ? 'New' : 'Edit'} — ${base}`;
+  }
+
+  // An unlabelled final segment is content of its own (a help article slug).
+  if (last && !SEGMENT_LABELS[last] && previous && SEGMENT_LABELS[previous]) {
+    return `${prettifySegment(last)} — ${SEGMENT_LABELS[previous]}`;
+  }
+
+  if (last && SHARED_LABEL_SEGMENTS.has(last) && SEGMENT_LABELS[last]) {
+    for (let i = segments.length - 2; i >= 0; i -= 1) {
+      const prefix = SECTION_PREFIX[segments[i]];
+      if (prefix) {
+        const label = SEGMENT_LABELS[last];
+        return label.startsWith(prefix.split(' ')[0]) ? label : `${prefix} ${label}`;
+      }
+    }
   }
 
   for (let i = segments.length - 1; i >= 0; i -= 1) {

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import type { WebsiteConfig, WeddingPartyProfile } from "@/types/website";
 import { usePublicSeoMetadata } from "@/hooks/usePublicSeoMetadata";
+import { usePageSeo, canonicalUrl } from "@/hooks/usePageSeo";
 type Row = Record<string, string | null>;
 type Published = {
   features?: { whiteLabel?: boolean; seatingLookup?: boolean };
@@ -126,14 +127,17 @@ function Website({ data }: { data: Published }) {
   usePublicSeoMetadata({
     seo: config.seo_config,
     siteTitle: wedding.title || "",
-    siteUrl: window.location.origin + "/w/" + wedding.slug,
+    // Always the production domain, so a site opened on a preview host never
+    // declares that host as its canonical address.
+    siteUrl: canonicalUrl("/w/" + wedding.slug),
     coupleNames: [wedding.partner_one_name, wedding.partner_two_name]
       .filter(Boolean)
       .join(" & "),
     weddingDate: wedding.wedding_date || undefined,
     location: wedding.location || undefined,
-    // Published wedding websites are always discoverable so guests can find them via Google.
-    searchIndexing: true,
+    // The couple chooses this on Website → SEO ("Allow search engine
+    // indexing"); the page there tells them when it is off.
+    searchIndexing: config.seo_config?.search_indexing === true,
     faqs: visibleFaqs,
     venues: visibleVenues,
     venueAddressVisible,
@@ -479,6 +483,22 @@ export default function PublishedWeddingWebsite({
       cancelled = true;
     };
   }, [slug]);
+  if (loading || !data) {
+    return <WebsiteStatus loading={loading} slug={slug} />;
+  }
+  return <Website data={data} />;
+}
+
+/** Loading and unavailable states: kept out of search, never the homepage's tags. */
+function WebsiteStatus({ loading, slug }: { loading: boolean; slug: string | undefined }) {
+  usePageSeo({
+    title: loading ? "Loading wedding website" : "Wedding website unavailable",
+    description: loading
+      ? "This couple's wedding website is loading. Wedding details, schedule, travel information and RSVP will appear in a moment."
+      : "This wedding website has not been published, or the link has changed. Ask the couple for their current wedding website link.",
+    path: slug ? `/w/${slug}` : "/w",
+    noindex: true,
+  });
   if (loading)
     return (
       <main
@@ -488,8 +508,7 @@ export default function PublishedWeddingWebsite({
         Loading wedding website…
       </main>
     );
-  if (!data)
-    return (
+  return (
       <main className="min-h-screen flex flex-col items-center justify-center p-8">
         <h1 className="font-heading text-3xl mb-4">
           Wedding website unavailable
@@ -502,5 +521,4 @@ export default function PublishedWeddingWebsite({
         </Link>
       </main>
     );
-  return <Website data={data} />;
 }

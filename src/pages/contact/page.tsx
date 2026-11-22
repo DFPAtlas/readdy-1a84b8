@@ -11,7 +11,7 @@ const FORM_SUBMIT_URL = 'https://readdy.ai/api/form/dc0t20ddijqr49062060';
 
 export default function ContactPage() {
   usePageSeo({
-    title: 'Contact Vowora — Questions, Support & Feedback',
+    title: 'Contact Vowora — Support, Privacy Requests & Feedback',
     description: 'Get in touch with Vowora about the platform, technical support, privacy requests or feedback. Send us a message and we will get back to you quickly.',
     path: '/contact',
     keywords: 'contact Vowora, wedding planning support, privacy request, wedding platform help',

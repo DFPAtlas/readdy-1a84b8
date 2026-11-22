@@ -20,7 +20,7 @@ const HERO_POSTER_SRC = 'https://readdy.ai/api/search-image?query=Clean%20modern
 
 export default function Home() {
   usePageSeo({
-    title: 'Vowora — Your Wedding, Beautifully Organised',
+    title: 'Vowora — Wedding Website, Guest List & RSVP Planner',
     description: 'Vowora helps couples build a wedding website, manage every guest, collect RSVPs and share updates, so everyone can plan the celebration with confidence.',
     path: '/',
     keywords: 'wedding planning, wedding website, guest management, RSVP, wedding organisation, wedding travel, destination wedding',

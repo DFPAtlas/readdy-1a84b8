@@ -7,7 +7,7 @@ import { retentionBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 export default function RetentionPage() {
   usePageSeo({
-    title: 'Data Retention & Deletion Schedule — Vowora',
+    title: 'Data Retention & Deletion Schedule — Vowora Privacy',
     description: 'How long Vowora keeps each category of personal data, from wedding and guest data to payment records, cookies and backups, and how deletions are handled.',
     path: '/retention',
     keywords: 'Vowora data retention, deletion schedule, data minimisation, guest deletion rights',

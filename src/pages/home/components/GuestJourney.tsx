@@ -24,7 +24,7 @@ export default function GuestJourney() {
                     </div>
                   </ScrollReveal>
                   <div>
-                    <h4 className="font-label text-sm font-semibold text-foreground-900">{step.title}</h4>
+                    <h3 className="font-label text-sm font-semibold text-foreground-900">{step.title}</h3>
                     <p className="text-sm text-foreground-600 mt-0.5">{step.description}</p>
                   </div>
                 </div>
