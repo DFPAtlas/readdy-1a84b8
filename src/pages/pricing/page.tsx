@@ -6,6 +6,7 @@ import { isDemoMode } from '@/demo/demoConfig';
 import { useAuth } from '@/context/AuthProvider';
 import { useActiveWedding } from '@/hooks/useActiveWedding';
 import { useSubscription } from '@/hooks/useSubscription';
+import { buildPricingStructuredData } from '@/lib/siteStructuredData';
 import { getActivePlans, formatPrice, getComparisonFeatures, isUpgrade, isDowngrade } from '@/lib/plans';
 import type { BillingPlanKey } from '@/types/billing';
 import { usePageSeo } from '@/hooks/usePageSeo';
@@ -16,59 +17,62 @@ const RINGS_BG = 'https://storage.readdy-site.link/project_files/db465b55-2978-4
 
 export default function PricingPage() {
   usePageSeo({
-    title: 'Pricing & Plans — Vowora Wedding Planning',
-    description: 'Simple, transparent Vowora pricing. Start free and upgrade as your wedding grows. Compare Free, Essential, Complete and Luxury plans with no card needed to begin.',
+    title: 'Vowora Pricing — Free, Essential, Complete & Luxury Plans',
+    description: 'Simple, transparent Vowora pricing. Start free and upgrade as your wedding grows. Compare the Free, Essential, Complete and Luxury plans, no card needed.',
     path: '/pricing',
     image: 'https://readdy.ai/api/search-image?query=Elegant%20flat-lay%20editorial%20photograph%20of%20warm%20cream%20paper%20cards%20arranged%20on%20soft%20sage%20linen%20with%20dried%20eucalyptus%20sprigs%2C%20terracotta%20ribbon%20and%20a%20small%20brass%20ring%2C%20soft%20diffused%20natural%20window%20light%2C%20minimal%20calm%20wedding%20planning%20mood%2C%20muted%20warm%20neutral%20palette%2C%20no%20text%2C%20high%20detail%2C%20editorial%20photography%2C%20landscape%20composition&width=1200&height=630&seq=og-pricing-2026-a1&orientation=landscape',
     imageAlt: 'Vowora pricing — warm cream and sage wedding planning stationery with terracotta ribbon',
     keywords: 'wedding planning pricing, wedding website cost, wedding planner subscription, Vowora plans',
     breadcrumbs: pricingBreadcrumbs,
-    structuredData: {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: [
-        {
-          '@type': 'Question',
-          name: 'Can I switch plans later?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Yes, you can upgrade or downgrade at any time. When upgrading, you get immediate access to new features. When downgrading, changes take effect at the end of your billing period.',
+    structuredData: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'Can I switch plans later?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Yes, you can upgrade or downgrade at any time. When upgrading, you get immediate access to new features. When downgrading, changes take effect at the end of your billing period.',
+            },
           },
-        },
-        {
-          '@type': 'Question',
-          name: 'What happens to my data if I downgrade?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Your data is always safe. If you exceed a plan limit after downgrading, existing data remains accessible but you may not be able to add more until you upgrade again.',
+          {
+            '@type': 'Question',
+            name: 'What happens to my data if I downgrade?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Your data is always safe. If you exceed a plan limit after downgrading, existing data remains accessible but you may not be able to add more until you upgrade again.',
+            },
           },
-        },
-        {
-          '@type': 'Question',
-          name: 'Is there a free trial?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'Essential, Complete, and Luxury plans come with a 14-day free trial. You can cancel anytime during the trial and will not be charged.',
+          {
+            '@type': 'Question',
+            name: 'Is there a free trial?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Essential, Complete, and Luxury plans come with a 14-day free trial. You can cancel anytime during the trial and will not be charged.',
+            },
           },
-        },
-        {
-          '@type': 'Question',
-          name: 'How does billing work?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'All payments are processed securely through Stripe. You will be billed monthly and can view your invoices anytime from your billing dashboard.',
+          {
+            '@type': 'Question',
+            name: 'How does billing work?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'All payments are processed securely through Stripe. You will be billed monthly and can view your invoices anytime from your billing dashboard.',
+            },
           },
-        },
-        {
-          '@type': 'Question',
-          name: 'Can I get a refund?',
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: 'We do not offer refunds for partial months, but you can cancel anytime and keep access until the end of your billing period.',
+          {
+            '@type': 'Question',
+            name: 'Can I get a refund?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'We do not offer refunds for partial months, but you can cancel anytime and keep access until the end of your billing period.',
+            },
           },
-        },
-      ],
-    },
+        ],
+      },
+      buildPricingStructuredData(getActivePlans()),
+    ],
   });
 
   const { user, isAuthenticated } = useAuth();
@@ -203,7 +207,7 @@ export default function PricingPage() {
                       </span>
                     )}
 
-                    <h3 className="font-heading text-xl text-foreground-900">{plan.name}</h3>
+                    <h2 className="font-heading text-xl text-foreground-900">{plan.name}</h2>
                     <p className="text-sm text-foreground-500 mt-1">{plan.description}</p>
 
                     <div className="mt-5 mb-1">

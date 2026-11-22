@@ -7,7 +7,7 @@ import { aboutBreadcrumbs } from '@/lib/marketingBreadcrumbs';
 
 export default function AboutPage() {
   usePageSeo({
-    title: 'About Vowora — Calm, Thoughtful Wedding Planning',
+    title: 'About Vowora — Calm, Thoughtful Wedding Planning for Couples',
     description: 'Vowora was built for the couples behind every celebration: one calm, beautiful space to plan your wedding, keep guests informed and protect their privacy.',
     path: '/about',
     image: 'https://readdy.ai/api/search-image?query=Dreamy%20English%20countryside%20hotel%20at%20golden%20hour%20with%20honey-stone%20facade%2C%20climbing%20roses%2C%20manicured%20garden%20and%20soft%20misty%20light%2C%20warm%20earthy%20tones%20of%20cream%2C%20sage%20and%20terracotta%2C%20romantic%20calm%20wedding%20venue%20mood%2C%20no%20people%2C%20high%20detail%2C%20editorial%20travel%20photography%2C%20landscape%20composition&width=1200&height=630&seq=og-about-2026-c3&orientation=landscape',

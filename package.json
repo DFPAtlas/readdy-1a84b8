@@ -52,7 +52,10 @@
   "name": "react",
   "private": true,
   "scripts": {
+    "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "vite build",
+    "seo:sitemap": "node scripts/generate-sitemap.mjs",
+    "check:sitemap": "node scripts/generate-sitemap.mjs --check",
     "dev": "vite",
     "lint": "eslint . --report-unused-disable-directives",
     "preview": "vite preview",

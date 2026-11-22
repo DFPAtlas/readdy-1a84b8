@@ -154,7 +154,7 @@ export default function FeaturesPage() {
                   <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-accent-50 text-accent-600 mb-4">
                     <i className={`${feature.icon} text-lg`} />
                   </div>
-                  <h3 className="font-heading text-lg text-foreground-900 mb-2">{feature.title}</h3>
+                  <h2 className="font-heading text-lg text-foreground-900 mb-2">{feature.title}</h2>
                   <p className="text-sm text-foreground-600 leading-relaxed">{feature.description}</p>
                   {feature.status === 'coming-soon' && (
                     <span className="absolute top-4 right-4 inline-flex items-center px-2.5 py-1 rounded-full bg-secondary-100 text-secondary-800 text-xs font-label">

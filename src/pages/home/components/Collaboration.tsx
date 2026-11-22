@@ -39,7 +39,7 @@ export default function Collaboration() {
               <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-accent-50 text-accent-600 mb-3">
                 <i className="ri-user-star-line text-lg" />
               </div>
-              <h4 className="font-label text-sm font-semibold text-foreground-900">{role.role}</h4>
+              <h3 className="font-label text-sm font-semibold text-foreground-900">{role.role}</h3>
               <p className="text-xs text-foreground-600 mt-1.5 leading-relaxed">{role.description}</p>
             </div>
           ))}
@@ -47,7 +47,7 @@ export default function Collaboration() {
 
         {/* Permission example */}
         <div className="mt-10 bg-white border border-secondary-100 rounded-xl p-6">
-          <h4 className="font-label text-sm font-semibold text-foreground-900 mb-4">Example permissions</h4>
+          <h3 className="font-label text-sm font-semibold text-foreground-900 mb-4">Example permissions</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             {['Guest management', 'Website editing', 'Supplier management', 'Budget access', 'Email updates'].map((perm) => (
               <div key={perm} className="flex items-center gap-2 text-sm text-foreground-700">

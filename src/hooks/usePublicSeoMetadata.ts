@@ -169,6 +169,15 @@ export function usePublicSeoMetadata({
     // A marketing page may have left its own per-page tags behind; clear those
     // too so a couple's wedding website never inherits another page's preview.
     head.querySelectorAll('[data-page-seo]').forEach((t) => t.remove());
+    // index.html ships static homepage tags (description, robots, canonical,
+    // Open Graph, Twitter). Remove them as well, or the couple's site ends up
+    // with two of each, one still pointing at the Vowora homepage. Marketing
+    // pages recreate them on their next visit.
+    head
+      .querySelectorAll(
+        'meta[name="description"], meta[name="keywords"], meta[name="robots"], link[rel="canonical"], meta[property^="og:"], meta[name^="twitter:"]',
+      )
+      .forEach((t) => t.remove());
 
     const createMeta = (
       content: string,

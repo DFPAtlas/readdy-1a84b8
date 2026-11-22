@@ -51,7 +51,10 @@ function GuestPortalContent() {
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   // ── Security: unique title + noindex, nofollow for the whole guest portal ──
-  usePrivateRouteSeo(guestBreadcrumbs[guestBreadcrumbs.length - 1]?.label || 'Guest Portal');
+  // The last two crumbs keep titles unique ("Saved — Travel" vs "Saved — Updates").
+  usePrivateRouteSeo(
+    guestBreadcrumbs.slice(1).slice(-2).reverse().map((crumb) => crumb.label).filter(Boolean).join(' — ') || 'Guest Portal',
+  );
 
   // ── Keyboard: Escape closes drawer ──
   useEffect(() => {
